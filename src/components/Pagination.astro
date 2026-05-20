@@ -1,0 +1,143 @@
+---
+export interface Props {
+  currentPage: number;
+  totalPages: number;
+  baseUrl: string;
+}
+
+const { currentPage, totalPages, baseUrl } = Astro.props;
+
+function getPageUrl(page: number): string {
+  if (page === 1) return baseUrl;
+  return `${baseUrl}/page/${page}`;
+}
+---
+
+{totalPages > 1 && (
+  <nav class="pagination" aria-label="分页导航">
+    <div class="pagination-info">
+      第 {currentPage} 页，共 {totalPages} 页
+    </div>
+
+    <div class="pagination-buttons">
+      {currentPage > 1 && (
+        <a href={getPageUrl(currentPage - 1)} class="pagination-btn pagination-prev" aria-label="上一页">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          上一页
+        </a>
+      )}
+
+      <div class="pagination-pages" role="group" aria-label="页码">
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <a
+            href={getPageUrl(page)}
+            class="pagination-page"
+            aria-current={page === currentPage ? 'page' : undefined}
+            aria-label={`第 ${page} 页`}
+          >
+            {page}
+          </a>
+        ))}
+      </div>
+
+      {currentPage < totalPages && (
+        <a href={getPageUrl(currentPage + 1)} class="pagination-btn pagination-next" aria-label="下一页">
+          下一页
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </a>
+      )}
+    </div>
+  </nav>
+)}
+
+<style>
+  .pagination {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--divider-color);
+  }
+
+  .pagination-info {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .pagination-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+    border: 1.5px solid var(--primary-pink);
+    color: var(--primary-pink);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .pagination-btn:hover {
+    background-color: var(--hover-bg);
+    border-color: var(--accent-pink);
+    color: var(--accent-pink);
+  }
+
+  .pagination-btn:focus-visible {
+    outline: 2px solid var(--primary-pink);
+    outline-offset: 2px;
+  }
+
+  .pagination-pages {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .pagination-page {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .pagination-page:hover {
+    background-color: var(--hover-bg);
+    color: var(--accent-pink);
+  }
+
+  .pagination-page[aria-current='page'] {
+    background-color: var(--primary-pink);
+    color: white;
+  }
+
+  .pagination-page:focus-visible {
+    outline: 2px solid var(--primary-pink);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 768px) {
+    .pagination-pages {
+      display: none;
+    }
+  }
+</style>

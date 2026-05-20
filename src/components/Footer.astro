@@ -1,0 +1,178 @@
+---
+const currentYear = new Date().getFullYear();
+
+const footerLinks = [
+  { label: 'RSS', href: '/rss.xml' },
+  { label: 'Sitemap', href: '/sitemap-index.xml' },
+];
+
+const friendLinks = [
+  { label: 'Epheia', href: 'https://desuwa.org' },
+];
+---
+
+<footer class="site-footer" role="contentinfo">
+  <div class="footer-container">
+    <div class="footer-main">
+      <div class="footer-brand">
+        <a href="/" class="footer-logo" aria-label="TransCircle Blog">
+          <svg width="20" height="20" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <circle cx="14" cy="14" r="12" stroke="var(--accent-pink)" stroke-width="2" fill="none"/>
+            <circle cx="14" cy="14" r="5" fill="var(--accent-pink)"/>
+          </svg>
+          <span>TransCircle Blog</span>
+        </a>
+        <p class="footer-description">记录开发进度与团队报告</p>
+      </div>
+
+      <div class="footer-section">
+        <h3 class="footer-heading">导航</h3>
+        <ul class="footer-links">
+          <li><a href="/">首页</a></li>
+          <li><a href="/tags">标签</a></li>
+          <li><a href="/search">搜索</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h3 class="footer-heading">友链</h3>
+        <ul class="footer-links">
+          {friendLinks.map((link) => (
+            <li>
+              <a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h3 class="footer-heading">更多</h3>
+        <ul class="footer-links">
+          {footerLinks.map((link) => (
+            <li><a href={link.href}>{link.label}</a></li>
+          ))}
+          <li>
+            <a href="https://transcircle.org" target="_blank" rel="noopener noreferrer">主站</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copyright">
+        © {currentYear} TransCircle. AGPL-3.0 License.
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 4rem;
+    padding: 3rem 0 2rem;
+    border-top: 1px solid var(--divider-color);
+    background-color: var(--bg-color);
+  }
+
+  .footer-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 3rem;
+  }
+
+  .footer-main {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+  }
+
+  .footer-logo:hover {
+    color: var(--accent-pink);
+  }
+
+  .footer-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .footer-heading {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    margin-top: 0;
+  }
+
+  .footer-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .footer-links a {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .footer-links a:hover {
+    color: var(--accent-pink);
+  }
+
+  .footer-bottom {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--divider-color);
+  }
+
+  .footer-copyright {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    text-align: center;
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .footer-container {
+      padding: 0 1.5rem;
+    }
+
+    .footer-main {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .footer-brand {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .footer-main {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

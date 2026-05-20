@@ -1,0 +1,143 @@
+---
+const themes = [
+  { id: 'light', label: '浅色模式', icon: 'sun' },
+  { id: 'dark', label: '深色模式', icon: 'moon' },
+  { id: 'contrast', label: '高对比度模式', icon: 'contrast' },
+];
+---
+
+<div class="theme-toggle" role="radiogroup" aria-label="主题切换">
+  {themes.map((theme) => (
+    <button
+      type="button"
+      class="theme-button"
+      data-theme={theme.id}
+      role="radio"
+      aria-label={theme.label}
+      aria-checked="false"
+    >
+      {theme.icon === 'sun' && (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      )}
+      {theme.icon === 'moon' && (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      )}
+      {theme.icon === 'contrast' && (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 2a10 10 0 0 1 0 20 10 10 0 0 1 0-20z" fill="currentColor"/>
+        </svg>
+      )}
+    </button>
+  ))}
+</div>
+
+<script>
+  const themeButtons = document.querySelectorAll('.theme-button');
+  const html = document.documentElement;
+
+  function setActiveTheme(themeId: string) {
+    themeButtons.forEach((btn) => {
+      const isActive = btn.getAttribute('data-theme') === themeId;
+      btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+      btn.classList.toggle('is-active', isActive);
+    });
+    html.setAttribute('data-theme', themeId);
+    localStorage.setItem('transcircle-theme', themeId);
+  }
+
+  // Initialize
+  const currentTheme = html.getAttribute('data-theme') || 'light';
+  setActiveTheme(currentTheme);
+
+  themeButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const themeId = btn.getAttribute('data-theme');
+      if (themeId) setActiveTheme(themeId);
+    });
+
+    btn.addEventListener('keydown', (e: KeyboardEvent) => {
+      const buttons = Array.from(themeButtons);
+      const index = buttons.indexOf(btn);
+      let nextIndex = index;
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        nextIndex = (index + 1) % buttons.length;
+        e.preventDefault();
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        nextIndex = (index - 1 + buttons.length) % buttons.length;
+        e.preventDefault();
+      } else if (e.key === 'Home') {
+        nextIndex = 0;
+        e.preventDefault();
+      } else if (e.key === 'End') {
+        nextIndex = buttons.length - 1;
+        e.preventDefault();
+      }
+
+      if (nextIndex !== index) {
+        const nextBtn = buttons[nextIndex] as HTMLElement;
+        nextBtn.focus();
+        const themeId = nextBtn.getAttribute('data-theme');
+        if (themeId) setActiveTheme(themeId);
+      }
+    });
+  });
+</script>
+
+<style>
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background-color: var(--hover-bg);
+    padding: 0.25rem;
+    border-radius: 8px;
+  }
+
+  .theme-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .theme-button:hover {
+    background-color: var(--soft-pink);
+    color: var(--text-main);
+  }
+
+  .theme-button:focus-visible {
+    outline: 2px solid var(--primary-pink);
+    outline-offset: 2px;
+  }
+
+  .theme-button.is-active {
+    background-color: var(--primary-pink);
+    color: white;
+  }
+
+  .theme-button[aria-checked='true'] {
+    background-color: var(--primary-pink);
+    color: white;
+  }
+</style>
