@@ -1,0 +1,252 @@
+---
+import { type CollectionEntry, getCollection } from 'astro:content';
+import Layout from '@layouts/Layout.astro';
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
+import { formatDate } from '@utils/posts';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+export interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+const { title, description, pubDate, updatedDate, author, category, tags, cover } = post.data;
+
+const formattedDate = formatDate(pubDate);
+const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
+---
+
+<Layout
+  title={title}
+  description={description || title}
+  image={cover}
+  type="article">
+  <Header />
+
+  <main id="main-content" class="container">
+    <article class="post-article">
+      <header class="post-header">
+        <div class="post-meta">
+          <span class="post-category">{category}</span>
+          <span class="post-meta-separator">·</span>
+          <time datetime={pubDate.toISOString()} class="post-date">{formattedDate}</time>
+          {formattedUpdatedDate && (
+            <>
+              <span class="post-meta-separator">·</span>
+              <span class="post-updated">更新于 {formattedUpdatedDate}</span>
+            </>
+          )}
+        </div>
+
+        <h1>{title}</h1>
+
+        {description && <p class="post-description">{description}</p>}
+
+        <div class="post-author">
+          <span class="author-label">作者：</span>
+          <span class="author-name">{author}</span>
+        </div>
+      </header>
+
+      {cover && (
+        <figure class="post-cover">
+          <img src={cover} alt={`${title} 封面图`} loading="eager" />
+        </figure>
+      )}
+
+      <div class="article-content">
+        <Content />
+      </div>
+
+      {tags.length > 0 && (
+        <footer class="post-footer">
+          <div class="post-tags">
+            <span class="tags-label">标签：</span>
+            <div class="tags-list">
+              {tags.map((tag) => (
+                <a href={`/tags/${tag}`} class="tag-link">#{tag}</a>
+              ))}
+            </div>
+          </div>
+        </footer>
+      )}
+    </article>
+
+    <nav class="post-nav" aria-label="文章导航">
+      <a href="/" class="post-nav-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        返回文章列表
+      </a>
+    </nav>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .post-article {
+    padding: 2rem 0;
+  }
+
+  .post-header {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--divider-color);
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .post-category {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    background-color: var(--hover-bg);
+    color: var(--accent-pink);
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .post-meta-separator {
+    color: var(--text-muted);
+  }
+
+  .post-date {
+    color: var(--text-muted);
+  }
+
+  .post-updated {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+
+  .post-header h1 {
+    margin-bottom: 0.75rem;
+  }
+
+  .post-description {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .post-author {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .author-label {
+    color: var(--text-secondary);
+  }
+
+  .author-name {
+    color: var(--accent-pink);
+    font-weight: 500;
+  }
+
+  .post-cover {
+    margin: 0 0 2rem;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .post-cover img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+  }
+
+  .article-content {
+    margin-bottom: 2rem;
+  }
+
+  .post-footer {
+    padding-top: 2rem;
+    border-top: 1px solid var(--divider-color);
+  }
+
+  .post-tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .tags-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .tags-list {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .tag-link {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: var(--hover-bg);
+    color: var(--text-secondary);
+    border-radius: 50px;
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .tag-link:hover {
+    background-color: var(--soft-pink);
+    color: var(--accent-pink);
+  }
+
+  .post-nav {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--divider-color);
+  }
+
+  .post-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .post-nav-link:hover {
+    color: var(--accent-pink);
+  }
+
+  @media (max-width: 768px) {
+    .post-article {
+      padding: 1rem 0;
+    }
+
+    .post-header h1 {
+      font-size: 1.75rem;
+    }
+  }
+</style>

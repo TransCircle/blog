@@ -1,0 +1,111 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '@layouts/Layout.astro';
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
+import PostCard from '@components/PostCard.astro';
+import { getPostsByTag } from '@utils/posts';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  const publishedPosts = posts.filter((post) => !post.data.draft);
+  const tagSet = new Set<string>();
+  publishedPosts.forEach((post) => {
+    post.data.tags.forEach((tag) => tagSet.add(tag));
+  });
+
+  return Array.from(tagSet).map((tag) => ({
+    params: { tag },
+    props: { tag },
+  }));
+}
+
+const { tag } = Astro.props;
+
+const posts = await getCollection('posts');
+const publishedPosts = posts.filter((post) => !post.data.draft);
+const taggedPosts = getPostsByTag(publishedPosts, tag).sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+);
+---
+
+<Layout title={`标签：${tag}`} description={`浏览标签 "${tag}" 下的所有文章`}>
+  <Header />
+
+  <main id="main-content" class="container">
+    <section class="tag-page">
+      <nav class="tag-breadcrumb" aria-label="面包屑导航">
+        <a href="/tags">标签</a>
+        <span aria-hidden="true">/</span>
+        <span>{tag}</span>
+      </nav>
+
+      <h1>#{tag}</h1>
+      <p class="tag-description">共 {taggedPosts.length} 篇文章</p>
+
+      {taggedPosts.length > 0 ? (
+        <div class="posts-list">
+          {taggedPosts.map((post) => (
+            <PostCard post={post} />
+          ))}
+        </div>
+      ) : (
+        <div class="empty-state">
+          <p>该标签下暂无文章</p>
+        </div>
+      )}
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .tag-page {
+    padding: 2rem 0;
+  }
+
+  .tag-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .tag-breadcrumb a {
+    color: var(--accent-pink);
+    text-decoration: none;
+  }
+
+  .tag-breadcrumb a:hover {
+    text-decoration: underline;
+  }
+
+  .tag-page h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-description {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+  }
+
+  .posts-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 0;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 768px) {
+    .tag-page {
+      padding: 1rem 0;
+    }
+  }
+</style>

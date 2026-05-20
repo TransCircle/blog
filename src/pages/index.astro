@@ -1,0 +1,115 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '@layouts/Layout.astro';
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
+import PostCard from '@components/PostCard.astro';
+import Pagination from '@components/Pagination.astro';
+import { POSTS_PER_PAGE } from '@utils/posts';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  const publishedPosts = posts.filter((post) => !post.data.draft);
+  const totalPages = Math.ceil(publishedPosts.length / POSTS_PER_PAGE);
+
+  const paths = [];
+  for (let i = 1; i <= totalPages; i++) {
+    paths.push({
+      params: i === 1 ? undefined : { page: String(i) },
+      props: { page: i },
+    });
+  }
+  return paths;
+}
+
+const { page } = Astro.props;
+const currentPage = page || 1;
+
+const posts = await getCollection('posts');
+const publishedPosts = posts
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+const totalPages = Math.ceil(publishedPosts.length / POSTS_PER_PAGE);
+const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
+const paginatedPosts = publishedPosts.slice(startIndex, startIndex + POSTS_PER_PAGE);
+---
+
+<Layout title="首页" description="TransCircle 开发博客 - 记录项目进度与团队报告">
+  <Header />
+
+  <main id="main-content" class="container">
+    <section class="hero" aria-label="博客介绍">
+      <h1>TransCircle 开发博客</h1>
+      <p class="hero-description">
+        记录项目开发进度、团队报告与技术分享
+      </p>
+    </section>
+
+    <section class="posts-section" aria-label="文章列表">
+      <h2 class="section-title">最新文章</h2>
+
+      {paginatedPosts.length > 0 ? (
+        <div class="posts-list">
+          {paginatedPosts.map((post) => (
+            <PostCard post={post} />
+          ))}
+        </div>
+      ) : (
+        <div class="empty-state">
+          <p>暂无文章</p>
+        </div>
+      )}
+
+      <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl="/" />
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .hero {
+    padding: 3rem 0 2rem;
+    text-align: center;
+    border-bottom: 1px solid var(--divider-color);
+    margin-bottom: 2rem;
+  }
+
+  .hero h1 {
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-description {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .section-title {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .posts-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 0;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      padding: 2rem 0 1.5rem;
+    }
+  }
+</style>

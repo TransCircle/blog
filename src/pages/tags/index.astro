@@ -1,0 +1,121 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '@layouts/Layout.astro';
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
+import { getAllTags } from '@utils/posts';
+
+const posts = await getCollection('posts');
+const publishedPosts = posts.filter((post) => !post.data.draft);
+const tags = getAllTags(publishedPosts);
+
+// Count posts per tag
+const tagCounts = new Map<string, number>();
+tags.forEach((tag) => {
+  const count = publishedPosts.filter((post) => post.data.tags.includes(tag)).length;
+  tagCounts.set(tag, count);
+});
+---
+
+<Layout title="标签" description="浏览所有文章标签">
+  <Header />
+
+  <main id="main-content" class="container">
+    <section class="tags-page">
+      <h1>标签</h1>
+      <p class="tags-description">共 {tags.length} 个标签，{publishedPosts.length} 篇文章</p>
+
+      {tags.length > 0 ? (
+        <div class="tags-cloud">
+          {tags.map((tag) => (
+            <a href={`/tags/${tag}`} class="tag-item">
+              <span class="tag-name">{tag}</span>
+              <span class="tag-count">{tagCounts.get(tag)}</span>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div class="empty-state">
+          <p>暂无标签</p>
+        </div>
+      )}
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .tags-page {
+    padding: 2rem 0;
+  }
+
+  .tags-page h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  .tags-description {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+  }
+
+  .tags-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .tag-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--hover-bg);
+    color: var(--text-secondary);
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  }
+
+  .tag-item:hover {
+    background-color: var(--soft-pink);
+    color: var(--accent-pink);
+    transform: translateY(-1px);
+  }
+
+  .tag-item:focus-visible {
+    outline: 2px solid var(--primary-pink);
+    outline-offset: 2px;
+  }
+
+  .tag-name {
+    font-weight: 500;
+  }
+
+  .tag-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 0.35rem;
+    background-color: var(--bg-color);
+    color: var(--text-muted);
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 0;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 768px) {
+    .tags-page {
+      padding: 1rem 0;
+    }
+  }
+</style>
