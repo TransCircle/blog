@@ -1,5 +1,5 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
@@ -9,7 +9,7 @@ import { POSTS_PER_PAGE } from '@utils/posts';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
-  const publishedPosts = posts.filter((post) => !post.data.draft);
+  const publishedPosts = posts.filter((post: CollectionEntry<'posts'>) => !post.data.draft);
   const totalPages = Math.ceil(publishedPosts.length / POSTS_PER_PAGE);
 
   const paths = [];
@@ -27,8 +27,8 @@ const currentPage = page || 1;
 
 const posts = await getCollection('posts');
 const publishedPosts = posts
-  .filter((post) => !post.data.draft)
-  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+  .filter((post: CollectionEntry<'posts'>) => !post.data.draft)
+  .sort((a: CollectionEntry<'posts'>, b: CollectionEntry<'posts'>) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 
 const totalPages = Math.ceil(publishedPosts.length / POSTS_PER_PAGE);
 const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
@@ -51,7 +51,7 @@ const paginatedPosts = publishedPosts.slice(startIndex, startIndex + POSTS_PER_P
 
       {paginatedPosts.length > 0 ? (
         <div class="posts-list">
-          {paginatedPosts.map((post) => (
+          {paginatedPosts.map((post: CollectionEntry<'posts'>) => (
             <PostCard post={post} />
           ))}
         </div>

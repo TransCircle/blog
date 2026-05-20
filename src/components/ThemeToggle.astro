@@ -68,23 +68,24 @@ const themes = [
       if (themeId) setActiveTheme(themeId);
     });
 
-    btn.addEventListener('keydown', (e: KeyboardEvent) => {
+    btn.addEventListener('keydown', (e) => {
+      const event = e as KeyboardEvent;
       const buttons = Array.from(themeButtons);
       const index = buttons.indexOf(btn);
       let nextIndex = index;
 
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
         nextIndex = (index + 1) % buttons.length;
-        e.preventDefault();
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        event.preventDefault();
+      } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
         nextIndex = (index - 1 + buttons.length) % buttons.length;
-        e.preventDefault();
-      } else if (e.key === 'Home') {
+        event.preventDefault();
+      } else if (event.key === 'Home') {
         nextIndex = 0;
-        e.preventDefault();
-      } else if (e.key === 'End') {
+        event.preventDefault();
+      } else if (event.key === 'End') {
         nextIndex = buttons.length - 1;
-        e.preventDefault();
+        event.preventDefault();
       }
 
       if (nextIndex !== index) {

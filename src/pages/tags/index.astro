@@ -1,18 +1,18 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
 import { getAllTags } from '@utils/posts';
 
 const posts = await getCollection('posts');
-const publishedPosts = posts.filter((post) => !post.data.draft);
+const publishedPosts = posts.filter((post: CollectionEntry<'posts'>) => !post.data.draft);
 const tags = getAllTags(publishedPosts);
 
 // Count posts per tag
 const tagCounts = new Map<string, number>();
-tags.forEach((tag) => {
-  const count = publishedPosts.filter((post) => post.data.tags.includes(tag)).length;
+tags.forEach((tag: string) => {
+  const count = publishedPosts.filter((post: CollectionEntry<'posts'>) => post.data.tags.includes(tag)).length;
   tagCounts.set(tag, count);
 });
 ---
@@ -27,7 +27,7 @@ tags.forEach((tag) => {
 
       {tags.length > 0 ? (
         <div class="tags-cloud">
-          {tags.map((tag) => (
+          {tags.map((tag: string) => (
             <a href={`/tags/${tag}`} class="tag-item">
               <span class="tag-name">{tag}</span>
               <span class="tag-count">{tagCounts.get(tag)}</span>

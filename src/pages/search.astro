@@ -1,16 +1,16 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
 
 const posts = await getCollection('posts');
 const publishedPosts = posts
-  .filter((post) => !post.data.draft)
-  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+  .filter((post: CollectionEntry<'posts'>) => !post.data.draft)
+  .sort((a: CollectionEntry<'posts'>, b: CollectionEntry<'posts'>) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 
 // Serialize posts for client-side search
-const searchData = publishedPosts.map((post) => ({
+const searchData = publishedPosts.map((post: CollectionEntry<'posts'>) => ({
   id: post.id,
   title: post.data.title,
   description: post.data.description || '',
@@ -60,7 +60,7 @@ const searchData = publishedPosts.map((post) => ({
   <Footer />
 </Layout>
 
-<script define:vars={{ searchData }}>
+<script is:inline define:vars={{ searchData }}>
   let fuse;
 
   async function initSearch() {

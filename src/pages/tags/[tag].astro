@@ -1,5 +1,5 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
@@ -8,13 +8,13 @@ import { getPostsByTag } from '@utils/posts';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
-  const publishedPosts = posts.filter((post) => !post.data.draft);
+  const publishedPosts = posts.filter((post: CollectionEntry<'posts'>) => !post.data.draft);
   const tagSet = new Set<string>();
-  publishedPosts.forEach((post) => {
-    post.data.tags.forEach((tag) => tagSet.add(tag));
+  publishedPosts.forEach((post: CollectionEntry<'posts'>) => {
+    post.data.tags.forEach((tag: string) => tagSet.add(tag));
   });
 
-  return Array.from(tagSet).map((tag) => ({
+  return Array.from(tagSet).map((tag: string) => ({
     params: { tag },
     props: { tag },
   }));
@@ -23,9 +23,9 @@ export async function getStaticPaths() {
 const { tag } = Astro.props;
 
 const posts = await getCollection('posts');
-const publishedPosts = posts.filter((post) => !post.data.draft);
+const publishedPosts = posts.filter((post: CollectionEntry<'posts'>) => !post.data.draft);
 const taggedPosts = getPostsByTag(publishedPosts, tag).sort(
-  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+  (a: CollectionEntry<'posts'>, b: CollectionEntry<'posts'>) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 );
 ---
 
@@ -45,7 +45,7 @@ const taggedPosts = getPostsByTag(publishedPosts, tag).sort(
 
       {taggedPosts.length > 0 ? (
         <div class="posts-list">
-          {taggedPosts.map((post) => (
+          {taggedPosts.map((post: CollectionEntry<'posts'>) => (
             <PostCard post={post} />
           ))}
         </div>

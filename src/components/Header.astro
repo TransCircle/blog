@@ -102,7 +102,7 @@ const navLinks = [
     menuToggle?.setAttribute('aria-expanded', 'false');
     if (mainContent) mainContent.removeAttribute('inert');
     document.body.style.overflow = '';
-    menuToggle?.focus();
+    (menuToggle as HTMLElement | null)?.focus();
   }
 
   menuToggle?.addEventListener('click', openMenu);

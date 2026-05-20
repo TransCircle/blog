@@ -32,7 +32,7 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
 
     {tags.length > 0 && (
       <div class="post-card-tags">
-        {tags.map((tag) => (
+        {tags.map((tag: string) => (
           <a href={`/tags/${tag}`} class="post-card-tag">#{tag}</a>
         ))}
       </div>
