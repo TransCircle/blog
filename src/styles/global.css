@@ -106,15 +106,24 @@ code {
 }
 
 pre {
-  background-color: var(--code-bg);
+  background-color: var(--code-bg) !important;
   padding: 1rem;
   border-radius: 8px;
   overflow-x: auto;
   margin-bottom: 1rem;
+  border: 1px solid var(--divider-color);
+}
+
+/* Override Shiki inline styles */
+pre.astro-code,
+pre.shiki,
+pre code.astro-code,
+pre code.shiki {
+  background-color: transparent !important;
 }
 
 pre code {
-  background-color: transparent;
+  background-color: transparent !important;
   padding: 0;
   color: inherit;
   font-size: 0.875rem;
