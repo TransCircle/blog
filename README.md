@@ -109,6 +109,8 @@ updatedDate: 2026-05-21  # 添加这行表示更新时间
 | `tags` | 可选 | 标签数组 | `['前端', 'astro']` |
 | `cover` | 可选 | 封面图路径 | `'/images/cover.png'` |
 | `draft` | 可选 | 草稿标记（默认：false） | `true` 或 `false` |
+| `contentLicense` | 可选 | 内容协议（默认：CC-BY-SA-4.0） | `'CC-BY-SA-4.0'` |
+| `codeLicense` | 可选 | 代码协议（默认：AGPL-3.0） | `'AGPL-3.0'` |
 
 ### 常用分类
 
@@ -116,6 +118,33 @@ updatedDate: 2026-05-21  # 添加这行表示更新时间
 - `团队报告` - 团队周报/月报
 - `技术分享` - 技术文章
 - `general` - 其他
+
+### 许可协议
+
+每篇文章底部会显示两个协议徽章：
+
+**内容协议（contentLicense）**：
+- `CC-BY-SA-4.0`（默认）- 知识共享 署名-相同方式共享 4.0
+- `CC-BY-4.0` - 知识共享 署名 4.0
+- `CC0-1.0` - 公共领域
+- `Proprietary` - 保留所有权利
+
+**代码协议（codeLicense）**：
+- `AGPL-3.0`（默认）- GNU Affero General Public License v3.0
+- `MIT` - MIT License
+- `Apache-2.0` - Apache License 2.0
+- `BSD-3-Clause` - BSD 3-Clause License
+- `Proprietary` - 保留所有权利
+
+不指定时使用默认值。示例：
+
+```markdown
+---
+title: '文章标题'
+contentLicense: 'CC-BY-4.0'
+codeLicense: 'MIT'
+---
+```
 
 ### Markdown 基础语法
 

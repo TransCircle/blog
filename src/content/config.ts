@@ -12,6 +12,19 @@ const postsCollection = defineCollection({
     tags: z.array(z.string()).default([]),
     cover: z.string().optional(),
     draft: z.boolean().default(false),
+    contentLicense: z.enum([
+      'CC-BY-SA-4.0',
+      'CC-BY-4.0',
+      'CC0-1.0',
+      'Proprietary',
+    ]).default('CC-BY-SA-4.0'),
+    codeLicense: z.enum([
+      'AGPL-3.0',
+      'MIT',
+      'Apache-2.0',
+      'BSD-3-Clause',
+      'Proprietary',
+    ]).default('AGPL-3.0'),
   }),
 });
 

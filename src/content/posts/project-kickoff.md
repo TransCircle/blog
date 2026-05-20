@@ -5,6 +5,8 @@ pubDate: 2026-05-20
 author: 'TransCircle Team'
 category: '开发进度'
 tags: ['astro', 'architecture', 'setup']
+contentLicense: 'CC-BY-SA-4.0'
+codeLicense: 'AGPL-3.0'
 ---
 
 ## 项目概述
