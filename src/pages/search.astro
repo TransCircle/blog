@@ -1,4 +1,6 @@
 ---
+import fs from 'node:fs';
+import path from 'node:path';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
@@ -9,7 +11,7 @@ const publishedPosts = posts
   .filter((post: CollectionEntry<'posts'>) => !post.data.draft)
   .sort((a: CollectionEntry<'posts'>, b: CollectionEntry<'posts'>) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 
-// Serialize posts for client-side search
+// Build search index JSON for client-side search
 const searchData = publishedPosts.map((post: CollectionEntry<'posts'>) => ({
   id: post.id,
   title: post.data.title,
@@ -21,6 +23,17 @@ const searchData = publishedPosts.map((post: CollectionEntry<'posts'>) => ({
   pubDate: post.data.pubDate.toISOString(),
   slug: post.id,
 }));
+
+// Write search index to public directory
+const publicDir = path.join(process.cwd(), 'public');
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir, { recursive: true });
+}
+fs.writeFileSync(
+  path.join(publicDir, 'search-index.json'),
+  JSON.stringify(searchData, null, 2),
+  'utf-8'
+);
 ---
 
 <Layout title="搜索" description="搜索博客文章">
@@ -60,28 +73,53 @@ const searchData = publishedPosts.map((post: CollectionEntry<'posts'>) => ({
   <Footer />
 </Layout>
 
-<script is:inline define:vars={{ searchData }}>
-  let fuse;
+<script>
+  import Fuse, { type FuseResult } from 'fuse.js';
 
-  async function initSearch() {
-    const { default: Fuse } = await import('fuse.js');
-    fuse = new Fuse(searchData, {
-      keys: [
-        { name: 'title', weight: 3 },
-        { name: 'description', weight: 2 },
-        { name: 'content', weight: 1 },
-        { name: 'tags', weight: 2 },
-      ],
-      threshold: 0.4,
-      includeScore: true,
-    });
+  interface SearchItem {
+    id: string;
+    title: string;
+    description: string;
+    content: string;
+    category: string;
+    tags: string[];
+    author: string;
+    pubDate: string;
+    slug: string;
   }
 
-  const searchInput = document.getElementById('search-input');
+  let fuse: Fuse<SearchItem> | null = null;
+
+  async function initSearch(): Promise<void> {
+    try {
+      const response = await fetch('/search-index.json');
+      if (!response.ok) {
+        throw new Error(`Failed to load search index: ${response.status}`);
+      }
+      const searchData: SearchItem[] = await response.json();
+
+      fuse = new Fuse(searchData, {
+        keys: [
+          { name: 'title', weight: 3 },
+          { name: 'description', weight: 2 },
+          { name: 'content', weight: 1 },
+          { name: 'tags', weight: 2 },
+        ],
+        threshold: 0.4,
+        includeScore: true,
+      });
+
+      console.log('[Search] Index loaded successfully,', searchData.length, 'articles');
+    } catch (error) {
+      console.error('[Search] Failed to initialize:', error);
+    }
+  }
+
+  const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
   const searchResults = document.getElementById('search-results');
   const searchEmpty = document.getElementById('search-empty');
 
-  function formatDate(dateString) {
+  function formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: 'long',
@@ -89,7 +127,7 @@ const searchData = publishedPosts.map((post: CollectionEntry<'posts'>) => ({
     });
   }
 
-  function renderResults(results) {
+  function renderResults(results: FuseResult<SearchItem>[]): void {
     if (!searchResults) return;
 
     if (results.length === 0) {
@@ -109,12 +147,12 @@ const searchData = publishedPosts.map((post: CollectionEntry<'posts'>) => ({
               <time class="search-result-date">${formatDate(result.item.pubDate)}</time>
             </div>
             <h2 class="search-result-title">
-              <a href="/posts/${result.item.slug}">${result.item.title}</a>
+              <a href="/posts/${result.item.slug}/">${result.item.title}</a>
             </h2>
             ${result.item.description ? `<p class="search-result-description">${result.item.description}</p>` : ''}
             ${result.item.tags.length > 0 ? `
               <div class="search-result-tags">
-                ${result.item.tags.map((tag) => `<a href="/tags/${tag}" class="search-result-tag">#${tag}</a>`).join('')}
+                ${result.item.tags.map((tag: string) => `<a href="/tags/${tag}/" class="search-result-tag">#${tag}</a>`).join('')}
               </div>
             ` : ''}
           </article>
@@ -125,11 +163,14 @@ const searchData = publishedPosts.map((post: CollectionEntry<'posts'>) => ({
     searchResults.innerHTML = html;
   }
 
-  function handleSearch(query) {
-    if (!fuse) return;
+  function handleSearch(query: string): void {
+    if (!fuse) {
+      console.warn('[Search] Fuse not initialized yet');
+      return;
+    }
 
     if (!query.trim()) {
-      searchResults.innerHTML = '';
+      searchResults!.innerHTML = '';
       searchEmpty?.classList.add('hidden');
       return;
     }
@@ -139,16 +180,21 @@ const searchData = publishedPosts.map((post: CollectionEntry<'posts'>) => ({
   }
 
   // Debounce search
-  let debounceTimer;
-  searchInput?.addEventListener('input', (e) => {
+  let debounceTimer: ReturnType<typeof setTimeout>;
+  searchInput?.addEventListener('input', (e: Event) => {
     clearTimeout(debounceTimer);
+    const target = e.target as HTMLInputElement;
     debounceTimer = setTimeout(() => {
-      handleSearch(e.target.value);
+      handleSearch(target.value);
     }, 200);
   });
 
-  // Initialize
-  initSearch();
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSearch);
+  } else {
+    initSearch();
+  }
 
   // Handle URL search param
   const urlParams = new URLSearchParams(window.location.search);
