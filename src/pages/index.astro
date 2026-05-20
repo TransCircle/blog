@@ -39,7 +39,7 @@ const paginatedPosts = publishedPosts.slice(startIndex, startIndex + POSTS_PER_P
   <Header />
 
   <main id="main-content" class="container">
-    <section class="hero" aria-label="博客介绍">
+    <section class="hero anim-fade-in-up" aria-label="博客介绍">
       <h1>TransCircle 开发博客</h1>
       <p class="hero-description">
         记录项目开发进度、团队报告与技术分享
@@ -47,12 +47,14 @@ const paginatedPosts = publishedPosts.slice(startIndex, startIndex + POSTS_PER_P
     </section>
 
     <section class="posts-section" aria-label="文章列表">
-      <h2 class="section-title">最新文章</h2>
+      <h2 class="section-title scroll-animate">最新文章</h2>
 
       {paginatedPosts.length > 0 ? (
-        <div class="posts-list">
-          {paginatedPosts.map((post: CollectionEntry<'posts'>) => (
-            <PostCard post={post} />
+        <div class="posts-list stagger-children">
+          {paginatedPosts.map((post: CollectionEntry<'posts'>, index: number) => (
+            <div class="scroll-animate" style={`transition-delay: ${index * 0.05}s`}>
+              <PostCard post={post} />
+            </div>
           ))}
         </div>
       ) : (
@@ -61,7 +63,9 @@ const paginatedPosts = publishedPosts.slice(startIndex, startIndex + POSTS_PER_P
         </div>
       )}
 
-      <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl="/" />
+      <div class="scroll-animate scroll-animate-delay-2">
+        <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl="/" />
+      </div>
     </section>
   </main>
 

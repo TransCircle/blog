@@ -194,13 +194,16 @@ const searchData = publishedPosts.map((post: CollectionEntry<'posts'>) => ({
     color: var(--text-body);
     font-size: 1rem;
     font-family: inherit;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .search-input:focus {
     outline: none;
     border-color: var(--primary-pink);
-    box-shadow: 0 0 0 3px rgba(255, 133, 162, 0.2);
+    box-shadow: 0 0 0 4px rgba(255, 133, 162, 0.15);
+    transform: translateY(-1px);
   }
 
   .search-input::placeholder {

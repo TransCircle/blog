@@ -49,10 +49,42 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <style is:global>
       @import '../styles/global.css';
+      @import '../styles/animations.css';
     </style>
   </head>
   <body>
     <a href="#main-content" class="skip-link">跳转到主内容</a>
     <slot />
+
+    <script>
+      // Scroll-triggered animations using IntersectionObserver
+      const observerCallback = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
+        entries.forEach((entry: IntersectionObserverEntry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      };
+
+      const observer = new IntersectionObserver(observerCallback, {
+        root: null,
+        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.1,
+      });
+
+      // Observe elements after DOM is ready
+      const observeElements = () => {
+        document.querySelectorAll('.scroll-animate').forEach((el) => {
+          observer.observe(el);
+        });
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', observeElements);
+      } else {
+        observeElements();
+      }
+    </script>
   </body>
 </html>
