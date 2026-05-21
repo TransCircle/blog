@@ -22,6 +22,12 @@ const { post } = Astro.props;
 const { Content } = await post.render();
 const { title, description, pubDate, updatedDate, author, category, tags, cover, contentLicense, codeLicense } = post.data;
 
+// 计算字数（中文字符 + 英文单词）
+const rawBody = post.body || '';
+const chineseChars = (rawBody.match(/[\u4e00-\u9fa5]/g) || []).length;
+const englishWords = (rawBody.match(/[a-zA-Z]+/g) || []).length;
+const totalWordCount = chineseChars + englishWords;
+
 const formattedDate = formatDate(pubDate);
 const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
 ---
@@ -35,7 +41,8 @@ const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
   pubDate={pubDate}
   updatedDate={updatedDate}
   tags={tags}
-  category={category}>
+  category={category}
+  wordCount={totalWordCount}>
   <Header />
 
   <main id="main-content" class="container">

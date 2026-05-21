@@ -35,7 +35,7 @@ const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
 const paginatedPosts = publishedPosts.slice(startIndex, startIndex + POSTS_PER_PAGE);
 ---
 
-<Layout title="首页" description="TransCircle 开发博客 - 记录项目进度与团队报告">
+<Layout title="首页" description="TransCircle 开发博客 - 记录项目进度与团队报告" isHome={true}>
   <Header />
 
   <main id="main-content" class="container">

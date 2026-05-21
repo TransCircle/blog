@@ -1,74 +1,55 @@
-# robots.txt for TransCircle Blog
+# robots.txt for TransCircle Development Blog
 # https://blog.transcircle.org
+# 我们欢迎搜索引擎与 AI 爬虫归档与引用本站内容。
+# 内容版权：CC BY-SA 4.0（文字）/ AGPL-3.0（代码）。
 
-# Allow all crawlers
+# ── 默认规则：开放，但屏蔽搜索页 ─────────────
 User-agent: *
 Allow: /
 Disallow: /search
 
-# AI Crawlers - Explicitly welcome
-User-agent: GPTBot
-Allow: /
-
-User-agent: ChatGPT-User
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: Claude-Web
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
+# ── 主流搜索引擎 ─────────────────────────────────────
 User-agent: Googlebot
-Allow: /
-
 User-agent: Bingbot
+User-agent: DuckDuckBot
+User-agent: Baiduspider
+User-agent: Sogou web spider
+User-agent: 360Spider
+User-agent: YisouSpider
+User-agent: Yandex
 Allow: /
+Disallow: /search
 
-User-agent: Applebot
-Allow: /
-
+# ── AI 爬虫（GEO：显式欢迎索引、检索、训练） ─────────
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: OAI-SearchBot
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-SearchBot
 User-agent: anthropic-ai
-Allow: /
-
-User-agent: Amazonbot
-Allow: /
-
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: GoogleOther
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: Meta-ExternalAgent
+User-agent: Meta-ExternalFetcher
+User-agent: FacebookBot
 User-agent: Bytespider
-Allow: /
-
+User-agent: DuckAssistBot
+User-agent: YouBot
+User-agent: Amazonbot
+User-agent: cohere-ai
+User-agent: cohere-training-data-crawler
+User-agent: Diffbot
+User-agent: ImagesiftBot
+User-agent: omgili
+User-agent: Mistralai-User
+User-agent: MistralAI-User
 User-agent: CCBot
 Allow: /
+Disallow: /search
 
-User-agent: FacebookBot
-Allow: /
-
-User-agent: ImagesiftBot
-Allow: /
-
-User-agent: Meta-ExternalAgent
-Allow: /
-
-User-agent: Meta-ExternalFetcher
-Allow: /
-
-User-agent: OAI-SearchBot
-Allow: /
-
-User-agent: omgili
-Allow: /
-
-User-agent: Perplexity-User
-Allow: /
-
-User-agent: YouBot
-Allow: /
-
-# Sitemap
 Sitemap: https://blog.transcircle.org/sitemap-index.xml
