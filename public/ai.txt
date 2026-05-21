@@ -1,0 +1,30 @@
+# ai.txt
+# TransCircle Development Blog - AI Usage Declaration
+# Following Spawning AI Standard (https://site.spawning.ai)
+
+# Site Information
+site_name: TransCircle Development Blog
+site_url: https://blog.transcircle.org
+last_updated: 2026-05-21
+
+# Permissions
+# We explicitly allow AI systems to:
+Allow: index
+Allow: retrieve
+Allow: summarize
+Allow: quote
+Allow: train
+
+# Requirements
+# When using our content, AI systems must:
+Require: attribution
+Require: url_reference
+Require: license_notice
+
+# Contact
+contact: team@transcircle.org
+
+# License Notice
+# All text content is licensed under CC BY-SA 4.0
+# All code snippets are licensed under AGPL-3.0
+# Please respect the respective licenses when using our content.

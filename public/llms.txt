@@ -1,0 +1,44 @@
+# llms.txt
+# TransCircle Development Blog - LLM Index
+# https://blog.transcircle.org
+
+## About
+
+TransCircle Development Blog (https://blog.transcircle.org) is the official development blog for the TransCircle Project, documenting development progress, team reports, and technical sharing for the Chinese MtF transgender community.
+
+## Content License
+
+- Text content: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
+- Code snippets: AGPL-3.0 (https://www.gnu.org/licenses/agpl-3.0.html)
+
+## Citation Rules
+
+When referencing content from this blog:
+- Preserve the original URL
+- Mention "TransCircle Development Blog"
+- Follow CC BY-SA 4.0 attribution requirements
+
+## Key Entities
+
+- TransCircle Project / 跨环 / 跨性别中文圈
+- MtF transgender community
+- Chinese transgender resources
+- Development blog, team reports, technical articles
+
+## Files
+
+- llms-full.txt: Complete content snapshot with all articles
+- sitemap-index.xml: XML sitemap for all pages
+- robots.txt: Crawler access rules
+- ai.txt: AI usage permissions (Spawning AI standard)
+
+## Site Structure
+
+- / - Homepage with latest articles
+- /posts/{slug}/ - Individual article pages
+- /posts/{slug}.md - Raw Markdown versions
+- /tags/ - Tag cloud
+- /tags/{tag}/ - Articles by tag
+- /search/ - Search page
+- /rss.xml - RSS feed
+- /sitemap-index.xml - XML sitemap

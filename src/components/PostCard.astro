@@ -22,7 +22,7 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
   </div>
 
   <h2 class="post-card-title">
-    <a href={`/posts/${post.id}`} class="post-card-link">{title}</a>
+    <a href={`/posts/${post.slug}`} class="post-card-link">{title}</a>
   </h2>
 
   {description && <p class="post-card-description">{description}</p>}

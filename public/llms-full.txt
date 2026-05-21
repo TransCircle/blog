@@ -1,0 +1,34 @@
+# TransCircle Development Blog - Content Snapshot
+# https://blog.transcircle.org
+# Generated: 2026-05-21T08:33:34.613Z
+
+## About This Blog
+
+TransCircle Development Blog documents the development progress, team reports, and technical sharing for the TransCircle Project (https://transcircle.org), serving the Chinese MtF transgender community.
+
+## Content License
+- Text: CC BY-SA 4.0
+- Code: AGPL-3.0
+
+## Articles
+
+### 前端组件设计规范
+- URL: https://blog.transcircle.org/posts/frontend-design-guide/
+- Date: 2026-05-21
+- Author: Frontend Team
+- Category: 技术分享
+- Tags: frontend, a11y, design-system
+- License: CC-BY-SA-4.0 (content), AGPL-3.0 (code)
+- Description: 介绍 TransCircle 博客项目中使用的组件设计规范和无障碍访问实践
+
+### 项目启动与架构设计
+- URL: https://blog.transcircle.org/posts/project-kickoff/
+- Date: 2026-05-20
+- Author: TransCircle Team
+- Category: 开发进度
+- Tags: astro, architecture, setup
+- License: CC-BY-SA-4.0 (content), AGPL-3.0 (code)
+- Description: TransCircle 博客项目正式启动，介绍整体架构设计和技术选型决策
+
+
+## End of Snapshot

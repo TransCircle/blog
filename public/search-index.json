@@ -12,7 +12,7 @@
     ],
     "author": "Frontend Team",
     "pubDate": "2026-05-21T00:00:00.000Z",
-    "slug": "frontend-design-guide.md"
+    "slug": "frontend-design-guide"
   },
   {
     "id": "project-kickoff.md",
@@ -27,6 +27,6 @@
     ],
     "author": "TransCircle Team",
     "pubDate": "2026-05-20T00:00:00.000Z",
-    "slug": "project-kickoff.md"
+    "slug": "project-kickoff"
   }
 ]

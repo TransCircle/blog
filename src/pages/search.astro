@@ -21,10 +21,10 @@ const searchData = publishedPosts.map((post: CollectionEntry<'posts'>) => ({
   tags: post.data.tags,
   author: post.data.author,
   pubDate: post.data.pubDate.toISOString(),
-  slug: post.id,
+  slug: post.slug,
 }));
 
-// Write search index to public directory
+// Write search index to public directory (for client-side search)
 const publicDir = path.join(process.cwd(), 'public');
 if (!fs.existsSync(publicDir)) {
   fs.mkdirSync(publicDir, { recursive: true });
@@ -34,6 +34,53 @@ fs.writeFileSync(
   JSON.stringify(searchData, null, 2),
   'utf-8'
 );
+
+// Generate llms-full.txt for LLM indexing (write to both public and dist)
+const llmsFullContent = `# TransCircle Development Blog - Content Snapshot
+# https://blog.transcircle.org
+# Generated: ${new Date().toISOString()}
+
+## About This Blog
+
+TransCircle Development Blog documents the development progress, team reports, and technical sharing for the TransCircle Project (https://transcircle.org), serving the Chinese MtF transgender community.
+
+## Content License
+- Text: CC BY-SA 4.0
+- Code: AGPL-3.0
+
+## Articles
+
+${publishedPosts.map((post: CollectionEntry<'posts'>) => {
+  const data = post.data;
+  return `### ${data.title}
+- URL: https://blog.transcircle.org/posts/${post.slug}/
+- Date: ${data.pubDate.toISOString().split('T')[0]}
+- Author: ${data.author}
+- Category: ${data.category}
+- Tags: ${data.tags.join(', ') || 'none'}
+- License: ${data.contentLicense || 'CC-BY-SA-4.0'} (content), ${data.codeLicense || 'AGPL-3.0'} (code)
+${data.description ? `- Description: ${data.description}` : ''}
+`;
+}).join('\n')}
+
+## End of Snapshot
+`;
+
+fs.writeFileSync(
+  path.join(publicDir, 'llms-full.txt'),
+  llmsFullContent,
+  'utf-8'
+);
+
+// Also write to dist if it exists (for production builds)
+const distDir = path.join(process.cwd(), 'dist');
+if (fs.existsSync(distDir)) {
+  fs.writeFileSync(
+    path.join(distDir, 'llms-full.txt'),
+    llmsFullContent,
+    'utf-8'
+  );
+}
 ---
 
 <Layout title="搜索" description="搜索博客文章">

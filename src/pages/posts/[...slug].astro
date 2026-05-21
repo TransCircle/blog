@@ -9,7 +9,7 @@ import { formatDate } from '@utils/posts';
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
   return posts.map((post: CollectionEntry<'posts'>) => ({
-    params: { slug: post.id },
+    params: { slug: post.slug },
     props: { post },
   }));
 }
@@ -30,7 +30,12 @@ const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
   title={title}
   description={description || title}
   image={cover}
-  type="article">
+  type="article"
+  author={author}
+  pubDate={pubDate}
+  updatedDate={updatedDate}
+  tags={tags}
+  category={category}>
   <Header />
 
   <main id="main-content" class="container">

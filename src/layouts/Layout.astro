@@ -4,9 +4,25 @@ export interface Props {
   description?: string;
   image?: string;
   type?: string;
+  author?: string;
+  pubDate?: Date;
+  updatedDate?: Date;
+  tags?: string[];
+  category?: string;
 }
 
-const { title, description = 'TransCircle 开发博客 - 记录项目进度与团队报告', image, type = 'website' } = Astro.props;
+const {
+  title,
+  description = 'TransCircle 开发博客 - 记录项目进度与团队报告',
+  image,
+  type = 'website',
+  author,
+  pubDate,
+  updatedDate,
+  tags = [],
+  category,
+} = Astro.props;
+
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
@@ -20,8 +36,14 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <link rel="canonical" href={canonicalURL} />
     <link rel="sitemap" href="/sitemap-index.xml" />
 
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    {author && <meta name="author" content={author} />}
+    <meta name="keywords" content="TransCircle, 跨环, 跨性别, 开发博客, MtF, 跨性别女性, 开源, 技术博客" />
+
     <!-- Open Graph -->
     <meta property="og:type" content={type} />
+    <meta property="og:site_name" content="TransCircle Blog" />
+    <meta property="og:locale" content="zh_CN" />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -29,9 +51,25 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@transcircle_org" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     {image && <meta name="twitter:image" content={new URL(image, Astro.site)} />}
+
+    <!-- Article meta -->
+    {type === 'article' && pubDate && (
+      <>
+        <meta property="article:published_time" content={pubDate.toISOString()} />
+        {author && <meta property="article:author" content={author} />}
+        {category && <meta property="article:section" content={category} />}
+        {tags.map((tag) => (
+          <meta property="article:tag" content={tag} />
+        ))}
+      </>
+    )}
+    {type === 'article' && updatedDate && (
+      <meta property="article:modified_time" content={updatedDate.toISOString()} />
+    )}
 
     <!-- Theme script -->
     <script is:inline>
@@ -46,6 +84,33 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <!-- Preload fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- JSON-LD Structured Data -->
+    {type === 'article' && pubDate && (
+      <script is:inline type="application/ld+json" set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        'headline': title,
+        'description': description,
+        'url': canonicalURL.toString(),
+        'datePublished': pubDate.toISOString(),
+        'dateModified': updatedDate?.toISOString() || pubDate.toISOString(),
+        'author': {
+          '@type': 'Person',
+          'name': author || 'TransCircle Team',
+        },
+        'publisher': {
+          '@type': 'Organization',
+          'name': 'TransCircle',
+          'url': 'https://transcircle.org',
+        },
+        'keywords': tags?.join(', ') || '',
+        'articleSection': category || 'general',
+        'license': 'https://creativecommons.org/licenses/by-sa/4.0/',
+        'inLanguage': 'zh-CN',
+        ...(image ? { 'image': new URL(image, Astro.site).toString() } : {}),
+      })} />
+    )}
 
     <style is:global>
       @import '../styles/global.css';

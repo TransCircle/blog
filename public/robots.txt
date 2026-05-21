@@ -1,0 +1,74 @@
+# robots.txt for TransCircle Blog
+# https://blog.transcircle.org
+
+# Allow all crawlers
+User-agent: *
+Allow: /
+Disallow: /search
+
+# AI Crawlers - Explicitly welcome
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: ImagesiftBot
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: Meta-ExternalFetcher
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: omgili
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+# Sitemap
+Sitemap: https://blog.transcircle.org/sitemap-index.xml
