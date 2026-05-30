@@ -28,3 +28,5 @@ npm-debug.log*
 # Cache
 .cache/
 .eslintcache
+public/llms-full.txt
+public/search-index.json
