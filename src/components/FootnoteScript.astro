@@ -1,0 +1,101 @@
+---
+/**
+ * 脚注渲染器脚本
+ * 处理脚注链接的平滑滚动和高亮效果
+ */
+---
+
+<script>
+  /**
+   * 为脚注链接添加交互功能
+   */
+  function initializeFootnotes() {
+    // 获取所有脚注链接
+    const footnoteLinks = document.querySelectorAll<HTMLAnchorElement>('a[role="doc-noteref"]');
+    const footnoteItems = document.querySelectorAll<HTMLLIElement>('.footnote-item');
+
+    footnoteLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const href = link.getAttribute('href');
+        if (href) {
+          const target = document.querySelector(href);
+          if (target) {
+            // 平滑滚动
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // 临时高亮效果
+            target.classList.add('footnote-highlight');
+            setTimeout(() => {
+              target.classList.remove('footnote-highlight');
+            }, 2000);
+          }
+        }
+      });
+    });
+
+    // 点击返回链接时高亮原脚注
+    const backrefLinks = document.querySelectorAll<HTMLAnchorElement>('.footnote-backref');
+    backrefLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const href = link.getAttribute('href');
+        if (href) {
+          const target = document.querySelector(href);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            target.classList.add('footnote-ref-highlight');
+            setTimeout(() => {
+              target.classList.remove('footnote-ref-highlight');
+            }, 2000);
+          }
+        }
+      });
+    });
+  }
+
+  // 文档加载完成后初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeFootnotes);
+  } else {
+    initializeFootnotes();
+  }
+
+  // 处理动态加载的内容（如果使用了 View Transitions）
+  document.addEventListener('astro:after-swap', initializeFootnotes);
+</script>
+
+<style>
+  /* 脚注高亮效果 */
+  :global(.footnote-highlight) {
+    animation: footnote-pulse 0.6s ease-in-out;
+  }
+
+  :global(.footnote-ref-highlight) {
+    animation: footnote-ref-pulse 0.6s ease-in-out;
+  }
+
+  @keyframes footnote-pulse {
+    0% {
+      background-color: transparent;
+    }
+    50% {
+      background-color: var(--soft-pink);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  @keyframes footnote-ref-pulse {
+    0% {
+      background-color: transparent;
+    }
+    50% {
+      background-color: #e6f2ff;
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+</style>
