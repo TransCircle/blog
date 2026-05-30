@@ -8,6 +8,7 @@ const postsCollection = defineCollection({
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
     author: z.string().default('TransCircle Team'),
+    editor: z.string().optional(),
     category: z.string().default('general'),
     tags: z.array(z.string()).default([]),
     cover: z.string().optional(),
