@@ -110,7 +110,11 @@ tags: ['扭转机构', '历史记载']
 
 [^xi]: "我就知道他们靠不上…" <https://x.com/yanzhenzhen21/status/2032420118899347541>
 
+<<<<<<< HEAD
 [^xii]: ![知情人士截图](xiaoyan/zhiqingrenshi.png)
+=======
+[^xii]: ![知情人士截图](/images/zhiqingrenshi.png)
+>>>>>>> fa90f27 (✨ feat(post): 更新文章图片路径并添加编辑者字段)
 
 [^xiii]: "这是一条定时推文" <https://x.com/yanzhenzhen21/status/2034661177373196540>
 

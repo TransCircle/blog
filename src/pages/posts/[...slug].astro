@@ -20,7 +20,19 @@ export interface Props {
 
 const { post } = Astro.props;
 const { Content } = await post.render();
-const { title, description, pubDate, updatedDate, author, category, tags, cover, contentLicense, codeLicense } = post.data;
+const {
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  author,
+  editor,
+  category,
+  tags,
+  cover,
+  contentLicense,
+  codeLicense,
+} = post.data;
 
 // 计算字数（中文字符 + 英文单词）
 const rawBody = post.body || '';
@@ -43,7 +55,8 @@ const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
   tags={tags}
   category={category}
   editor={editor}
-  wordCount={totalWordCount}>
+  wordCount={totalWordCount}
+>
   <Header />
 
   <main id="main-content" class="container">
@@ -53,12 +66,14 @@ const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
           <span class="post-category">{category}</span>
           <span class="post-meta-separator">·</span>
           <time datetime={pubDate.toISOString()} class="post-date">{formattedDate}</time>
-          {formattedUpdatedDate && (
-            <>
-              <span class="post-meta-separator">·</span>
-              <span class="post-updated">更新于 {formattedUpdatedDate}</span>
-            </>
-          )}
+          {
+            formattedUpdatedDate && (
+              <>
+                <span class="post-meta-separator">·</span>
+                <span class="post-updated">更新于 {formattedUpdatedDate}</span>
+              </>
+            )
+          }
         </div>
 
         <h1>{title}</h1>
@@ -74,31 +89,36 @@ const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
           <span class="author-label">编辑：</span>
           <span class="author-name">{editor}</span>
         </div>
-
       </header>
 
-      {cover && (
-        <figure class="post-cover">
-          <img src={cover} alt={`${title} 封面图`} loading="eager" />
-        </figure>
-      )}
+      {
+        cover && (
+          <figure class="post-cover">
+            <img src={cover} alt={`${title} 封面图`} loading="eager" />
+          </figure>
+        )
+      }
 
       <div class="article-content">
         <Content />
       </div>
 
-      {tags.length > 0 && (
-        <footer class="post-footer">
-          <div class="post-tags">
-            <span class="tags-label">标签：</span>
-            <div class="tags-list">
-              {tags.map((tag: string) => (
-                <a href={`/tags/${tag}`} class="tag-link">#{tag}</a>
-              ))}
+      {
+        tags.length > 0 && (
+          <footer class="post-footer">
+            <div class="post-tags">
+              <span class="tags-label">标签：</span>
+              <div class="tags-list">
+                {tags.map((tag: string) => (
+                  <a href={`/tags/${tag}`} class="tag-link">
+                    #{tag}
+                  </a>
+                ))}
+              </div>
             </div>
-          </div>
-        </footer>
-      )}
+          </footer>
+        )
+      }
 
       <footer class="post-license" aria-label="许可协议">
         <div class="license-divider"></div>
@@ -120,9 +140,20 @@ const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
 
     <nav class="post-nav" aria-label="文章导航">
       <a href="/" class="post-nav-link">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-          <line x1="19" y1="12" x2="5" y2="12"/>
-          <polyline points="12 19 5 12 12 5"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
         返回文章列表
       </a>
@@ -249,7 +280,9 @@ const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
     border-radius: 50px;
     font-size: 0.82rem;
     text-decoration: none;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
   }
 
   .tag-link:hover {
