@@ -25,6 +25,7 @@ Pass被列为「形容词」，在我眼里是明显不对的，论述的点有�
 如果我们看英文维基百科的「[Passing (gender)](https://en.wikipedia.org/wiki/Passing_(gender))」页面，我们不难发现，其形容是：
 
 > In the context of gender, passing is someone being perceived as a gender they identify as or are attempting to be seen as, rather than their sex assigned at birth.
+
 > 在性别的语境下，「pass」是指一个人被视作自己认同的性别、或是自己希望被他人看待的性别，而非其指派性别。
 
 这可和形容词不搭边吧？这个页面后文的写法也是：
@@ -59,9 +60,9 @@ Pass被列为「形容词」，在我眼里是明显不对的，论述的点有�
 
 至于其他素人的言论，我就不署名地写出吧，收集到的例句有以下：
 
-*「只能说，再怎么**深柜**，也是藏不了多久的。」——动词用法。
-*「我真的很好奇我初高中有多少**深柜**。」——名词用法。
-*「他的行为看起来很**深柜**。」——和上文的「pass」一样。
+* 「只能说，再怎么**深柜**，也是藏不了多久的。」——动词用法。
+* 「我真的很好奇我初高中有多少**深柜**。」——名词用法。
+* 「他的行为看起来很**深柜**。」——和上文的「pass」一样。
 
 我们会发现，它的用法是如此之多，**简单地将其列为「形容词」肯定是不妥的。**
 
