@@ -319,16 +319,16 @@ tags: ['HRT', ]
 
 希望这份筛查路径能帮助你在纷繁的信息中找到那条最适合你的路。
 
-[^fn-1] *编者注：羽莉在2026年5月27日创作的文章。请见[本推文](https://x.com/liwanmiaohy/status/2059445407986667786)。后文称的《原指南》也是它。*
+[^fn-1]: *编者注：羽莉在2026年5月27日创作的文章。请见[本推文](https://x.com/liwanmiaohy/status/2059445407986667786)。后文称的《原指南》也是它。*
 
-[^fn-2] *编者注：肝脏首过效应（又称首关效应或首过代谢）是指口服药物在被胃肠道吸收后，首先进入肝门静脉系统，在首次通过肠黏膜和肝脏时，部分药物即被代谢灭活，导致进入全身血液循环的有效药量减少、药效降低的生理现象*
+[^fn-2]: *编者注：肝脏首过效应（又称首关效应或首过代谢）是指口服药物在被胃肠道吸收后，首先进入肝门静脉系统，在首次通过肠黏膜和肝脏时，部分药物即被代谢灭活，导致进入全身血液循环的有效药量减少、药效降低的生理现象*
 
-[^fn-3] 愿意为降低几十年后的心梗、中风风险而每日操作。
+[^fn-3]: 愿意为降低几十年后的心梗、中风风险而每日操作。
 
-[^fn-4] 不想赌「自己是否吸收不良」。
+[^fn-4]: 不想赌「自己是否吸收不良」。
 
-[^fn-5] 不想每天多次用药。
+[^fn-5]: 不想每天多次用药。
 
-[^fn-6] 针剂的长期累积风险在年轻人群中相对可控，但依然存在。
+[^fn-6]: 针剂的长期累积风险在年轻人群中相对可控，但依然存在。
 
-[^i] Rothman MS et al., *The Use of Injectable Estradiol in Transgender and Gender Diverse Adults: A Scoping Review of Dose and Serum Estradiol Levels*, Endocr Pract, 2024;30(9):870–878 ([Scholars@Duke](https://scholars.duke.edu/publication/1634072)).
+[^i]: Rothman MS et al., *The Use of Injectable Estradiol in Transgender and Gender Diverse Adults: A Scoping Review of Dose and Serum Estradiol Levels*, Endocr Pract, 2024;30(9):870–878 ([Scholars@Duke](https://scholars.duke.edu/publication/1634072)).
