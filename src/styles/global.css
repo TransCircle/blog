@@ -145,10 +145,20 @@ img {
 }
 
 /* Tables */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 1rem;
+}
+
+.table-wrapper table {
+  margin-bottom: 0;
 }
 
 th,
@@ -162,6 +172,12 @@ th {
   background-color: var(--hover-bg);
   font-weight: 600;
   color: var(--text-main);
+  white-space: nowrap;
+}
+
+/* 第一列与表头不换行；表格过宽时整体在 .table-wrapper 内横向滚动 */
+td:first-child {
+  white-space: nowrap;
 }
 
 /* Horizontal rule */
@@ -212,13 +228,54 @@ hr {
   top: 0;
 }
 
+/* Screen-reader only（如 GFM 脚注区自带的 "Footnotes" 标题） */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Article content */
+.article-content {
+  overflow-wrap: break-word;
+}
+
 .article-content h2 {
   border-bottom: 1px solid var(--divider-color);
   padding-bottom: 0.5rem;
 }
 
 .article-content h3 {
+  color: var(--text-secondary);
+}
+
+/* 长链接（如裸 URL）允许在任意位置断行，避免移动端出现页面级横向滚动 */
+.article-content a {
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* 脚注引用编号用 [] 包裹，避免相邻编号（如 1 和 3）被误读成 13 */
+.article-content a[data-footnote-ref]::before {
+  content: '[';
+}
+
+.article-content a[data-footnote-ref]::after {
+  content: ']';
+}
+
+/* GFM 脚注区（标题被 sr-only 隐藏后用分隔线区分正文） */
+.article-content section.footnotes {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--divider-color);
+  font-size: 0.875rem;
   color: var(--text-secondary);
 }
 
@@ -242,5 +299,11 @@ hr {
 
   h1 {
     font-size: 1.75rem;
+  }
+
+  th,
+  td {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.875rem;
   }
 }
