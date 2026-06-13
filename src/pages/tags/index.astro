@@ -15,9 +15,16 @@ tags.forEach((tag: string) => {
   const count = publishedPosts.filter((post: CollectionEntry<'posts'>) => post.data.tags.includes(tag)).length;
   tagCounts.set(tag, count);
 });
+
+const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
+const tagsDescription = `跨环（TransCircle）开发博客的全部文章标签，共 ${tags.length} 个标签、${publishedPosts.length} 篇文章，可按主题浏览。`;
+const breadcrumbs = [
+  { name: '首页', item: siteURL },
+  { name: '标签', item: `${siteURL}tags/` },
+];
 ---
 
-<Layout title="标签" description="浏览所有文章标签">
+<Layout title="全部标签" description={tagsDescription} breadcrumbs={breadcrumbs}>
   <Header />
 
   <main id="main-content" class="container">

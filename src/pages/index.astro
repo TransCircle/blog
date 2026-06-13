@@ -5,7 +5,7 @@ import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
 import PostCard from '@components/PostCard.astro';
 import Pagination from '@components/Pagination.astro';
-import { POSTS_PER_PAGE } from '@utils/posts';
+import { POSTS_PER_PAGE, type Person } from '@utils/posts';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
@@ -33,9 +33,47 @@ const publishedPosts = posts
 const totalPages = Math.ceil(publishedPosts.length / POSTS_PER_PAGE);
 const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
 const paginatedPosts = publishedPosts.slice(startIndex, startIndex + POSTS_PER_PAGE);
+
+const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
+const homeTitle = '跨环开发博客';
+const homeDescription =
+  '跨环（TransCircle Project）官方开发博客：公开记录服务于中文 MtF 跨性别社群的项目开发进度、团队报告与技术分享。内容遵循 CC BY-SA 4.0，代码遵循 AGPL-3.0。';
+
+// Blog 结构化数据：列出最新文章，帮助搜索引擎与 AI 理解站点为「博客」实体及其文章集合
+const blogSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  '@id': `${siteURL}#blog`,
+  url: siteURL,
+  name: 'TransCircle 开发博客',
+  alternateName: 'TransCircle Development Blog',
+  description: homeDescription,
+  inLanguage: 'zh-CN',
+  publisher: { '@id': `${siteURL}#organization` },
+  blogPost: publishedPosts.slice(0, 20).map((post: CollectionEntry<'posts'>) => ({
+    '@type': 'BlogPosting',
+    headline: post.data.title,
+    url: `${siteURL}posts/${post.slug}/`,
+    datePublished: post.data.pubDate.toISOString(),
+    ...(post.data.updatedDate ? { dateModified: post.data.updatedDate.toISOString() } : {}),
+    ...(post.data.description ? { description: post.data.description } : {}),
+    author: post.data.author.map((a: Person) => ({
+      '@type': 'Person',
+      name: a.name,
+      ...(a.link ? { url: a.link } : {}),
+    })),
+  })),
+};
+
+const pageTitle = currentPage > 1 ? `${homeTitle}（第 ${currentPage} 页）` : homeTitle;
 ---
 
-<Layout title="首页" description="TransCircle 开发博客 - 记录项目进度与团队报告" isHome={true}>
+<Layout
+  title={pageTitle}
+  description={homeDescription}
+  isHome={true}
+  additionalSchemas={currentPage === 1 ? [blogSchema] : []}
+>
   <Header />
 
   <main id="main-content" class="container">

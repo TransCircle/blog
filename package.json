@@ -9,6 +9,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "typecheck": "astro check",
+    "indexnow": "node scripts/indexnow.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write ."

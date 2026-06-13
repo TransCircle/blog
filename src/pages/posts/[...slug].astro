@@ -46,6 +46,20 @@ const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
 
 // author/editor 已被 schema 规整为 { name, link }[]；meta 标签只需纯文本
 const authorText = formatPeople(author);
+
+// 内容协议枚举 → 规范 URL（用于 BlogPosting 的 license 字段）；Proprietary 不输出
+const LICENSE_URLS: Record<string, string> = {
+  'CC-BY-SA-4.0': 'https://creativecommons.org/licenses/by-sa/4.0/',
+  'CC-BY-4.0': 'https://creativecommons.org/licenses/by/4.0/',
+  'CC0-1.0': 'https://creativecommons.org/publicdomain/zero/1.0/',
+};
+const licenseUrl = LICENSE_URLS[contentLicense];
+
+const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
+const breadcrumbs = [
+  { name: '首页', item: siteURL },
+  { name: title, item: new URL(`/posts/${post.slug}/`, Astro.site).toString() },
+];
 ---
 
 <Layout
@@ -54,11 +68,15 @@ const authorText = formatPeople(author);
   image={cover}
   type="article"
   author={authorText}
+  authors={author}
+  editors={editor}
   pubDate={pubDate}
   updatedDate={updatedDate}
   tags={tags}
   category={category}
   wordCount={totalWordCount}
+  breadcrumbs={breadcrumbs}
+  license={licenseUrl}
 >
   <Header />
 

@@ -1,90 +1,14 @@
 ---
-import fs from 'node:fs';
-import path from 'node:path';
-import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
-import { formatPeople } from '@utils/posts';
 
-const posts = await getCollection('posts');
-const publishedPosts = posts
-  .filter((post: CollectionEntry<'posts'>) => !post.data.draft)
-  .sort((a: CollectionEntry<'posts'>, b: CollectionEntry<'posts'>) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
-
-// Build search index JSON for client-side search
-const searchData = publishedPosts.map((post: CollectionEntry<'posts'>) => ({
-  id: post.id,
-  title: post.data.title,
-  description: post.data.description || '',
-  content: post.body || '',
-  category: post.data.category,
-  tags: post.data.tags,
-  author: formatPeople(post.data.author),
-  pubDate: post.data.pubDate.toISOString(),
-  slug: post.slug,
-}));
-
-// Write search index to public directory (for client-side search)
-const publicDir = path.join(process.cwd(), 'public');
-if (!fs.existsSync(publicDir)) {
-  fs.mkdirSync(publicDir, { recursive: true });
-}
-fs.writeFileSync(
-  path.join(publicDir, 'search-index.json'),
-  JSON.stringify(searchData, null, 2),
-  'utf-8'
-);
-
-// Generate llms-full.txt for LLM indexing (write to both public and dist)
-const llmsFullContent = `# TransCircle Development Blog - Content Snapshot
-# https://blog.transcircle.org
-# Generated: ${new Date().toISOString()}
-
-## About This Blog
-
-TransCircle Development Blog documents the development progress, team reports, and technical sharing for the TransCircle Project (https://transcircle.org), serving the Chinese MtF transgender community.
-
-## Content License
-- Text: CC BY-SA 4.0
-- Code: AGPL-3.0
-
-## Articles
-
-${publishedPosts.map((post: CollectionEntry<'posts'>) => {
-  const data = post.data;
-  return `### ${data.title}
-- URL: https://blog.transcircle.org/posts/${post.slug}/
-- Date: ${data.pubDate.toISOString().split('T')[0]}
-- Author: ${formatPeople(data.author)}
-- Category: ${data.category}
-- Tags: ${data.tags.join(', ') || 'none'}
-- License: ${data.contentLicense || 'CC-BY-SA-4.0'} (content), ${data.codeLicense || 'AGPL-3.0'} (code)
-${data.description ? `- Description: ${data.description}` : ''}
-`;
-}).join('\n')}
-
-## End of Snapshot
-`;
-
-fs.writeFileSync(
-  path.join(publicDir, 'llms-full.txt'),
-  llmsFullContent,
-  'utf-8'
-);
-
-// Also write to dist if it exists (for production builds)
-const distDir = path.join(process.cwd(), 'dist');
-if (fs.existsSync(distDir)) {
-  fs.writeFileSync(
-    path.join(distDir, 'llms-full.txt'),
-    llmsFullContent,
-    'utf-8'
-  );
-}
+// 搜索索引由 /search-index.json 端点在构建时生成（见 src/pages/search-index.json.ts），
+// 客户端通过 fetch 加载，无需在此页面内联生成。
+// 搜索页对检索结果无独立价值，标记 noindex 避免稀释索引信号（robots.txt 亦已 Disallow）。
 ---
 
-<Layout title="搜索" description="搜索博客文章">
+<Layout title="搜索文章" description="在 TransCircle 开发博客中全文搜索文章标题、描述、正文与标签。" noindex={true}>
   <Header />
 
   <main id="main-content" class="container">

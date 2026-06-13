@@ -1,18 +1,34 @@
 ---
 import LinkConfirmDialog from '@components/LinkConfirmDialog.astro';
 
+interface Person {
+  name: string;
+  link: string;
+}
+
+interface Breadcrumb {
+  name: string;
+  item: string;
+}
+
 export interface Props {
   title: string;
   description?: string;
   image?: string;
   type?: string;
   author?: string;
+  authors?: Person[];
+  editors?: Person[];
   pubDate?: Date;
   updatedDate?: Date;
   tags?: string[];
   category?: string;
   wordCount?: number;
   isHome?: boolean;
+  noindex?: boolean;
+  breadcrumbs?: Breadcrumb[];
+  additionalSchemas?: Record<string, unknown>[];
+  license?: string;
 }
 
 const {
@@ -21,12 +37,18 @@ const {
   image,
   type = 'website',
   author,
+  authors,
+  editors,
   pubDate,
   updatedDate,
   tags = [],
   category,
   wordCount,
   isHome = false,
+  noindex = false,
+  breadcrumbs = [],
+  additionalSchemas = [],
+  license,
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -82,6 +104,15 @@ const websiteSchema = {
   copyrightHolder: { '@id': `${siteURL}#organization` },
   copyrightYear: 2026,
   license: 'https://creativecommons.org/licenses/by-sa/4.0/',
+  // 站内搜索动作：允许 Google 在结果中展示 sitelinks 搜索框
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${siteURL}search?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
 };
 
 const faqSchema = {
@@ -125,47 +156,66 @@ const faqSchema = {
   ],
 };
 
+// 将 { name, link }[] 规整为 schema.org Person 节点；缺省回退到团队 + 主站
+const toPersons = (people?: Person[]) =>
+  people && people.length > 0
+    ? people.map((p) => ({
+        '@type': 'Person',
+        name: p.name,
+        ...(p.link ? { url: p.link } : {}),
+      }))
+    : null;
+
+const schemaAuthors =
+  toPersons(authors) || [
+    { '@type': 'Person', name: author || 'TransCircle Team', url: 'https://transcircle.org' },
+  ];
+const schemaEditors = toPersons(editors);
+
 const articleSchema = type === 'article' && pubDate ? {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
+  '@id': `${canonicalURL}#article`,
   headline: title,
   description: description,
   url: canonicalURL.toString(),
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalURL.toString() },
   datePublished: pubDate.toISOString(),
-  dateModified: updatedDate?.toISOString() || pubDate.toISOString(),
-  author: {
-    '@type': 'Person',
-    name: author || 'TransCircle Team',
-  },
-  publisher: {
-    '@type': 'Organization',
-    name: 'TransCircle Project',
-    url: 'https://transcircle.org',
-    logo: {
-      '@type': 'ImageObject',
-      url: `${siteURL}icon-512.png`,
-    },
-  },
+  dateModified: (updatedDate || pubDate).toISOString(),
+  author: schemaAuthors,
+  ...(schemaEditors ? { editor: schemaEditors } : {}),
+  publisher: { '@id': `${siteURL}#organization` },
+  isPartOf: { '@id': `${siteURL}#website` },
+  image: [ogImageURL],
   keywords: tags?.join(', ') || '',
   articleSection: category || 'general',
-  license: 'https://creativecommons.org/licenses/by-sa/4.0/',
+  ...(license ? { license } : {}),
   inLanguage: 'zh-CN',
+  isAccessibleForFree: true,
   ...(wordCount ? { wordCount } : {}),
-  ...(image ? { image: ogImageURL } : {}),
 } : null;
 
-const jsonLdSchemas = [];
-if (isHome) {
-  jsonLdSchemas.push(orgSchema, websiteSchema, faqSchema);
-}
-if (articleSchema) {
-  if (!isHome) jsonLdSchemas.push(orgSchema);
-  jsonLdSchemas.push(articleSchema);
-}
+const breadcrumbSchema = breadcrumbs.length > 0 ? {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: breadcrumbs.map((b, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: b.name,
+    item: b.item,
+  })),
+} : null;
 
-const jsonLdScript = jsonLdSchemas.length > 0
-  ? JSON.stringify(jsonLdSchemas.length === 1 ? jsonLdSchemas[0] : { '@graph': jsonLdSchemas })
-  : null;
+// Organization 与 WebSite 在每个页面都输出，确保各页 @id 引用都能在本页解析
+const jsonLdSchemas: Record<string, unknown>[] = [orgSchema, websiteSchema];
+if (isHome) jsonLdSchemas.push(faqSchema);
+if (breadcrumbSchema) jsonLdSchemas.push(breadcrumbSchema);
+if (articleSchema) jsonLdSchemas.push(articleSchema);
+if (additionalSchemas.length > 0) jsonLdSchemas.push(...additionalSchemas);
+
+const jsonLdScript = JSON.stringify(
+  jsonLdSchemas.length === 1 ? jsonLdSchemas[0] : { '@graph': jsonLdSchemas }
+);
 ---
 
 <!doctype html>
@@ -184,9 +234,15 @@ const jsonLdScript = jsonLdSchemas.length > 0
     <meta name="referrer" content="strict-origin-when-cross-origin" />
 
     <!-- Robots -->
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large" />
-    <meta name="bingbot" content="index, follow" />
+    {noindex ? (
+      <meta name="robots" content="noindex, follow" />
+    ) : (
+      <>
+        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+        <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large" />
+        <meta name="bingbot" content="index, follow" />
+      </>
+    )}
 
     <!-- Theme -->
     <meta name="theme-color" content="#ff85a2" media="(prefers-color-scheme: light)" />
@@ -240,6 +296,7 @@ const jsonLdScript = jsonLdSchemas.length > 0
     <!-- Icons -->
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
+    <link rel="alternate" type="application/rss+xml" title="TransCircle 开发博客 RSS" href="/rss.xml" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="/icon-192.png" sizes="192x192" />

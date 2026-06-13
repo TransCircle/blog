@@ -27,9 +27,45 @@ const publishedPosts = posts.filter((post: CollectionEntry<'posts'>) => !post.da
 const taggedPosts = getPostsByTag(publishedPosts, tag).sort(
   (a: CollectionEntry<'posts'>, b: CollectionEntry<'posts'>) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 );
+
+const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
+const tagURL = new URL(`/tags/${tag}/`, Astro.site).toString();
+const tagDescription = `跨环（TransCircle）开发博客中标签为「${tag}」的全部文章，共 ${taggedPosts.length} 篇。`;
+
+const breadcrumbs = [
+  { name: '首页', item: siteURL },
+  { name: '标签', item: `${siteURL}tags/` },
+  { name: `#${tag}`, item: tagURL },
+];
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': `${tagURL}#collection`,
+  url: tagURL,
+  name: `标签：${tag}`,
+  description: tagDescription,
+  isPartOf: { '@id': `${siteURL}#website` },
+  inLanguage: 'zh-CN',
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: taggedPosts.length,
+    itemListElement: taggedPosts.map((post: CollectionEntry<'posts'>, i: number) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `${siteURL}posts/${post.slug}/`,
+      name: post.data.title,
+    })),
+  },
+};
 ---
 
-<Layout title={`标签：${tag}`} description={`浏览标签 "${tag}" 下的所有文章`}>
+<Layout
+  title={`标签：${tag}`}
+  description={tagDescription}
+  breadcrumbs={breadcrumbs}
+  additionalSchemas={[collectionSchema]}
+>
   <Header />
 
   <main id="main-content" class="container">
