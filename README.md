@@ -305,6 +305,48 @@ A: 分类是文章的大类（如"开发进度"），标签是更细粒度的关
 
 ---
 
+## SEO / GEO 与搜索引擎收录
+
+本站针对传统搜索引擎（SEO）与生成式引擎 / AI 检索（GEO）做了系统优化。**以下产物在每次 `pnpm run build` 时自动生成，无需手动维护，永不过期：**
+
+| 产物 | 路径 | 说明 |
+|------|------|------|
+| 站点地图 | `/sitemap-index.xml` | 含每篇文章真实的 `lastmod`、`changefreq`、`priority`；自动排除搜索页 |
+| 结构化数据 | 各页 `<head>` 内 JSON-LD | Organization / WebSite（含站内搜索框）/ Blog / BlogPosting / FAQPage / BreadcrumbList / CollectionPage |
+| AI 索引 | `/llms.txt` | 遵循 llmstxt.org 约定：实体消歧 + 自动文章清单 |
+| AI 全文快照 | `/llms-full.txt` | 内联**全部文章正文**，供 LLM / RAG 一次性摄取 |
+| 文章 Markdown 原文 | `/posts/<slug>.md` | 每篇文章的纯 Markdown 版本，便于 AI 抓取 |
+| 搜索索引 | `/search-index.json` | 客户端全文搜索数据 |
+| RSS | `/rss.xml` | 文章订阅源 |
+| 爬虫规则 | `/robots.txt`、`/ai.txt` | 显式欢迎主流搜索引擎与 AI 爬虫 |
+
+> 注意：`llms.txt` / `llms-full.txt` / `search-index.json` 现由 `src/pages/*.ts` 端点在构建时生成，**不再提交到 `public/`**，因此不会随内容更新而出现陈旧副本。
+
+### 让引擎「最快收录」要做的事
+
+这些步骤需要账号或在部署后执行，无法纯靠代码完成：
+
+1. **Google Search Console**（<https://search.google.com/search-console>）：添加资源 `blog.transcircle.org` → 提交站点地图 `sitemap-index.xml`。如需站点验证，可在文章 frontmatter 之外，于 `Layout.astro` 的 `<head>` 加一行 `<meta name="google-site-verification" content="...">`。
+2. **Bing Webmaster Tools**（<https://www.bing.com/webmasters>）：添加站点并提交 sitemap（可直接从 GSC 导入）。Bing 验证后即自动支持 IndexNow。
+3. **IndexNow 主动推送**（让 Bing / Yandex / Seznam 等即时收录）。IndexNow 只是「通知 URL 变更」的一次 HTTP 请求，提交的是绝对 URL，**在哪里运行都可以，不需要跑在生产服务器上**。本项目部署在 Cloudflare Pages，按偏好三选一：
+
+   - **方式 A · Cloudflare Crawler Hints（推荐，零维护）**：登录 Cloudflare → 选择 `transcircle.org` 域名 → **Caching / 缓存 → Configuration → Crawler Hints** 开启即可。之后 Cloudflare 会在内容变化时自动通过 IndexNow 推送，**无需本脚本**。要求该域名通过 Cloudflare 代理（Pages 自定义域名默认满足）。
+   - **方式 B · 嵌入 Pages 构建命令（全自动、可控）**：在 Cloudflare Pages 项目设置里，把「构建命令」改为：
+     ```
+     pnpm run build && pnpm run indexnow
+     ```
+     脚本已做适配：**仅在生产分支（默认 `main`）提交**，且在 Cloudflare 构建环境中即使提交失败也**不会让部署失败**。生产分支名不同可设环境变量 `INDEXNOW_PRODUCTION_BRANCH`。
+   - **方式 C · 本地手动（最简单）**：每次发文部署后，在本地跑一次：
+     ```bash
+     pnpm run build && pnpm run indexnow
+     ```
+     因为提交的是线上绝对 URL，本地运行同样生效。
+
+   > 密钥文件 `public/b1ba2832c93fda19d24eb2a7b7e91ca3.txt` 部署后可通过 `https://blog.transcircle.org/b1ba2832c93fda19d24eb2a7b7e91ca3.txt` 访问，用于所有权校验，**请勿删除或改名**。
+4. **首次或大更新后**：在 GSC 用「网址检查 → 请求编入索引」对首页与新文章手动催收，通常最快。
+
+---
+
 ## 许可证
 
 项目代码：AGPL-3.0
