@@ -168,15 +168,11 @@ td {
   text-align: left;
 }
 
+/* 表头不换行；表格过宽时整体在 .table-wrapper 内横向滚动 */
 th {
   background-color: var(--hover-bg);
   font-weight: 600;
   color: var(--text-main);
-  white-space: nowrap;
-}
-
-/* 第一列与表头不换行；表格过宽时整体在 .table-wrapper 内横向滚动 */
-td:first-child {
   white-space: nowrap;
 }
 
