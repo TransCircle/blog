@@ -2,8 +2,8 @@
 title: '反扭转媒体错用小言代词之争议'
 description: '一个女孩的死亡，一个社区的怒火，一场分裂的争端。'
 pubDate: 2026-05-21T00:00:00Z
-author: 'Oakley Huang'
-editor: 'Oakley Huang'
+author: { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
+editor: { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
 category: '未分类'
 tags: ['扭转机构', '历史记载']
 ---

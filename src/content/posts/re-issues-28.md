@@ -2,7 +2,9 @@
 title: '回复：issues #28 关于项目定位'
 description: '「凭吊逝者、温暖生者；用我们微小的光芒照亮社区，以我们浅薄的思想指引方向」'
 pubDate: 2026-05-21
-author: 'Epheia & Oakley Huang (羊圈Yan-Gyan)'
+author: 
+  - { name: 'Epheia', link: 'https://x.com/epheiamoe' }
+  - { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
 category: '项目定位'
 tags: ['项目定位', '文章', '公开','issues','RE']
 contentLicense: 'CC-BY-4.0'

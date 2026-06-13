@@ -1,9 +1,11 @@
 ---
 title: '跨性别女性 HRT 个体差异筛查与方案选择路径'
-description: '——《中国大陆跨性别女性 HRT 分层决策指南》前置阅读。'
+description: '——《中国大陆跨性别女性 HRT 分层决策指南》前置阅读'
 pubDate: 2026-06-7
-author: '羽莉'
-editor: '翅膀、Oakley Huang'
+author: { name: '羽莉', link: 'https://x.com/liwanmiaohy' }
+editor:
+  - { name: '翅膀', link: 'https://x.com/axzameyzed' }
+  - { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
 category: '跨性别医疗'
 tags: ['HRT', ]
 ---
