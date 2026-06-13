@@ -1,4 +1,6 @@
 ---
+import LinkConfirmDialog from '@components/LinkConfirmDialog.astro';
+
 export interface Props {
   title: string;
   description?: string;
@@ -271,6 +273,9 @@ const jsonLdScript = jsonLdSchemas.length > 0
   <body>
     <a href="#main-content" class="skip-link">跳转到主内容</a>
     <slot />
+
+    <!-- 外链跳转确认弹窗（全站共用，拦截带 data-confirm-link 的链接） -->
+    <LinkConfirmDialog />
 
     <!-- Noscript fallback -->
     <noscript>

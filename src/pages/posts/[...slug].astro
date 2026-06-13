@@ -4,7 +4,8 @@ import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
 import LicenseBadge from '@components/LicenseBadge.astro';
-import { formatDate } from '@utils/posts';
+import PersonLinks from '@components/PersonLinks.astro';
+import { formatDate, formatPeople } from '@utils/posts';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
@@ -42,6 +43,9 @@ const totalWordCount = chineseChars + englishWords;
 
 const formattedDate = formatDate(pubDate);
 const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
+
+// author/editor 已被 schema 规整为 { name, link }[]；meta 标签只需纯文本
+const authorText = formatPeople(author);
 ---
 
 <Layout
@@ -49,12 +53,11 @@ const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
   description={description || title}
   image={cover}
   type="article"
-  author={author}
+  author={authorText}
   pubDate={pubDate}
   updatedDate={updatedDate}
   tags={tags}
   category={category}
-  editor={editor}
   wordCount={totalWordCount}
 >
   <Header />
@@ -80,14 +83,9 @@ const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
 
         {description && <p class="post-description">{description}</p>}
 
-        <div class="post-author">
-          <span class="author-label">作者：</span>
-          <span class="author-name">{author}</span>
-        </div>
-
-        <div class="post-editor">
-          <span class="author-label">编辑：</span>
-          <span class="author-name">{editor}</span>
+        <div class="post-byline">
+          <PersonLinks label="作者：" people={author} />
+          <PersonLinks label="编辑：" people={editor} />
         </div>
       </header>
 
@@ -218,18 +216,10 @@ const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
     margin-bottom: 1rem;
   }
 
-  .post-author {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-  }
-
-  .author-label {
-    color: var(--text-secondary);
-  }
-
-  .author-name {
-    color: var(--accent-pink);
-    font-weight: 500;
+  .post-byline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
   }
 
   .post-cover {

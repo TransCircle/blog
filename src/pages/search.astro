@@ -5,6 +5,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
+import { formatPeople } from '@utils/posts';
 
 const posts = await getCollection('posts');
 const publishedPosts = posts
@@ -19,7 +20,7 @@ const searchData = publishedPosts.map((post: CollectionEntry<'posts'>) => ({
   content: post.body || '',
   category: post.data.category,
   tags: post.data.tags,
-  author: post.data.author,
+  author: formatPeople(post.data.author),
   pubDate: post.data.pubDate.toISOString(),
   slug: post.slug,
 }));
@@ -55,7 +56,7 @@ ${publishedPosts.map((post: CollectionEntry<'posts'>) => {
   return `### ${data.title}
 - URL: https://blog.transcircle.org/posts/${post.slug}/
 - Date: ${data.pubDate.toISOString().split('T')[0]}
-- Author: ${data.author}
+- Author: ${formatPeople(data.author)}
 - Category: ${data.category}
 - Tags: ${data.tags.join(', ') || 'none'}
 - License: ${data.contentLicense || 'CC-BY-SA-4.0'} (content), ${data.codeLicense || 'AGPL-3.0'} (code)

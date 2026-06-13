@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import type { Person } from '@utils/posts';
 
 export interface Props {
   post: CollectionEntry<'posts'>;
@@ -28,7 +29,26 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
   {description && <p class="post-card-description">{description}</p>}
 
   <div class="post-card-footer">
-    <span class="post-card-author">{author}</span>
+    <span class="post-card-author">
+      {author.map((person: Person, index: number) => (
+        <Fragment>
+          {index > 0 && (
+            <span class="post-card-author-sep" aria-hidden="true">
+              、
+            </span>
+          )}
+          <a
+            class="post-card-author-link"
+            href={person.link}
+            target="_blank"
+            rel="nofollow noopener noreferrer"
+            data-confirm-link
+          >
+            {person.name}
+          </a>
+        </Fragment>
+      ))}
+    </span>
 
     {tags.length > 0 && (
       <div class="post-card-tags">
@@ -109,6 +129,28 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
   .post-card-author {
     color: var(--text-muted);
     font-size: 0.85rem;
+  }
+
+  .post-card-author-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .post-card-author-link:hover {
+    color: var(--accent-pink);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .post-card-author-link:focus-visible {
+    outline: 2px solid var(--primary-pink);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  .post-card-author-sep {
+    color: var(--text-muted);
   }
 
   .post-card-tags {

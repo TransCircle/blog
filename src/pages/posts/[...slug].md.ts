@@ -2,6 +2,7 @@ import type { APIContext } from 'astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import fs from 'node:fs';
 import path from 'node:path';
+import { formatPeople } from '@utils/posts';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
@@ -32,7 +33,8 @@ export async function GET({ props }: APIContext) {
 # https://blog.transcircle.org/posts/${post.slug}/
 # 
 # Title: ${post.data.title}
-# Author: ${post.data.author}
+# Author: ${formatPeople(post.data.author)}
+# Editor: ${formatPeople(post.data.editor)}
 # Date: ${post.data.pubDate.toISOString().split('T')[0]}
 # Category: ${post.data.category}
 # Tags: ${post.data.tags.join(', ') || 'none'}

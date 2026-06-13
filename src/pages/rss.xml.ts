@@ -1,6 +1,7 @@
 import rss from '@astrojs/rss';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import type { APIContext } from 'astro';
+import { formatPeople } from '@utils/posts';
 
 export async function GET(context: APIContext) {
   const posts = await getCollection('posts');
@@ -18,7 +19,7 @@ export async function GET(context: APIContext) {
       description: post.data.description || post.data.title,
       link: `/posts/${post.slug}/`,
       categories: post.data.tags,
-      author: post.data.author,
+      author: formatPeople(post.data.author),
     })),
     customData: `<language>zh-CN</language>
 <managingEditor>team@transcircle.org</managingEditor>

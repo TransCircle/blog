@@ -1,0 +1,72 @@
+---
+import type { Person } from '@utils/posts';
+
+export interface Props {
+  /** 行首标签，如「作者：」「编辑：」 */
+  label: string;
+  /** 已规整为 { name, link } 的署名列表 */
+  people: Person[];
+}
+
+const { label, people } = Astro.props;
+---
+
+<div class="person-links">
+  <span class="person-links-label">{label}</span>
+  <span class="person-links-names">
+    {
+      people.map((person, index) => (
+        <Fragment>
+          {index > 0 && (
+            <span class="person-links-sep" aria-hidden="true">
+              、
+            </span>
+          )}
+          <a
+            class="person-link"
+            href={person.link}
+            target="_blank"
+            rel="nofollow noopener noreferrer"
+            data-confirm-link
+          >
+            {person.name}
+          </a>
+        </Fragment>
+      ))
+    }
+  </span>
+</div>
+
+<style>
+  .person-links {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .person-links-label {
+    color: var(--text-secondary);
+  }
+
+  .person-link {
+    color: var(--accent-pink);
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: color 0.2s ease;
+  }
+
+  .person-link:hover {
+    color: var(--cta-hover);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .person-link:focus-visible {
+    outline: 2px solid var(--primary-pink);
+    outline-offset: 2px;
+  }
+
+  .person-links-sep {
+    color: var(--text-muted);
+  }
+</style>
