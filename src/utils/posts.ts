@@ -16,10 +16,13 @@ export function formatPeople(people: Person[]): string {
 }
 
 export function formatDate(date: Date): string {
+  // 固定 UTC：frontmatter 的 pubDate/updatedDate 为「仅日期」值（按 UTC 零点解析），
+  // 固定时区可避免在非 UTC 构建环境下显示差一天，并与 OG 卡片的日期口径保持一致。
   return new Date(date).toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: 'UTC',
   });
 }
 

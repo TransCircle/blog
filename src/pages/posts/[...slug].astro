@@ -9,10 +9,14 @@ import { formatDate, formatPeople } from '@utils/posts';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
-  return posts.map((post: CollectionEntry<'posts'>) => ({
-    params: { slug: post.slug },
-    props: { post },
-  }));
+  // 过滤草稿，保持与列表 / RSS / 搜索索引一致；未发布文章不生成页面，
+  // 其 OG 端点（src/pages/og/[...slug].png.ts）也同样过滤，二者始终对应。
+  return posts
+    .filter((post: CollectionEntry<'posts'>) => !post.data.draft)
+    .map((post: CollectionEntry<'posts'>) => ({
+      params: { slug: post.slug },
+      props: { post },
+    }));
 }
 
 export interface Props {
@@ -60,12 +64,16 @@ const breadcrumbs = [
   { name: '首页', item: siteURL },
   { name: title, item: new URL(`/posts/${post.slug}/`, Astro.site).toString() },
 ];
+
+// 文章 OG 图：构建期按文章元数据自动生成的卡片（见 src/pages/og/[...slug].png.ts）。
+// frontmatter 的 cover 仅用于页内题图，不再作为社交分享图。
+const ogImage = `/og/${post.slug}.png`;
 ---
 
 <Layout
   title={title}
   description={description || title}
-  image={cover}
+  image={ogImage}
   type="article"
   author={authorText}
   authors={author}
