@@ -45,7 +45,7 @@
 title: '文章标题'
 description: '文章简介，会显示在列表中'
 pubDate: 2026-05-21
-author: '作者名称'
+author: '作者名称'                # 想让署名可点，写成 { name: '...', link: 'https://...' }
 category: '开发进度'
 tags: ['标签1', '标签2']
 ---
@@ -106,13 +106,43 @@ updatedDate: 2026-05-21  # 添加这行表示更新时间
 | `description` | 可选 | 文章简介，显示在列表中 | `'本周完成的工作内容'` |
 | `pubDate` | ✅ | 发布日期 | `2026-05-21` |
 | `updatedDate` | 可选 | 更新日期 | `2026-05-22` |
-| `author` | 可选 | 作者名称（默认：TransCircle Team） | `'张三'` |
+| `author` | 可选 | 作者署名（默认：TransCircle Team），写法见下节 | `'张三'` |
+| `editor` | 可选 | 编辑署名，**不写就不显示**，写法见下节 | `'李四'` |
 | `category` | 可选 | 分类（默认：general） | `'开发进度'` 或 `'团队报告'` |
 | `tags` | 可选 | 标签数组 | `['前端', 'astro']` |
 | `cover` | 可选 | 封面图路径 | `'/images/cover.png'` |
 | `draft` | 可选 | 草稿标记（默认：false） | `true` 或 `false` |
 | `contentLicense` | 可选 | 内容协议（默认：CC-BY-SA-4.0） | `'CC-BY-SA-4.0'` |
 | `codeLicense` | 可选 | 代码协议（默认：AGPL-3.0） | `'AGPL-3.0'` |
+
+### 作者与编辑署名（`author` / `editor`）
+
+两个字段的写法完全一样，支持三种形式，可以混着用：
+
+```markdown
+---
+# 1. 只写名字：不带链接，署名显示为纯文本，点不了
+author: '文章组'
+
+# 2. 名字 + 链接：署名可点，在新标签页打开
+author: { name: '翅膀', link: 'https://x.com/axzameyzed' }
+
+# 3. 多个人：写成列表，带不带链接可以混排
+author:
+  - { name: '羽莉', link: 'https://x.com/liwanmiaohy' }
+  - { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
+  - '文案组'                      # 这一位没有链接，就是纯文本
+---
+```
+
+几条规则：
+
+- **不写 `link` 就是没有链接**，署名保持纯文本、不做跳转，也不会被"顺手"指向主站。
+- **不写 `editor` 就是没有编辑**，文章页、分享图、结构化数据里都不会出现「编辑」这一行；
+  不会自动署上团队名。
+- `author` 不写时才回退到 `TransCircle Team`。
+- `link` 只接受 `http(s)` 链接，其它协议（如 `javascript:`）会在构建时直接报错。
+- 多人署名用顿号（、）连接；点击带链接的署名会先弹出外链确认框。
 
 ### 常用分类
 
