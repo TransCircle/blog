@@ -220,7 +220,9 @@ const jsonLdScript = JSON.stringify(
 ---
 
 <!doctype html>
-<html lang="zh-CN" data-theme="light">
+<!-- 不写死 data-theme：留空才能让 theme.css 里 :root:not([data-theme]) 的
+     系统偏好深色回退在无 JS 时生效；有 JS 时下面的引导脚本会在首屏 paint 前写入。 -->
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -245,8 +247,8 @@ const jsonLdScript = JSON.stringify(
       </>
     )}
 
-    <!-- Theme -->
-    <meta name="theme-color" content="#ff85a2" media="(prefers-color-scheme: light)" />
+    <!-- Theme：theme-color 取页面底色（--bg-color），不是品牌强调色 -->
+    <meta name="theme-color" content="#fff9fb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#12121a" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
     <meta name="msapplication-TileColor" content="#ff85a2" />
@@ -306,28 +308,40 @@ const jsonLdScript = JSON.stringify(
     <link rel="icon" type="image/png" href="/icon-512.png" sizes="512x512" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
 
-    <!-- Preconnect -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
     <!-- JSON-LD -->
     {jsonLdScript && (
       <script is:inline type="application/ld+json" set:html={jsonLdScript} />
     )}
 
-    <!-- Theme script -->
+    <!-- 主题引导：首屏 paint 前写入 data-theme，避免明色基线先渲染再跳暗的闪白。
+         主题枚举严格等于 light / dark：旧版本可能在 localStorage 里存过已废弃的
+         'contrast'，这里的白名单会把它清掉。 -->
     <script is:inline>
       (function () {
-        const stored = localStorage.getItem('transcircle-theme');
+        const root = document.documentElement;
+        // 标记「JS 可用」：顶栏据此才把导航折叠成汉堡抽屉。无 JS 时导航链接保持可见。
+        root.classList.add('js');
+
+        const VALID = ['light', 'dark'];
+        let stored = null;
+        // 隐私模式 / 沙箱 iframe 下访问 localStorage 会抛 SecurityError，
+        // 裸调用会让整段引导中断、主题停在浅色基线。
+        try {
+          stored = localStorage.getItem('transcircle-theme');
+          if (stored && !VALID.includes(stored)) {
+            localStorage.removeItem('transcircle-theme');
+            stored = null;
+          }
+        } catch {
+          stored = null;
+        }
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const theme = stored || (prefersDark ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', theme);
+        root.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
       })();
     </script>
 
     <style is:global>
       @import '../styles/global.css';
-      @import '../styles/animations.css';
     </style>
   </head>
   <body>
@@ -346,47 +360,17 @@ const jsonLdScript = JSON.stringify(
           left: 0;
           right: 0;
           padding: 0.75rem;
-          background: var(--bg-secondary);
+          background: var(--surface-card);
           border-top: 1px solid var(--divider-color);
           text-align: center;
-          font-size: 0.85rem;
+          font-size: var(--fs-sm);
           color: var(--text-secondary);
-          z-index: 100;
+          z-index: 1200;
         }
       </style>
       <div class="noscript-notice">
         您已禁用 JavaScript。本站核心内容可正常访问，但主题切换和搜索功能需要启用 JavaScript。
       </div>
     </noscript>
-
-    <script>
-      // Scroll-triggered animations
-      const observerCallback = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
-        entries.forEach((entry: IntersectionObserverEntry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      };
-
-      const observer = new IntersectionObserver(observerCallback, {
-        root: null,
-        rootMargin: '0px 0px -50px 0px',
-        threshold: 0.1,
-      });
-
-      const observeElements = () => {
-        document.querySelectorAll('.scroll-animate').forEach((el) => {
-          observer.observe(el);
-        });
-      };
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', observeElements);
-      } else {
-        observeElements();
-      }
-    </script>
   </body>
 </html>

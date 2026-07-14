@@ -1,6 +1,6 @@
 @import url('./theme.css');
 
-/* Base reset and typography */
+/* ── 重置 ───────────────────────────────────────────────── */
 *,
 *::before,
 *::after {
@@ -15,25 +15,120 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 字体栈全站只在此声明一次，组件不得重复定义。零网络字体。 */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
     sans-serif;
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
   color: var(--text-body);
   background-color: var(--bg-color);
-  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-              color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 页面骨架：纵向三段流（Header / main / Footer），main 撑开把页脚压到底部 */
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    transition: none !important;
-    animation: none !important;
+/* 全站唯一与主题切换有关的动效：body 一次 ≤200ms 的底色/文字色过渡。
+ * 禁止圆形揭示、遮罩、翻转等切换特效（设计系统硬性非目标）。 */
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 }
 
-/* Headings */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ── 聚焦：非输入类走 outline，输入类走 box-shadow 光晕 ───── */
+:focus-visible {
+  outline: 2px solid var(--primary-pink);
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* skip-link 的编程焦点目标不需要可见轮廓 */
+main:focus {
+  outline: none;
+}
+
+::selection {
+  background-color: var(--select);
+  color: var(--text-main);
+}
+
+/* ── 布局轨道 ───────────────────────────────────────────────
+ * 页面宽度不写死，而是「填满视口 → 到上限即停 → 居中」。
+ * 外壳（顶栏/页脚内条）走内容轨 1280px，正文走阅读轨 60rem，
+ * 二者的宽度差是刻意的：外壳比正文宽，正文维持舒适行宽。 */
+.rail-content {
+  width: 100%;
+  max-width: var(--width-content);
+  margin-inline: auto;
+}
+
+.rail-reading {
+  width: 100%;
+  max-width: var(--width-reading);
+  margin-inline: auto;
+}
+
+/* 全站唯一的主内容容器：阅读轨 + 三档内边距。
+ * 桌面文字列 = 960 - 64 - 64 = 832px。 */
+.container {
+  flex: 1;
+  width: 100%;
+  max-width: var(--width-reading);
+  margin-inline: auto;
+  padding: 2.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* 防长串撑破轨道 */
+}
+
+@media (max-width: 1024px) {
+  .container {
+    padding: 2rem 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem;
+    max-width: 100%; /* 窄屏解除限宽，占满 */
+  }
+}
+
+/* ── 排印（元素默认值）───────────────────────────────────── */
 h1,
 h2,
 h3,
@@ -43,114 +138,391 @@ h6 {
   color: var(--text-main);
   font-weight: 700;
   line-height: 1.3;
-  margin-bottom: 1rem;
 }
 
 h1 {
-  font-size: 2rem;
+  font-size: var(--fs-title);
   letter-spacing: -0.02em;
 }
 
 h2 {
   font-size: 1.5rem;
-  margin-top: 2rem;
+  letter-spacing: -0.01em;
 }
 
 h3 {
   font-size: 1.25rem;
-  margin-top: 1.5rem;
 }
 
-/* Links */
+h4 {
+  font-size: 1.05rem;
+}
+
+h5,
+h6 {
+  font-size: 1rem;
+}
+
 a {
   color: var(--accent-pink);
   text-decoration: none;
-  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: color var(--dur-fast) var(--ease-standard);
 }
 
 a:hover {
   color: var(--cta-hover);
 }
 
-a:focus-visible {
-  outline: 2px solid var(--primary-pink);
-  outline-offset: 2px;
-  border-radius: 2px;
+/* ── 防溢出三件套（全局兜底）───────────────────────────── */
+img,
+video,
+iframe {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
 }
 
-/* Paragraphs */
-p {
+pre {
+  overflow-x: auto;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--divider-color);
+  margin: 2rem 0;
+}
+
+/* ── 滚动条（仅精细指针，触屏用系统原生）───────────────── */
+@media (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-color);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--soft-pink);
+    border-radius: var(--radius-xs);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-pink);
+  }
+}
+
+/* ── Skip link ─────────────────────────────────────────── */
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1200;
+  padding: 0.55rem 1rem;
+  background-color: var(--accent-pink);
+  color: var(--on-accent);
+  border-radius: var(--radius-control);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  box-shadow: var(--shadow-pop);
+  transform: translateY(-200%);
+  transition: transform 0.15s ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── 页面纵向节奏 ───────────────────────────────────────── */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* 区块节奏：上空 32 / 线 / 下空 24 */
+.section-divider {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--divider-color);
+}
+
+/* ══ 内容基元 ═══════════════════════════════════════════════
+ * 这几组类是全局的（而非组件 scoped），因为搜索页的结果行由 JS innerHTML 生成，
+ * 拿不到 Astro 的 scoped 属性。放在这里，让 PostCard.astro、文章页、搜索结果
+ * 共用同一份配方，避免三处各写一遍。 */
+
+/* 只读标记（分类）。可点的标签见 .tag-link */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--hover-bg);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.6;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pill-accent {
+  color: var(--accent-pink);
+}
+
+/* 可点标签：设计系统没有「可点 chip」，这里用 Pill 的视觉 + 真链接的交互，
+ * 并按无障碍要求给出 hover 反馈与触屏命中区。 */
+.tag-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--hover-bg);
+  color: var(--accent-pink);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.6;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.tag-link:hover {
+  background-color: var(--soft-pink);
+  color: var(--accent-pink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+@media (any-pointer: coarse) {
+  .tag-link {
+    min-height: var(--tap-min);
+  }
+}
+
+/* 文章列表行：分隔线式，不做成盒子卡（设计系统偏好分隔线胜过描边盒） */
+.post-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--divider-color);
+  min-width: 0;
+}
+
+.post-row:last-child {
+  border-bottom: none;
+}
+
+.post-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  min-width: 0;
+}
+
+.post-row-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  min-width: 0;
+}
+
+.post-row-title a {
+  color: var(--text-main);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+
+.post-row-title a:hover {
+  color: var(--accent-pink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.post-row-desc {
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+  overflow-wrap: break-word;
+  /* 两行截断，保持列表节奏整齐 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-row-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  flex-wrap: wrap;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.post-row-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* ── 文章正文 ────────────────────────────────────────────
+ * 唯一使用 --fs-prose / --lh-prose 的地方（长文特例，见 theme.css）。 */
+.article-content {
+  font-size: var(--fs-prose);
+  line-height: var(--lh-prose);
+  color: var(--text-body);
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.article-content p {
   margin-bottom: 1rem;
 }
 
-/* Lists */
-ul,
-ol {
+.article-content h2 {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  margin-bottom: 1rem;
+  border-top: 1px solid var(--divider-color);
+}
+
+.article-content h3 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-main);
+}
+
+.article-content h4 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.article-content ul,
+.article-content ol {
   margin-bottom: 1rem;
   padding-left: 1.5rem;
 }
 
-li {
-  margin-bottom: 0.25rem;
+.article-content li {
+  margin-bottom: 0.35rem;
 }
 
-/* Code */
-code {
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New',
-    monospace;
+/* 链接除颜色外必须有非颜色线索（下划线），WCAG 1.4.1 */
+.article-content a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+}
+
+.article-content blockquote {
+  border-left: 3px solid var(--primary-pink);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: var(--text-secondary);
+}
+
+.article-content img {
+  border-radius: var(--radius-lg);
+}
+
+/* 行内代码：代码胶囊 */
+.article-content :not(pre) > code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace;
   font-size: 0.85em;
   background-color: var(--hover-bg);
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
   color: var(--accent-pink);
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-xs);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-pre {
-  background-color: var(--code-bg) !important;
+/* 代码块：外框走本站令牌，语法色由 Shiki 双主题变量提供（见 astro.config.mjs） */
+.article-content pre {
+  background-color: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius-sm);
   padding: 1rem;
-  border-radius: 8px;
-  overflow-x: auto;
   margin-bottom: 1rem;
-  border: 1px solid var(--divider-color);
+  overflow-x: auto;
 }
 
-/* Override Shiki inline styles */
-pre.astro-code,
-pre.shiki,
-pre code.astro-code,
-pre code.shiki {
-  background-color: transparent !important;
-}
-
-pre code {
-  background-color: transparent !important;
+.article-content pre code {
+  background-color: transparent;
   padding: 0;
-  color: inherit;
   font-size: 0.875rem;
   line-height: 1.7;
 }
 
-/* Blockquotes */
-blockquote {
-  border-left: 4px solid var(--primary-pink);
-  padding-left: 1rem;
-  margin: 1.5rem 0;
+/* Shiki 双主题：浅色用 github-light 的色值，深色切到 github-dark。
+ * 深色两条选择器（系统偏好 / JS 锁定）必须同步维护。 */
+.astro-code,
+.astro-code span {
+  color: var(--shiki-light);
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+  text-decoration: var(--shiki-light-text-decoration);
 }
 
-/* Images */
-img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
+.astro-code {
+  background-color: var(--code-bg) !important;
 }
 
-/* Tables */
-.table-wrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: 1rem;
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .astro-code,
+  :root:not([data-theme]) .astro-code span {
+    color: var(--shiki-dark);
+    font-style: var(--shiki-dark-font-style);
+    font-weight: var(--shiki-dark-font-weight);
+    text-decoration: var(--shiki-dark-text-decoration);
+  }
 }
 
+:root[data-theme='dark'] .astro-code,
+:root[data-theme='dark'] .astro-code span {
+  color: var(--shiki-dark);
+  font-style: var(--shiki-dark-font-style);
+  font-weight: var(--shiki-dark-font-weight);
+  text-decoration: var(--shiki-dark-text-decoration);
+}
+
+/* ── 表格 ───────────────────────────────────────────────── */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -168,7 +540,7 @@ td {
   text-align: left;
 }
 
-/* 表头不换行；表格过宽时整体在 .table-wrapper 内横向滚动 */
+/* 表头不换行；表格过宽时在 .table-wrapper 内横向滚动，不撑破页面 */
 th {
   background-color: var(--hover-bg);
   font-weight: 600;
@@ -176,88 +548,16 @@ th {
   white-space: nowrap;
 }
 
-/* Horizontal rule */
-hr {
-  border: none;
-  border-top: 1px solid var(--divider-color);
-  margin: 2rem 0;
+@media (max-width: 768px) {
+  th,
+  td {
+    padding: 0.5rem 0.65rem;
+    font-size: var(--fs-sm);
+  }
 }
 
-/* Selection */
-::selection {
-  background-color: var(--soft-pink);
-  color: var(--text-main);
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-color);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--soft-pink);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-pink);
-}
-
-/* Skip link */
-.skip-link {
-  position: absolute;
-  top: -40px;
-  left: 0;
-  background: var(--accent-pink);
-  color: white;
-  padding: 0.5rem 1rem;
-  z-index: 100;
-  transition: top 0.2s ease;
-}
-
-.skip-link:focus {
-  top: 0;
-}
-
-/* Screen-reader only（如 GFM 脚注区自带的 "Footnotes" 标题） */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Article content */
-.article-content {
-  overflow-wrap: break-word;
-}
-
-.article-content h2 {
-  border-bottom: 1px solid var(--divider-color);
-  padding-bottom: 0.5rem;
-}
-
-.article-content h3 {
-  color: var(--text-secondary);
-}
-
-/* 长链接（如裸 URL）允许在任意位置断行，避免移动端出现页面级横向滚动 */
-.article-content a {
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
-}
-
-/* 脚注引用编号用 [] 包裹，避免相邻编号（如 1 和 3）被误读成 13 */
+/* ── GFM 脚注区 ─────────────────────────────────────────── */
+/* 引用编号用 [] 包裹，避免相邻编号（1 和 3）被误读成 13；也是非颜色线索 */
 .article-content a[data-footnote-ref]::before {
   content: '[';
 }
@@ -266,40 +566,15 @@ hr {
   content: ']';
 }
 
-/* GFM 脚注区（标题被 sr-only 隐藏后用分隔线区分正文） */
 .article-content section.footnotes {
   margin-top: 2.5rem;
-  padding-top: 1.25rem;
+  padding-top: 1.5rem;
   border-top: 1px solid var(--divider-color);
-  font-size: 0.875rem;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
   color: var(--text-secondary);
 }
 
-/* Container */
-.container {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 2.5rem 4rem;
-}
-
-@media (max-width: 1024px) {
-  .container {
-    padding: 2rem 2.5rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .container {
-    padding: 1.5rem 1rem;
-  }
-
-  h1 {
-    font-size: 1.75rem;
-  }
-
-  th,
-  td {
-    padding: 0.5rem 0.65rem;
-    font-size: 0.875rem;
-  }
+.article-content section.footnotes a {
+  overflow-wrap: anywhere;
 }

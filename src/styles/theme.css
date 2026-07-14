@@ -1,63 +1,228 @@
+/* 设计令牌 —— 全站唯一真值源，取自 TransCircle 全局设计系统（docs/DESIGN.md 三、四章）。
+ *
+ * 三块结构：
+ *   1. :root            —— 浅色基线（无条件）+ 与主题无关的尺度令牌（圆角/字阶/间距/动效/轨道）
+ *   2. 系统偏好深色     —— 未显式设 data-theme 时的 JS-less 回退
+ *   3. [data-theme=dark] —— JS 显式锁定深色
+ *
+ * 纪律：
+ *   - 组件层只允许 var(--token)，不得写死色值 / 圆角 / 时长（OG 卡片渲染除外，satori 不支持 CSS 变量）。
+ *   - 两个深色块的取值必须逐条一致，仅 --cta-color 存在历史遗留的末档差异；改深色令牌必须同时改两处。
+ *   - 主题维度只有 light / dark 两个取值。高对比度主题是设计系统的硬性非目标，不得重新引入
+ *     （不写 prefers-contrast / forced-colors 分支，不加 --*-hc 令牌）。
+ */
+
 :root {
-  /* Light (default) */
+  /* ── 基础色：底色与四档文字灰阶 ─────────────────────────── */
   --bg-color: #fff9fb;
   --text-main: #000000;
+  --text-body: #333333;
   --text-secondary: #666666;
   --text-muted: #888888;
-  --text-body: #333333;
-  --primary-pink: #ff85a2;
+
+  /* ── 品牌粉三档：soft < primary < accent ─────────────────── */
+  --primary-pink: #ec9eb0;
   --soft-pink: #ffccd5;
-  --accent-pink: #f06292;
-  --nav-bg: rgba(255, 251, 252, 0.85);
+  --accent-pink: #e67690;
+
+  /* ── 表面与分隔 ─────────────────────────────────────────── */
+  --surface-card: #ffffff;
   --divider-color: #ffccd5;
+  --nav-bg: rgba(255, 251, 252, 0.85);
   --hover-bg: #ffedf1;
   --hover-bg-mix: color-mix(in srgb, var(--primary-pink) 15%, white);
-  --cta-hover: #cc537c;
-  --cta-hover-mix: color-mix(in srgb, var(--accent-pink) 85%, black);
-  --shadow-color: rgba(240, 98, 145, 0.128);
-  --shadow-color-hover: rgba(240, 98, 146, 0.4);
+
+  /* ── CTA 组 ─────────────────────────────────────────────── */
+  --cta-bg: #ffd8d8;
+  --cta-color: #412a2a;
+  --cta-hover: #f7bcbc;
+  --cta-hover-mix: color-mix(in srgb, var(--accent-pink) 85%, white);
+
+  /* ── 阴影色（几何在下方 --shadow-* 中，颜色随主题惰性解析）── */
+  --shadow-color: rgba(255, 255, 255, 0.06);
+  --shadow-color-hover: rgba(240, 98, 146, 0.15);
+
+  /* ── 遮罩与选中 ─────────────────────────────────────────── */
   --overlay-bg: rgba(0, 0, 0, 0.3);
-  --code-bg: #1a1a2e;
+  --select: #ffe2e8;
+  --on-accent: #412a2a; /* 落在 accent 实底上的前景色，主题无关 */
+
+  /* ── 聚焦环（输入类控件用 box-shadow，非输入类走 outline）── */
+  --focus-ring: rgba(236, 158, 176, 0.28);
+  --focus-ring-error: rgba(211, 47, 47, 0.16);
+
+  /* ── 状态语义（表单错误边框 / 内联成功失败文字）─────────── */
+  --error-color: #d32f2f;
+  --error-border: #f0c2c2;
+  --success-color: #2e7d32;
+
+  /* ── 语义软色组：浅底 + 柔边 + 深文字 ───────────────────── */
+  --soft-success-bg: #e7f6ec;
+  --soft-success-border: #a9d8b6;
+  --soft-success-text: #1e7d34;
+  --soft-error-bg: #fff0ee;
+  --soft-error-border: #f0c2c2;
+  --soft-error-text: #c62828;
+  --soft-info-bg: #e9f1ff;
+  --soft-info-border: #b6cdff;
+  --soft-info-text: #1a56c4;
+  --soft-amber-bg: #fff3e0;
+  --soft-amber-border: #f0d9b0;
+  --soft-amber-text: #b26a00;
+
+  /* ── 博客扩展令牌 ───────────────────────────────────────
+   * 设计系统面向应用，没有「代码块面」这一语义；博客必须有。
+   * 用极淡的粉白 / 近黑作为代码面，语法色由 Shiki 双主题提供。 */
+  --code-bg: #fdf2f5;
+  --code-border: var(--divider-color);
+
+  /* ══ 以下为与主题无关的尺度令牌，深色块中不得重复声明 ══ */
+
+  /* ── 圆角五档 + 语义别名（同类同圆角）───────────────────── */
+  --radius-xs: 6px; /* 内联小件：徽章、chip */
+  --radius-sm: 10px; /* 控件：按钮、输入框、行 */
+  --radius-md: 12px; /* 浮层：下拉、抽屉 */
+  --radius-lg: 14px; /* 卡片：内容卡、对话框面板 */
+  --radius-pill: 999px; /* 胶囊：CTA、标签 */
+  --radius-control: var(--radius-sm);
+  --radius-pop: var(--radius-md);
+
+  /* ── 阴影三档（引用上面的阴影色，惰性解析）──────────────── */
+  --shadow-card: 0 1px 2px var(--shadow-color);
+  --shadow-card-hover: 0 4px 14px var(--shadow-color-hover);
+  --shadow-pop: 0 8px 24px var(--shadow-color);
+
+  /* ── 字阶（流体 clamp）─────────────────────────────────── */
+  --fs-title: clamp(1.5rem, 1.15rem + 1.55vw, 2rem); /* 24 → 32px */
+  --fs-subtitle: clamp(0.9rem, 0.85rem + 0.25vw, 1rem);
+  --fs-body: clamp(0.9rem, 0.88rem + 0.1vw, 0.95rem);
+  --fs-sm: clamp(0.82rem, 0.8rem + 0.1vw, 0.875rem);
+  --lh-body: 1.65;
+
+  /* 博客扩展：长文正文。设计系统的 --fs-body 上限 15.2px 是 UI 行的尺度，
+   * 三千字以上的中文长文需要更大字号与更松行距，仅 .article-content 使用。 */
+  --fs-prose: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem); /* 16 → 17px */
+  --lh-prose: 1.8;
+
+  /* ── 控件节奏 ───────────────────────────────────────────── */
+  --control-h: 34px;
+  --tap-min: 44px;
+
+  /* ── 布局轨道 ───────────────────────────────────────────── */
+  --width-content: 1280px; /* 外壳：顶栏内条、页脚内条 */
+  --width-reading: 60rem; /* 正文：全部博客页面（960px） */
+  --width-form: 26rem;
+  --app-nav-height: 57px;
+
+  /* ── 动效 ───────────────────────────────────────────────── */
+  --ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 130ms;
+  --dur-base: 200ms;
 }
 
-[data-theme='dark'] {
+/* ── 深色：系统偏好 + 未显式设主题（JS-less 回退）──────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg-color: #12121a;
+    --text-main: #f0f0f5;
+    --text-body: #c0c0d0;
+    --text-secondary: #a0a0b0;
+    --text-muted: #808090;
+
+    --primary-pink: #ff85a2;
+    --soft-pink: #3a2a35;
+    --accent-pink: #ff6b9d;
+
+    --surface-card: #1e1e2e;
+    --divider-color: #2a2a3a;
+    --nav-bg: rgba(24, 24, 35, 0.85);
+    --hover-bg: #2a1f25;
+    --hover-bg-mix: color-mix(in srgb, var(--primary-pink) 15%, #12121a);
+
+    --cta-bg: #ff85a2;
+    --cta-color: #f5d6dd; /* 系统深色取值（与 JS 深色的唯一差异） */
+    --cta-hover: #cc537c;
+    --cta-hover-mix: color-mix(in srgb, var(--accent-pink) 85%, black);
+
+    --shadow-color: rgba(255, 107, 156, 0.04);
+    --shadow-color-hover: rgba(255, 107, 157, 0.15);
+
+    --overlay-bg: rgba(0, 0, 0, 0.5);
+    --select: #664e5e;
+
+    --focus-ring: rgba(255, 133, 162, 0.28);
+    --focus-ring-error: rgba(239, 83, 80, 0.28);
+
+    --error-color: #ef5350;
+    --error-border: rgba(239, 83, 80, 0.35);
+    --success-color: #66bb6a;
+
+    --soft-success-bg: rgba(46, 160, 75, 0.12);
+    --soft-success-border: rgba(46, 160, 75, 0.3);
+    --soft-success-text: #66bb6a;
+    --soft-error-bg: rgba(229, 83, 75, 0.12);
+    --soft-error-border: rgba(229, 83, 75, 0.32);
+    --soft-error-text: #f28b82;
+    --soft-info-bg: rgba(102, 140, 224, 0.14);
+    --soft-info-border: rgba(102, 140, 224, 0.35);
+    --soft-info-text: #8ab4f8;
+    --soft-amber-bg: rgba(240, 160, 50, 0.14);
+    --soft-amber-border: rgba(240, 160, 50, 0.32);
+    --soft-amber-text: #ffb74d;
+
+    --code-bg: #16161f;
+  }
+}
+
+/* ── 深色：JS 显式锁定（取值与上一块逐条一致，仅 --cta-color 不同）── */
+:root[data-theme='dark'] {
   --bg-color: #12121a;
   --text-main: #f0f0f5;
+  --text-body: #c0c0d0;
   --text-secondary: #a0a0b0;
   --text-muted: #808090;
-  --text-body: #c0c0d0;
+
   --primary-pink: #ff85a2;
   --soft-pink: #3a2a35;
   --accent-pink: #ff6b9d;
+
+  --surface-card: #1e1e2e;
+  --divider-color: #2a2a3a;
   --nav-bg: rgba(24, 24, 35, 0.85);
-  --divider-color: #3a3a5a;
   --hover-bg: #2a1f25;
   --hover-bg-mix: color-mix(in srgb, var(--primary-pink) 15%, #12121a);
+
+  --cta-bg: #ff85a2;
+  --cta-color: #f4e7ea; /* JS 深色取值 */
   --cta-hover: #cc537c;
   --cta-hover-mix: color-mix(in srgb, var(--accent-pink) 85%, black);
-  --shadow-color: rgba(255, 107, 156, 0.098);
-  --shadow-color-hover: rgba(255, 107, 157, 0.4);
-  --overlay-bg: rgba(0, 0, 0, 0.5);
-  --code-bg: #0d1117;
-}
 
-[data-theme='contrast'] {
-  --bg-color: #000000;
-  --text-main: #ffffff;
-  --text-secondary: #ffffff;
-  --text-muted: #ffffff;
-  --text-body: #ffffff;
-  --primary-pink: #ffaa00;
-  --soft-pink: #332200;
-  --accent-pink: #ffaa00;
-  --nav-bg: rgba(0, 0, 0, 0.95);
-  --divider-color: #ffffff;
-  --hover-bg: #1a1a1a;
-  --hover-bg-mix: #1a1a1a;
-  --cta-hover: #cc8800;
-  --cta-hover-mix: #cc8800;
-  --shadow-color: rgba(255, 170, 0, 0.3);
-  --shadow-color-hover: rgba(255, 170, 0, 0.5);
-  --overlay-bg: rgba(0, 0, 0, 0.8);
-  --code-bg: #000000;
+  --shadow-color: rgba(255, 107, 156, 0.04);
+  --shadow-color-hover: rgba(255, 107, 157, 0.15);
+
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+  --select: #664e5e;
+
+  --focus-ring: rgba(255, 133, 162, 0.28);
+  --focus-ring-error: rgba(239, 83, 80, 0.28);
+
+  --error-color: #ef5350;
+  --error-border: rgba(239, 83, 80, 0.35);
+  --success-color: #66bb6a;
+
+  --soft-success-bg: rgba(46, 160, 75, 0.12);
+  --soft-success-border: rgba(46, 160, 75, 0.3);
+  --soft-success-text: #66bb6a;
+  --soft-error-bg: rgba(229, 83, 75, 0.12);
+  --soft-error-border: rgba(229, 83, 75, 0.32);
+  --soft-error-text: #f28b82;
+  --soft-info-bg: rgba(102, 140, 224, 0.14);
+  --soft-info-border: rgba(102, 140, 224, 0.35);
+  --soft-info-text: #8ab4f8;
+  --soft-amber-bg: rgba(240, 160, 50, 0.14);
+  --soft-amber-border: rgba(240, 160, 50, 0.32);
+  --soft-amber-text: #ffb74d;
+
+  --code-bg: #16161f;
 }

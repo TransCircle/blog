@@ -128,7 +128,11 @@ export default defineConfig({
   markdown: {
     rehypePlugins: [rehypeTableWrapper],
     shikiConfig: {
-      theme: 'github-dark',
+      // 双主题：Shiki 把两套语法色写成 --shiki-light / --shiki-dark 变量，
+      // 由 global.css 按 data-theme 选择。此前固定 github-dark，浅色主题下
+      // 代码块也是深色的，与页面割裂。
+      themes: { light: 'github-light', dark: 'github-dark' },
+      defaultColor: false,
       wrap: true,
     },
   },
