@@ -37,6 +37,14 @@ const SITE_BEATS = '项目 · 知识 · 社群';
 const SITE_TAGLINE = '记录项目进展、社群知识与跨性别议题';
 const SITE_HOST = 'blog.transcircle.org';
 
+// X（Twitter）在 summary_large_image 卡片的**左下角**叠一个域名标签。该标签是
+// 固定像素尺寸（约 20px 高、距边 12px）画在缩放后的预览图上的，因此预览越小、它
+// 吃掉的画面比例越大——按源图像素留白没用。通行做法是按比例留出底部约 20%：
+// 1200×630 即底部 126px，尤其左下角不得放任何有信息量的内容。
+// 这里把它做成卡片里一条固定高度的保留带（而不是加内边距），正文区是 flexGrow，
+// 会被自动挤到它上面，内容不可能掉进危险区。
+const SAFE_BOTTOM = 126;
+
 // 品牌横幅的展示尺寸（源文件 400×120，保持 10:3）
 const LOGO_W = 300;
 const LOGO_H = 90;
@@ -324,7 +332,8 @@ function buildCard(data: OgCardData, logo: string): Node {
   return col(
     {
       ...CANVAS,
-      padding: '62px 72px',
+      // 底部不留内边距：那块高度由下面的 SAFE_BOTTOM 保留带承担
+      padding: '48px 72px 0',
       justifyContent: 'space-between',
     },
     [
@@ -395,14 +404,37 @@ function buildCard(data: OgCardData, logo: string): Node {
         ]),
       ]),
 
-      // ── 页脚：署名行（作者/编辑）+ 日期/阅读行 + 标签胶囊 ──────────────
-      col({ gap: 18 }, [
-        bylineRow,
-        row({ fontSize: 23, fontWeight: 400 }, metaRow),
+      // ── 页脚：左边署名 / 日期两行，右边标签胶囊 ─────────────────────────
+      // 标签靠右，是为了彻底离开 X 的左下角标签区；两行元信息也整体上移。
+      row({ justifyContent: 'space-between', alignItems: 'flex-end', gap: 24 }, [
+        col({ gap: 10, flexGrow: 1 }, [
+          bylineRow,
+          row({ fontSize: 22, fontWeight: 400 }, metaRow),
+        ]),
         tagPills.length > 0
-          ? row({ gap: 12, flexWrap: 'wrap' }, tagPills)
-          : el('div', { display: 'none' }),
+          ? row(
+              { gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: 420 },
+              tagPills
+            )
+          : el('div', { display: 'flex' }),
       ]),
+
+      // ── 底部保留带：留给 X 的域名标签，本站只在右侧放一行域名 ───────────
+      row(
+        {
+          height: SAFE_BOTTOM,
+          marginTop: 18,
+          borderTop: `1px solid ${C.divider}`,
+          justifyContent: 'flex-end',
+          flexShrink: 0,
+        },
+        [
+          text(
+            { fontSize: 22, fontWeight: 400, color: C.textMuted, letterSpacing: '0.04em' },
+            SITE_HOST
+          ),
+        ]
+      ),
     ]
   );
 }
@@ -416,6 +448,8 @@ function buildCover(logo: string): Node {
       alignItems: 'center',
       justifyContent: 'center',
       gap: 30,
+      // 同样让开底部：居中的内容整体上移，否则最后一行域名会落进 X 的标签区
+      paddingBottom: SAFE_BOTTOM,
     },
     [
       frame(),
