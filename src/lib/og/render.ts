@@ -56,23 +56,26 @@ const CANVAS: Style = {
   fontFamily: 'Noto Sans SC',
   backgroundColor: '#fff9fb',
   backgroundImage:
-    'radial-gradient(1100px 520px at 88% -8%, rgba(255,133,162,0.20), rgba(255,133,162,0) 60%),' +
-    'radial-gradient(820px 480px at 0% 112%, rgba(240,98,146,0.14), rgba(240,98,146,0) 60%),' +
+    // 两团品牌粉的柔光：取自 --primary-pink / --accent-pink
+    'radial-gradient(1100px 520px at 88% -8%, rgba(236,158,176,0.24), rgba(236,158,176,0) 60%),' +
+    'radial-gradient(820px 480px at 0% 112%, rgba(230,118,144,0.16), rgba(230,118,144,0) 60%),' +
     'linear-gradient(160deg, #fffafc 0%, #fff3f7 100%)',
 };
 
-// 取自 DESIGN.md 的浅色主题 token（粉色系）。
+// 浅色主题令牌的字面量副本，取值与 src/styles/theme.css 的 :root 保持一致。
+// satori 不解析 CSS 变量，所以这里只能写死；改令牌时两处必须同步。
 const C = {
-  textMain: '#1a1a1a',
-  textSecondary: '#666666',
-  textMuted: '#8a8a8a',
-  primary: '#ff85a2',
-  soft: '#ffccd5',
-  accent: '#f06292',
-  accentDeep: '#d6447a',
-  divider: '#ffccd5',
+  textMain: '#000000', // --text-main
+  textSecondary: '#666666', // --text-secondary
+  textMuted: '#888888', // --text-muted
+  primary: '#ec9eb0', // --primary-pink
+  soft: '#ffccd5', // --soft-pink
+  accent: '#e67690', // --accent-pink
+  accentDeep: '#cc537c', // --cta-hover
+  divider: '#ffccd5', // --divider-color
   pillBg: '#ffedf1', // --hover-bg
-  panel: '#ffffff',
+  panel: '#ffffff', // --surface-card
+  onAccent: '#412a2a', // --on-accent（落在 accent 实底上的前景色）
 };
 
 // ── 资源加载（字体 + Logo + 子集覆盖表），按进程缓存，避免逐张卡片重复读盘 ──
@@ -348,11 +351,12 @@ function buildCard(data: OgCardData, logo: string): Node {
               {
                 fontSize: 22,
                 fontWeight: 700,
-                color: '#ffffff',
-                backgroundImage: 'linear-gradient(135deg, #ff85a2, #f06292)',
+                // 粉底上的前景色走 --on-accent（深褐），白字在品牌粉上对比度不达标
+                color: C.onAccent,
+                backgroundImage: `linear-gradient(135deg, ${C.primary}, ${C.accent})`,
                 padding: '10px 24px',
-                borderRadius: 50,
-                boxShadow: '0 4px 12px rgba(240,98,146,0.30)',
+                borderRadius: 999,
+                boxShadow: '0 4px 12px rgba(230,118,144,0.30)',
               },
               clampVisual(data.category!, 12)
             )
