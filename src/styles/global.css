@@ -422,6 +422,12 @@ hr {
   border-top: 1px solid var(--divider-color);
 }
 
+/* 正文里常用 `---` 作为章节分隔（渲染为 hr），紧跟其后的 h2 不再重复画一条线 */
+.article-content hr + h2 {
+  margin-top: 0;
+  border-top: none;
+}
+
 .article-content h3 {
   margin-top: 2rem;
   margin-bottom: 0.75rem;
