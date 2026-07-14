@@ -50,17 +50,20 @@ const { label, people } = Astro.props;
   .person-link {
     color: var(--accent-pink);
     font-weight: 500;
-    /* 下划线是链接的必要可达性提示，仅靠颜色区分不合规 */
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
+    /* 署名是独立成行的链接（前面有「作者：」标签），不必常驻下划线；
+       hover / 聚焦时再给线索 */
+    text-decoration: none;
     /* 署名可能是较长的外站 ID，必须允许换行以免横向溢出 */
     overflow-wrap: anywhere;
     word-break: break-word;
     transition: color var(--dur-fast) var(--ease-standard);
   }
 
-  .person-link:hover {
+  .person-link:hover,
+  .person-link:focus-visible {
     color: var(--cta-hover);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
   }
 
   .person-links-sep {

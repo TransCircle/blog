@@ -201,13 +201,15 @@ const friendLinks = [
 
   .footer-ai-agent a {
     color: var(--accent-pink);
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
+    text-decoration: none;
     overflow-wrap: anywhere;
   }
 
-  .footer-ai-agent a:hover {
+  .footer-ai-agent a:hover,
+  .footer-ai-agent a:focus-visible {
     color: var(--cta-hover);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
   }
 
   @media (max-width: 768px) {

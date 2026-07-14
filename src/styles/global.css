@@ -449,11 +449,17 @@ hr {
   margin-bottom: 0.35rem;
 }
 
-/* 链接除颜色外必须有非颜色线索（下划线），WCAG 1.4.1 */
+/* 链接一律不常驻下划线，只在 hover / 聚焦时出现。
+ * 脚注编号另有 [n] 方括号、标签有胶囊底色，都不依赖下划线来辨识。 */
 .article-content a {
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.article-content a:hover,
+.article-content a:focus-visible {
   text-decoration: underline;
   text-underline-offset: 0.2em;
-  overflow-wrap: anywhere;
 }
 
 .article-content blockquote {
