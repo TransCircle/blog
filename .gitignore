@@ -17,6 +17,9 @@ dist/
 *.swp
 *.swo
 
+# Agent
+.claude
+
 # OS
 .DS_Store
 Thumbs.db
