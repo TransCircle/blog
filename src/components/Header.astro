@@ -25,58 +25,91 @@ const navLinks = [
             </a>
           </li>
         ))}
+
+        {/* 竖线把「站内功能」和「离开本站」分开：横排导航里只有竖线能起到分隔作用 */}
+        <li class="nav-sep" role="separator" aria-orientation="vertical"></li>
+
+        <li>
+          <a
+            href="https://transcircle.org"
+            class="nav-link nav-link-external"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            主站
+            <svg class="ext-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M7 17 17 7"/>
+              <path d="M8 7h9v9"/>
+            </svg>
+            <span class="sr-only">（在新标签页打开 TransCircle 主站）</span>
+          </a>
+        </li>
       </ul>
     </nav>
 
+    {/* 主题开关与汉堡按钮同属一组：移动端二者紧挨在右上角 */}
     <div class="header-actions">
-      <a href="https://transcircle.org" class="main-site-link" target="_blank" rel="noopener noreferrer" aria-label="访问 TransCircle 主站">
-        主站
-      </a>
       <ThemeToggle />
-    </div>
 
-    <button
-      class="mobile-menu-toggle"
-      aria-label="打开导航菜单"
-      aria-expanded="false"
-      aria-controls="mobile-menu"
-      type="button"
-    >
-      <span class="hamburger" aria-hidden="true"></span>
-    </button>
-  </div>
-
-  <!-- Mobile menu -->
-  <div id="mobile-menu" class="mobile-menu" role="dialog" aria-label="移动端导航菜单" aria-modal="true">
-    <div class="mobile-menu-overlay"></div>
-    <div class="mobile-menu-panel">
-      <div class="mobile-menu-header">
-        <span class="mobile-menu-title">菜单</span>
-        <button class="mobile-menu-close" aria-label="关闭导航菜单" type="button">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-      </div>
-      <nav aria-label="移动端主导航">
-        <ul class="mobile-nav-list">
-          {navLinks.map((link) => (
-            <li>
-              <a href={link.href} class="mobile-nav-link">{link.label}</a>
-            </li>
-          ))}
-          <li class="mobile-nav-divider"></li>
-          <li>
-            <a href="https://transcircle.org" class="mobile-nav-link" target="_blank" rel="noopener noreferrer">
-              访问主站
-            </a>
-          </li>
-        </ul>
-      </nav>
+      <button
+        class="mobile-menu-toggle"
+        aria-label="打开导航菜单"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        type="button"
+      >
+        <span class="hamburger" aria-hidden="true"></span>
+      </button>
     </div>
   </div>
 </header>
+
+{/* 抽屉必须放在 <header> 外面：顶栏带 backdrop-filter，会成为 position: fixed
+    子元素的包含块，抽屉的 top/bottom 会相对顶栏解析——之前它就被压成了顶栏那一条。 */}
+<div id="mobile-menu" class="mobile-menu" role="dialog" aria-label="移动端导航菜单" aria-modal="true">
+  <div class="mobile-menu-overlay"></div>
+  <div class="mobile-menu-panel">
+    {/* 抽屉不需要「菜单」这种自我说明的标题，只留一个关闭按钮 */}
+    <div class="mobile-menu-header">
+      <button class="mobile-menu-close" aria-label="关闭导航菜单" type="button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <nav aria-label="移动端主导航">
+      <ul class="mobile-nav-list">
+        {navLinks.map((link) => (
+          <li>
+            <a href={link.href} class="mobile-nav-link" aria-current={Astro.url.pathname === link.href ? 'page' : undefined}>
+              {link.label}
+            </a>
+          </li>
+        ))}
+
+        {/* 纵向堆叠的抽屉里，分隔线只能是横线 */}
+        <li class="mobile-nav-divider" role="separator"></li>
+
+        <li>
+          <a
+            href="https://transcircle.org"
+            class="mobile-nav-link mobile-nav-link-external"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            主站
+            <svg class="ext-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M7 17 17 7"/>
+              <path d="M8 7h9v9"/>
+            </svg>
+            <span class="sr-only">（在新标签页打开 TransCircle 主站）</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
 
 <script>
   // 移动端断点：必须与本文件 CSS 中的 1100px 保持一致（唯一的导航断点）
@@ -243,10 +276,38 @@ const navLinks = [
 
   .nav-list {
     display: flex;
+    align-items: center;
     list-style: none;
     gap: 0.75rem;
     margin: 0;
     padding: 0;
+  }
+
+  /* 站内功能 ↔ 外站入口的分隔：横排导航里只有竖线能分隔 */
+  .nav-sep {
+    width: 1px;
+    height: 18px;
+    margin: 0 0.15rem;
+    background-color: var(--divider-color);
+    flex-shrink: 0;
+  }
+
+  /* 外站入口：与同组链接同色，「会离开本站」由 ↗ 图标表达，
+     而不是把文字调灰——调灰会被读成禁用态 */
+  .nav-link-external {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .ext-icon {
+    flex-shrink: 0;
+    color: var(--text-muted);
+  }
+
+  .nav-link-external:hover .ext-icon,
+  .mobile-nav-link-external:hover .ext-icon {
+    color: inherit;
   }
 
   .nav-link {
@@ -284,36 +345,9 @@ const navLinks = [
     flex-shrink: 0;
   }
 
-  /* 主站入口是全站唯一的 CTA：胶囊 + 实底 + 悬停 1px 抬升 */
-  .main-site-link {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    height: var(--control-h);
-    padding: 0 1.1rem;
-    border-radius: var(--radius-pill);
-    background-color: var(--cta-bg);
-    color: var(--cta-color);
-    font-size: var(--fs-sm);
-    font-weight: 500;
-    white-space: nowrap;
-    text-decoration: none;
-    box-shadow: var(--shadow-card);
-    transition:
-      background-color var(--dur-base) var(--ease-standard),
-      transform var(--dur-base) var(--ease-standard),
-      box-shadow var(--dur-base) var(--ease-standard);
-  }
-
-  .main-site-link:hover {
-    background-color: var(--cta-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-card-hover);
-  }
-
   .mobile-menu-toggle {
     position: relative;
-    z-index: 75; /* 抽屉之上，避免被面板盖住 */
+    z-index: 1; /* 顶栏内部的层级即可；抽屉整体已在顶栏之上 */
     display: none;
     align-items: center;
     justify-content: center;
@@ -393,7 +427,7 @@ const navLinks = [
   .mobile-menu-overlay {
     position: fixed;
     inset: 0;
-    z-index: 65;
+    z-index: 85; /* 抽屉已移出 header，必须压过顶栏的 80 */
     background-color: var(--overlay-bg);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
@@ -412,7 +446,7 @@ const navLinks = [
     top: 0;
     left: 0;
     bottom: 0;
-    z-index: 70;
+    z-index: 90; /* 面板在遮罩之上 */
     width: 280px;
     max-width: 84vw;
     padding: 1.5rem;
@@ -428,20 +462,14 @@ const navLinks = [
     transform: translateX(0);
   }
 
+  /* 只剩一个关闭按钮，靠右 */
   .mobile-menu-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--divider-color);
-  }
-
-  .mobile-menu-title {
-    min-width: 0;
-    font-weight: 600;
-    color: var(--text-main);
   }
 
   .mobile-menu-close {
@@ -499,11 +527,18 @@ const navLinks = [
     }
   }
 
+  /* 站内功能 ↔ 外站入口的分隔：纵向堆叠的抽屉里只有横线能起到分隔作用 */
   .mobile-nav-divider {
     height: 1px;
     background-color: var(--divider-color);
-    margin: 0.5rem 0;
+    margin: 0.75rem 0;
     list-style: none;
+  }
+
+  .mobile-nav-link-external {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
   }
 
   /* 唯一的导航断点；JS 中的 MOBILE_BREAKPOINT 必须同步 */
@@ -538,9 +573,9 @@ const navLinks = [
       padding-bottom: 0.25rem;
     }
 
-    /* CTA 不在窄屏隐藏，只压缩内边距（高度仍为 34px，顶栏不变形） */
-    .main-site-link {
-      padding: 0 0.9rem;
+    /* 主题开关与汉堡按钮贴在一起 */
+    .header-actions {
+      gap: 0.15rem;
     }
   }
 
@@ -553,7 +588,6 @@ const navLinks = [
       min-height: var(--tap-min);
     }
 
-    .main-site-link::after,
     .mobile-menu-toggle::after,
     .mobile-menu-close::after {
       content: '';
@@ -563,13 +597,6 @@ const navLinks = [
       width: var(--tap-min);
       height: var(--tap-min);
       transform: translate(-50%, -50%);
-    }
-
-    /* CTA 是胶囊，横向命中区应覆盖整条按钮而非固定 44px */
-    .main-site-link::after {
-      left: 0;
-      width: 100%;
-      transform: translateY(-50%);
     }
   }
 
