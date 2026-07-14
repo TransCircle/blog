@@ -1,9 +1,9 @@
 export const POSTS_PER_PAGE = 10;
 
-/** 作者 / 编辑署名条目：name 为显示文本，link 为点击后跳转的地址。 */
+/** 作者 / 编辑署名条目：name 为显示文本；link 可选——没写就渲染为纯文本，不做跳转。 */
 export interface Person {
   name: string;
-  link: string;
+  link?: string;
 }
 
 /**

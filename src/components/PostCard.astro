@@ -34,15 +34,20 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
       {author.map((person: Person, index: number) => (
         <Fragment>
           {index > 0 && <span aria-hidden="true">、</span>}
-          <a
-            class="post-row-author-link"
-            href={person.link}
-            target="_blank"
-            rel="nofollow noopener noreferrer"
-            data-confirm-link
-          >
-            {person.name}
-          </a>
+          {/* 没写 link 的署名保持纯文本，不做跳转 */}
+          {person.link ? (
+            <a
+              class="post-row-author-link"
+              href={person.link}
+              target="_blank"
+              rel="nofollow noopener noreferrer"
+              data-confirm-link
+            >
+              {person.name}
+            </a>
+          ) : (
+            <span>{person.name}</span>
+          )}
         </Fragment>
       ))}
     </span>

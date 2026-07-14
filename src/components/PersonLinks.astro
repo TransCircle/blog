@@ -24,15 +24,20 @@ const { label, people } = Astro.props;
                 、
               </span>
             )}
-            <a
-              class="person-link"
-              href={person.link}
-              target="_blank"
-              rel="nofollow noopener noreferrer"
-              data-confirm-link
-            >
-              {person.name}
-            </a>
+            {/* 没写 link 的署名渲染为纯文本：不做超链接，也就不会出现「点了却跳去主站」 */}
+            {person.link ? (
+              <a
+                class="person-link"
+                href={person.link}
+                target="_blank"
+                rel="nofollow noopener noreferrer"
+                data-confirm-link
+              >
+                {person.name}
+              </a>
+            ) : (
+              <span class="person-name">{person.name}</span>
+            )}
           </Fragment>
         ))}
       </span>
@@ -48,6 +53,14 @@ const { label, people } = Astro.props;
 
   .person-links-label {
     color: var(--text-muted);
+  }
+
+  /* 无链接的署名：不能用链接色（粉色会让人以为可点），走正文色 */
+  .person-name {
+    color: var(--text-body);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .person-link {
