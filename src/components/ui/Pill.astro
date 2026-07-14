@@ -1,0 +1,17 @@
+---
+// 轻量中性标记（设计系统 10.11 Pill）：只读、不可点、不进 Tab 序。
+// 用于分类等静态标记。可点的标签链接不是 Pill —— 那是 .tag-link（见 global.css）。
+//
+// 视觉配方定义在 global.css 的 .pill / .pill-accent，因为搜索页的结果行由 JS
+// innerHTML 生成、拿不到 Astro 的 scoped 属性，必须与本组件共用同一份类。
+export interface Props {
+  tone?: 'neutral' | 'accent';
+  class?: string;
+}
+
+const { tone = 'neutral', class: className } = Astro.props;
+---
+
+<span class:list={['pill', tone === 'accent' && 'pill-accent', className]}>
+  <slot />
+</span>

@@ -1,0 +1,122 @@
+---
+// 按钮（设计系统 七、Button）。有 href 时渲染为 <a>，语义按用途选择。
+// 圆角一律 --radius-pill，尺寸两档，hover 抬升只给 primary。
+export interface Props {
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md';
+  href?: string;
+  type?: 'button' | 'submit';
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  variant = 'secondary',
+  size = 'md',
+  href,
+  type = 'button',
+  class: className,
+  ...rest
+} = Astro.props;
+
+const Tag = href ? 'a' : 'button';
+const tagProps = href ? { href } : { type };
+---
+
+<Tag class:list={['btn', `is-${variant}`, `is-${size}`, className]} {...tagProps} {...rest}>
+  <slot />
+</Tag>
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: 1.5px solid transparent;
+    border-radius: var(--radius-pill);
+    font-family: inherit;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background-color var(--dur-base) var(--ease-standard),
+      color var(--dur-base) var(--ease-standard),
+      border-color var(--dur-base) var(--ease-standard),
+      box-shadow var(--dur-base) var(--ease-standard),
+      transform var(--dur-base) var(--ease-standard);
+  }
+
+  .is-md {
+    min-height: 40px;
+    padding: 0.55rem 1.25rem;
+    font-size: 0.88rem;
+  }
+
+  .is-sm {
+    min-height: 34px;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.82rem;
+  }
+
+  /* primary：CTA，唯一允许 hover 抬升的一档 */
+  .is-primary {
+    background-color: var(--cta-bg);
+    color: var(--cta-color);
+    box-shadow: var(--shadow-card);
+  }
+
+  .is-primary:hover {
+    background-color: var(--cta-hover);
+    color: var(--cta-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .is-secondary {
+    background-color: transparent;
+    border-color: var(--primary-pink);
+    color: var(--accent-pink);
+  }
+
+  .is-secondary:hover {
+    background-color: var(--hover-bg);
+    border-color: var(--accent-pink);
+    color: var(--accent-pink);
+  }
+
+  .is-ghost {
+    background-color: transparent;
+    color: var(--text-secondary);
+  }
+
+  .is-ghost:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-main);
+  }
+
+  @supports (background-color: color-mix(in srgb, red, red)) {
+    .is-secondary:hover,
+    .is-ghost:hover {
+      background-color: var(--hover-bg-mix);
+    }
+  }
+
+  /* 触屏：命中区抬到 44px */
+  @media (any-pointer: coarse) {
+    .btn {
+      min-height: var(--tap-min);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn {
+      transition: none;
+    }
+
+    .is-primary:hover {
+      transform: none;
+    }
+  }
+</style>

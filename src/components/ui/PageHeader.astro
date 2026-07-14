@@ -1,0 +1,100 @@
+---
+// 统一的页面标题尺度（设计系统 十八、PageHeader）：eyebrow → 标题 → 描述。
+// 全站页面都用它，不再各写各的 h1 区块。
+export interface Props {
+  title: string;
+  description?: string;
+  eyebrow?: string;
+  align?: 'start' | 'center';
+  class?: string;
+}
+
+const { title, description, eyebrow, align = 'start', class: className } = Astro.props;
+---
+
+<header class:list={['page-header', align === 'center' && 'is-center', className]}>
+  <div class="texts">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h1 class="title">{title}</h1>
+    {description && <p class="desc">{description}</p>}
+    <slot />
+  </div>
+  {
+    Astro.slots.has('actions') && (
+      <div class="actions">
+        <slot name="actions" />
+      </div>
+    )
+  }
+</header>
+
+<style>
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  /* flex:1 不可省：不给的话文字块会收缩成内容宽度（实测 272px），
+     描述稍长就在半栏处提前折行，而不是用满 832px 的正文列。 */
+  .texts {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .eyebrow {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  .title {
+    margin: 0;
+    font-size: var(--fs-title);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--text-main);
+    overflow-wrap: anywhere;
+  }
+
+  .desc {
+    margin: 0;
+    font-size: var(--fs-subtitle);
+    line-height: 1.55;
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+  }
+
+  .is-center {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .is-center .texts {
+    align-items: center;
+  }
+
+  @media (max-width: 640px) {
+    .page-header {
+      gap: 0.85rem;
+    }
+  }
+</style>

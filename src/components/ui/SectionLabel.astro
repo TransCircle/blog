@@ -1,0 +1,27 @@
+---
+// 小节标签：区块之上的极小号大写标签（设计系统 4.3.3）。
+// 0.68rem 是全站最小字号，专属本组件；其它地方不得再出现这个数字。
+// as 只改标签语义，不改视觉。
+export interface Props {
+  as?: 'h2' | 'h3' | 'h4' | 'p';
+  class?: string;
+}
+
+const { as: Tag = 'h3', class: className } = Astro.props;
+---
+
+<Tag class:list={['section-label', className]}>
+  <slot />
+</Tag>
+
+<style>
+  .section-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin: 0 0 0.9rem 0;
+    line-height: 1.3;
+  }
+</style>
