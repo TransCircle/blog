@@ -46,8 +46,10 @@ const SITE_HOST = 'blog.transcircle.org';
 const SAFE_BOTTOM = 126;
 
 // 品牌横幅的展示尺寸（源文件 400×120，保持 10:3）——仅封面卡使用
-const COVER_LOGO_W = 640;
-const COVER_LOGO_H = 192;
+// 封面横幅（保持源文件 10:3）。上下各让出 126px 后可用高度只有 378px，
+// 640×192 会把「logo + 标题 + 标语 + 域名」这一摞挤溢出，故收到 560×168。
+const COVER_LOGO_W = 560;
+const COVER_LOGO_H = 168;
 
 // 文章卡：页眉的环形标（正方形）与底部带的字标（源文件 1221×179，紧裁无留白）。
 // 字标尺寸不是拍脑袋定的：把横幅 Logo 按 300px 宽渲染后实测，其中「TransCircle」
@@ -484,27 +486,19 @@ function buildCover(logo: string): Node {
   return col(
     {
       ...CANVAS,
+      // 上下留白相等：底部那 126px 是 X 的域名标签区（不能放内容），
+      // 顶部也留同样多，内容就在正中间，两侧空白对称。
+      padding: `${SAFE_BOTTOM}px 72px`,
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 30,
-      // 同样让开底部：居中的内容整体上移，否则最后一行域名会落进 X 的标签区
-      paddingBottom: SAFE_BOTTOM,
+      gap: 26,
     },
     [
       frame(),
       image(logo, { width: COVER_LOGO_W, height: COVER_LOGO_H }),
-      // 跨性别旗强调横条，呼应文章卡的竖条
-      el('div', {
-        display: 'flex',
-        width: 240,
-        height: 10,
-        borderRadius: 8,
-        backgroundImage: FLAG_GRADIENT,
-        boxShadow: '0 4px 16px rgba(85,205,252,0.25)',
-      }),
-      col({ alignItems: 'center', gap: 16 }, [
+      col({ alignItems: 'center', gap: 14 }, [
         text(
-          { fontSize: 46, fontWeight: 700, color: C.textMain, letterSpacing: '0.02em' },
+          { fontSize: 48, fontWeight: 700, color: C.textMain, letterSpacing: '0.02em' },
           SITE_NAME
         ),
         text({ fontSize: 29, fontWeight: 400, color: C.textSecondary }, SITE_TAGLINE),
