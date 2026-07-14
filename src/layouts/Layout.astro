@@ -169,7 +169,7 @@ const toPersons = (people?: Person[]) =>
 
 const schemaAuthors =
   toPersons(authors) || [
-    { '@type': 'Person', name: author || 'TransCircle Team', url: 'https://transcircle.org' },
+    { '@type': 'Person', name: author || 'TransCircle 项目组', url: 'https://transcircle.org' },
   ];
 const schemaEditors = toPersons(editors);
 
@@ -229,7 +229,7 @@ const jsonLdScript = JSON.stringify(
 
     <title>{title} | TransCircle Blog</title>
     <meta name="description" content={description} />
-    <meta name="author" content={author || 'TransCircle Team'} />
+    <meta name="author" content={author || 'TransCircle 项目组'} />
     <meta name="keywords" content={dynamicKeywords} />
     <meta name="application-name" content="TransCircle Blog" />
     <meta name="generator" content="Astro" />

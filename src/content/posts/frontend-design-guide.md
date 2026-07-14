@@ -2,7 +2,7 @@
 title: '前端组件设计规范'
 description: '介绍 TransCircle 博客项目中使用的组件设计规范和无障碍访问实践'
 pubDate: 2026-05-21
-author: 'Frontend Team'
+author: 'TransCircle 前端开发组'
 category: '技术分享'
 tags: ['前端', 'a11y', '设计规范']
 ---

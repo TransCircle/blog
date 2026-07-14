@@ -2,7 +2,7 @@
 title: '项目启动与架构设计'
 description: 'TransCircle 博客项目正式启动，介绍整体架构设计和技术选型决策'
 pubDate: 2026-05-20
-author: 'TransCircle Team'
+author: 'TransCircle 项目组'
 category: '开发进度'
 tags: ['Astro', '架构', '设计规范', '路线图']
 contentLicense: 'CC-BY-SA-4.0'
@@ -62,7 +62,7 @@ const postsCollection = defineCollection({
     title: z.string(),
     description: z.string().optional(),
     pubDate: z.coerce.date(),
-    author: z.string().default('TransCircle Team'),
+    author: z.string().default('TransCircle 项目组'),
     category: z.string().default('general'),
     tags: z.array(z.string()).default([]),
   }),
