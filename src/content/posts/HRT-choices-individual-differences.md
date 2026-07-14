@@ -7,7 +7,7 @@ editor:
   - { name: '翅膀', link: 'https://x.com/axzameyzed' }
   - { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
 category: '跨性别医疗'
-tags: ['HRT', ]
+tags: ['GAHT', '血检']
 ---
 
 *本文为《中国大陆跨性别女性 HRT 分层决策指南》[^fn-1]前置阅读，基于现实药源与社群经验编写，内容仅作信息参考，不替代专业医疗建议。任何治疗决策均需结合自身血检与专业医师指导。*

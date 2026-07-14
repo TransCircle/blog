@@ -4,7 +4,7 @@ description: '介绍 TransCircle 博客项目中使用的组件设计规范和�
 pubDate: 2026-05-21
 author: 'Frontend Team'
 category: '技术分享'
-tags: ['frontend', 'a11y', 'design-system']
+tags: ['前端', 'a11y', '设计规范']
 ---
 
 ## 组件设计原则

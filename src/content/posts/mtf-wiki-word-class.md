@@ -4,8 +4,8 @@ description: '「Pass」是形容词吗？「深柜」是形容词吗？'
 pubDate: 2026-05-31
 author: { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
 editor: { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
-category: '未分类'
-tags: ['意见', 'wiki', '语言']
+category: '语言文字'
+tags: ['语言学', '词性']
 ---
 
 比起跨性别主题文章，这更像是一个比较趣味性的语言学探究。我不止会发这篇文章到 TransCircle，大概也会在 MtF Wiki 的 GitHub 仓库发个 issue。

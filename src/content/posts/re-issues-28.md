@@ -6,7 +6,7 @@ author:
   - { name: 'Epheia', link: 'https://x.com/epheiamoe' }
   - { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
 category: '项目定位'
-tags: ['项目定位', '文章', '公开','issues','RE']
+tags: ['问答', '项目定位']
 contentLicense: 'CC-BY-4.0'
 ---
 Q:

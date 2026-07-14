@@ -4,7 +4,7 @@ description: 'TransCircle 博客项目正式启动，介绍整体架构设计和
 pubDate: 2026-05-20
 author: 'TransCircle Team'
 category: '开发进度'
-tags: ['astro', 'architecture', 'setup']
+tags: ['Astro', '架构', '设计规范', '路线图']
 contentLicense: 'CC-BY-SA-4.0'
 codeLicense: 'AGPL-3.0'
 ---
