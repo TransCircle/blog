@@ -11,10 +11,8 @@ const navLinks = [
 <header class="site-header" role="banner">
   <div class="header-container">
     <a href="/" class="logo" aria-label="TransCircle Blog 首页">
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-        <circle cx="14" cy="14" r="12" stroke="var(--accent-pink)" stroke-width="2" fill="none"/>
-        <circle cx="14" cy="14" r="5" fill="var(--accent-pink)"/>
-      </svg>
+      <!-- 品牌图标：src/assets/brand/ → public/，由 scripts/generate-icons.mjs 生成 -->
+      <img class="logo-mark" src="/logo-mark.svg" width="28" height="28" alt="" aria-hidden="true" />
       <span class="logo-text">TransCircle</span>
     </a>
 
@@ -179,6 +177,14 @@ const navLinks = [
 
   .logo:hover {
     color: var(--accent-pink);
+  }
+
+  /* 固定尺寸，避免 SVG 加载前的布局抖动 */
+  .logo-mark {
+    display: block;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
   }
 
   .logo-text {

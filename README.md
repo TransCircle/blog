@@ -12,6 +12,8 @@
 - [发布文章](#发布文章)
 - [修改文章](#修改文章)
 - [文章格式说明](#文章格式说明)
+- [社交分享图（OG 卡片）](#社交分享图og-卡片)
+- [品牌图标](#品牌图标)
 - [本地预览](#本地预览)
 - [发布流程](#发布流程)
 - [项目结构](#项目结构)
@@ -189,6 +191,10 @@ codeLicense: 'MIT'
 `src/pages/og/[...slug].png.ts`，产物路径为 `/og/<slug>.png`，已自动写入文章页的
 `og:image` / `twitter:image`。frontmatter 里的 `cover` 仅作页内题图，不再用作分享图。
 
+首页、标签页等非文章页面共用一张站点默认封面 `/og-cover.png`，由
+`src/pages/og-cover.png.ts` 在构建时生成（与文章卡同一套画布与品牌横幅），
+无需手工维护图片文件。
+
 ### 字体（少数情况下需要重新生成）
 
 卡片中文使用裁剪过的 Noto Sans SC 子集（仅含文章中出现过的字形，约 90 KB/字重，
@@ -200,6 +206,31 @@ pnpm run og:fonts   # 重新裁剪字体子集，随后提交更新后的 .woff 
 ```
 
 绝大多数常用汉字已被现有文章覆盖，通常无需关心这一步。
+
+---
+
+## 品牌图标
+
+站点图标只有一个源文件，全部产物都由它生成：
+
+| 文件 | 用途 |
+| --- | --- |
+| `src/assets/brand/transcircle-mark.svg` | 纯图标（环形标），**图标唯一源文件** |
+| `src/assets/brand/transcircle-horizontal.svg` | 横幅 Logo（图标 + 字标），用于 OG 卡片页眉与封面 |
+
+更换品牌标志时，替换上面两个 SVG，然后运行：
+
+```bash
+pnpm run icons   # 重新生成 public/ 下的全部图标，随后一并提交
+```
+
+脚本 `scripts/generate-icons.mjs` 会写出：`logo-mark.svg`（矢量图标，供页头 / 页脚与
+现代浏览器的 `rel="icon"` 使用）、`favicon.ico`（16/32/48）、`favicon.png`、
+`icon-192.png`、`icon-512.png`、`icon-maskable.png`（Android 需要的安全区留白 + 白底）、
+`apple-touch-icon.png`（iOS 不支持透明，故补白底）。
+
+OG 卡片的品牌横幅直接读取 `transcircle-horizontal.svg`，因此改完图标重新构建即可，
+不需要额外操作。
 
 ---
 
@@ -286,8 +317,13 @@ blog/
 │   ├── components/        # UI 组件
 │   ├── layouts/           # 页面布局
 │   ├── pages/             # 页面路由
+│   ├── assets/
+│   │   ├── brand/         # 品牌 SVG（图标 / 横幅 Logo 的源文件）
+│   │   └── og/fonts/      # OG 卡片用的 Noto Sans SC 子集字体
+│   ├── lib/og/            # OG 卡片绘制
 │   └── styles/            # 样式文件
-├── public/                # 静态资源（图片等）
+├── scripts/               # 构建期工具（图标生成、字体子集、IndexNow）
+├── public/                # 静态资源（图片、图标等，图标由脚本生成）
 ├── dist/                  # 构建输出（自动生成）
 └── ...配置文件
 ```

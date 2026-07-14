@@ -1,9 +1,11 @@
-// 构建期生成文章页 OG 社交卡片（1200×630 PNG）。
+// 构建期生成 OG 社交卡片（1200×630 PNG）：文章卡 renderOgImage、站点默认封面
+// renderOgCover。
 //
 // 思路：用 satori 把一棵「类 HTML」节点树排版成 SVG（中文由内嵌的 Noto Sans SC
 // 子集字体矢量化为 <path>，因此 resvg 无需任何系统字体即可栅格化），再用 resvg
 // 渲染为 PNG。版式借鉴 GitHub 仓库社交卡：品牌页眉 + 标题 + 简介 + 元信息行
 // （日期 / 更新 / 作者 / 阅读时长）+ 标签胶囊，配色与圆角遵循 DESIGN.md 的粉色系。
+// 品牌横幅来自 src/assets/brand/transcircle-horizontal.svg（图标源见同目录）。
 //
 // satori 仅支持 flexbox，且任何含子节点的元素都需显式 display:flex —— 下面的
 // div/col/row/text 辅助函数已统一处理，新增节点时请沿用。
@@ -28,6 +30,30 @@ export interface OgCardData {
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 
+// 品牌横幅的展示尺寸（源文件 400×120，保持 10:3）
+const LOGO_W = 300;
+const LOGO_H = 90;
+const COVER_LOGO_W = 640;
+const COVER_LOGO_H = 192;
+
+// 跨性别旗：蓝 / 粉 / 白 / 粉 / 蓝五等分（用作强调条纹）
+const FLAG_GRADIENT =
+  'linear-gradient(180deg, #55cdfc 0%, #55cdfc 22%, #f7a8b8 22%, #f7a8b8 40%,' +
+  ' #ffffff 40%, #ffffff 60%, #f7a8b8 60%, #f7a8b8 78%, #55cdfc 78%, #55cdfc 100%)';
+
+// 两种卡片共用的画布底：浅粉渐变 + 细描边框
+const CANVAS: Style = {
+  width: OG_WIDTH,
+  height: OG_HEIGHT,
+  position: 'relative',
+  fontFamily: 'Noto Sans SC',
+  backgroundColor: '#fff9fb',
+  backgroundImage:
+    'radial-gradient(1100px 520px at 88% -8%, rgba(255,133,162,0.20), rgba(255,133,162,0) 60%),' +
+    'radial-gradient(820px 480px at 0% 112%, rgba(240,98,146,0.14), rgba(240,98,146,0) 60%),' +
+    'linear-gradient(160deg, #fffafc 0%, #fff3f7 100%)',
+};
+
 // 取自 DESIGN.md 的浅色主题 token（粉色系）。
 const C = {
   textMain: '#1a1a1a',
@@ -45,12 +71,31 @@ const C = {
 // ── 资源加载（字体 + Logo + 子集覆盖表），按进程缓存，避免逐张卡片重复读盘 ──
 let assets: { fonts: Font[]; logo: string; coverage: Set<string> } | null = null;
 
+// 品牌横幅（图标 + TransCircle 字标）。satori 不渲染 SVG 滤镜，而标志的立体感依赖
+// 投影/柔化滤镜，因此先用 resvg 把矢量栅格化成 PNG，再以 data URI 交给 satori。
+// 按最大使用尺寸（封面卡 640px）的 2 倍栅格化，两种卡片共用同一份位图。
+const LOGO_RASTER_WIDTH = 1280;
+
+function rasterizeSvg(file: string, width: number): string {
+  const svg = fs.readFileSync(file, 'utf-8');
+  const png = new Resvg(svg, {
+    fitTo: { mode: 'width', value: width },
+    font: { loadSystemFonts: false }, // 字标已转为路径
+  })
+    .render()
+    .asPng();
+  return `data:image/png;base64,${png.toString('base64')}`;
+}
+
 function loadAssets() {
   if (assets) return assets;
   const fontDir = path.join(process.cwd(), 'src/assets/og/fonts');
   const regular = fs.readFileSync(path.join(fontDir, 'NotoSansSC-Regular.subset.woff'));
   const bold = fs.readFileSync(path.join(fontDir, 'NotoSansSC-Bold.subset.woff'));
-  const logoPng = fs.readFileSync(path.join(process.cwd(), 'public/icon-512.png'));
+  const logo = rasterizeSvg(
+    path.join(process.cwd(), 'src/assets/brand/transcircle-horizontal.svg'),
+    LOGO_RASTER_WIDTH
+  );
   // coverage.txt 由 scripts/generate-og-fonts.mjs 写出，记录子集实际包含的字符，
   // 供 findUncovered() 在构建期校验文章是否用到了未覆盖的字形。缺失则跳过校验。
   let coverage = new Set<string>();
@@ -64,7 +109,7 @@ function loadAssets() {
       { name: 'Noto Sans SC', data: regular, weight: 400, style: 'normal' },
       { name: 'Noto Sans SC', data: bold, weight: 700, style: 'normal' },
     ],
-    logo: `data:image/png;base64,${logoPng.toString('base64')}`,
+    logo,
     coverage,
   };
   return assets;
@@ -96,6 +141,18 @@ const row = (style: Style, children?: unknown) =>
   el('div', { display: 'flex', flexDirection: 'row', alignItems: 'center', ...style }, children);
 const text = (style: Style, value: string) => el('div', { display: 'flex', ...style }, value);
 const image = (src: string, style: Style): Node => ({ type: 'img', props: { src, style } });
+
+/** 细描边框，让卡片在浅色背景下也有清晰边界 */
+const frame = (): Node =>
+  el('div', {
+    position: 'absolute',
+    top: 22,
+    left: 22,
+    right: 22,
+    bottom: 22,
+    border: `1px solid ${C.divider}`,
+    borderRadius: 28,
+  });
 
 // ── 描边图标 → data URI（颜色烘焙进 SVG，satori 以 <img> 渲染）──────────────
 function icon(paths: string, color: string, size = 26): Node {
@@ -256,57 +313,26 @@ function buildCard(data: OgCardData, logo: string): Node {
 
   return col(
     {
-      width: OG_WIDTH,
-      height: OG_HEIGHT,
-      position: 'relative',
-      fontFamily: 'Noto Sans SC',
-      backgroundColor: '#fff9fb',
-      backgroundImage:
-        'radial-gradient(1100px 520px at 88% -8%, rgba(255,133,162,0.20), rgba(255,133,162,0) 60%),' +
-        'radial-gradient(820px 480px at 0% 112%, rgba(240,98,146,0.14), rgba(240,98,146,0) 60%),' +
-        'linear-gradient(160deg, #fffafc 0%, #fff3f7 100%)',
+      ...CANVAS,
       padding: '62px 72px',
       justifyContent: 'space-between',
     },
     [
-      // 细描边框，让卡片在浅色背景下也有清晰边界
-      el('div', {
-        position: 'absolute',
-        top: 22,
-        left: 22,
-        right: 22,
-        bottom: 22,
-        border: `1px solid ${C.divider}`,
-        borderRadius: 28,
-      }),
+      frame(),
 
-      // ── 页眉：Logo + 字标 ↔ 分类徽标 ──────────────────────────────────
+      // ── 页眉：品牌横幅（图标 + 字标）+ 站点名 ↔ 分类徽标 ────────────────
       row({ justifyContent: 'space-between' }, [
         row({ gap: 20 }, [
-          el(
-            'div',
-            {
-              display: 'flex',
-              width: 78,
-              height: 78,
-              borderRadius: 20,
-              backgroundImage: 'linear-gradient(135deg, #ffd9e2, #ff9bb3)',
-              border: '1px solid rgba(214,68,122,0.25)',
-              boxShadow: '0 6px 18px rgba(240,98,146,0.28)',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-            },
-            [image(logo, { width: 78, height: 78, borderRadius: 20 })]
-          ),
-          col({ gap: 4 }, [
+          image(logo, { width: LOGO_W, height: LOGO_H }),
+          el('div', { display: 'flex', width: 1, height: 46, backgroundColor: C.divider }),
+          col({ gap: 3 }, [
             text(
-              { fontSize: 30, fontWeight: 700, color: C.textMain, letterSpacing: '0.01em' },
-              '跨环开发博客'
+              { fontSize: 27, fontWeight: 700, color: C.textMain, letterSpacing: '0.02em' },
+              '开发博客'
             ),
             text(
-              { fontSize: 18, fontWeight: 400, color: C.textMuted, letterSpacing: '0.04em' },
-              'TransCircle Dev Blog'
+              { fontSize: 17, fontWeight: 400, color: C.textMuted, letterSpacing: '0.06em' },
+              'Dev Blog'
             ),
           ]),
         ]),
@@ -335,8 +361,7 @@ function buildCard(data: OgCardData, logo: string): Node {
           marginRight: 28,
           borderRadius: 8,
           maxHeight: 232,
-          backgroundImage:
-            'linear-gradient(180deg, #55cdfc 0%, #55cdfc 22%, #f7a8b8 22%, #f7a8b8 40%, #ffffff 40%, #ffffff 60%, #f7a8b8 60%, #f7a8b8 78%, #55cdfc 78%, #55cdfc 100%)',
+          backgroundImage: FLAG_GRADIENT,
           boxShadow: '0 4px 16px rgba(85,205,252,0.25)',
         }),
         col({ flexGrow: 1, gap: 22 }, [
@@ -371,10 +396,49 @@ function buildCard(data: OgCardData, logo: string): Node {
   );
 }
 
-// ── 对外入口：数据 → PNG Buffer ───────────────────────────────────────────
-export async function renderOgImage(data: OgCardData): Promise<Buffer> {
-  const { fonts, logo } = loadAssets();
-  const svg = await satori(buildCard(data, logo) as unknown as Parameters<typeof satori>[0], {
+// ── 站点默认封面卡（/og-cover.png）：首页、标签页等非文章页面的社交预览图 ──
+// 版式与文章卡同源（同一画布 + 同一描边框），但以品牌横幅居中，不含文章元信息。
+function buildCover(logo: string): Node {
+  return col(
+    {
+      ...CANVAS,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 30,
+    },
+    [
+      frame(),
+      image(logo, { width: COVER_LOGO_W, height: COVER_LOGO_H }),
+      // 跨性别旗强调横条，呼应文章卡的竖条
+      el('div', {
+        display: 'flex',
+        width: 240,
+        height: 10,
+        borderRadius: 8,
+        backgroundImage: FLAG_GRADIENT,
+        boxShadow: '0 4px 16px rgba(85,205,252,0.25)',
+      }),
+      col({ alignItems: 'center', gap: 16 }, [
+        text(
+          { fontSize: 46, fontWeight: 700, color: C.textMain, letterSpacing: '0.02em' },
+          '跨环开发博客'
+        ),
+        text(
+          { fontSize: 29, fontWeight: 400, color: C.textSecondary },
+          '记录项目进度、团队报告与技术分享'
+        ),
+      ]),
+      text(
+        { fontSize: 24, fontWeight: 400, color: C.textMuted, letterSpacing: '0.04em' },
+        'blog.transcircle.org'
+      ),
+    ]
+  );
+}
+
+// ── 对外入口：节点树 → PNG Buffer ─────────────────────────────────────────
+async function toPng(node: Node, fonts: Font[]): Promise<Buffer> {
+  const svg = await satori(node as unknown as Parameters<typeof satori>[0], {
     width: OG_WIDTH,
     height: OG_HEIGHT,
     fonts,
@@ -384,4 +448,16 @@ export async function renderOgImage(data: OgCardData): Promise<Buffer> {
     font: { loadSystemFonts: false },
   });
   return resvg.render().asPng();
+}
+
+/** 文章社交卡片（/og/<slug>.png） */
+export async function renderOgImage(data: OgCardData): Promise<Buffer> {
+  const { fonts, logo } = loadAssets();
+  return toPng(buildCard(data, logo), fonts);
+}
+
+/** 站点默认封面卡（/og-cover.png） */
+export async function renderOgCover(): Promise<Buffer> {
+  const { fonts, logo } = loadAssets();
+  return toPng(buildCover(logo), fonts);
 }

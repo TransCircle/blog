@@ -31,6 +31,7 @@ const WEIGHTS = [
 const CHROME =
   'TransCircle Development Blog 跨环开发博客' +
   '作者编辑更新于发布字阅读约分钟标签分类暂无简介等' +
+  '记录项目进度、团队报告与技术分享' + // 站点默认封面卡（/og-cover.png）的标语
   '年月日时分·•#／/、，。：；！？（）【】「」《》〈〉—–…“”‘’·.,:;!?()[]{}@&%+-' +
   '0123456789' +
   'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

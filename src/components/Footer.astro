@@ -16,10 +16,7 @@ const friendLinks = [
     <div class="footer-main">
       <div class="footer-brand">
         <a href="/" class="footer-logo" aria-label="TransCircle Blog">
-          <svg width="20" height="20" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-            <circle cx="14" cy="14" r="12" stroke="var(--accent-pink)" stroke-width="2" fill="none"/>
-            <circle cx="14" cy="14" r="5" fill="var(--accent-pink)"/>
-          </svg>
+          <img class="footer-logo-mark" src="/logo-mark.svg" width="22" height="22" alt="" aria-hidden="true" />
           <span>TransCircle Blog</span>
         </a>
         <p class="footer-description">记录开发进度与团队报告</p>
@@ -108,6 +105,13 @@ const friendLinks = [
 
   .footer-logo:hover {
     color: var(--accent-pink);
+  }
+
+  .footer-logo-mark {
+    display: block;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
   }
 
   .footer-description {

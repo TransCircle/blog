@@ -10,6 +10,7 @@
     "astro": "astro",
     "typecheck": "astro check",
     "og:fonts": "node scripts/generate-og-fonts.mjs",
+    "icons": "node scripts/generate-icons.mjs",
     "indexnow": "node scripts/indexnow.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
