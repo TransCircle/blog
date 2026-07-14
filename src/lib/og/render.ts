@@ -30,6 +30,13 @@ export interface OgCardData {
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 
+// 品牌文案：博客早期只写开发进度，现在也覆盖跨性别医疗、社群知识与议题讨论，
+// 因此站名去掉「开发」二字；只写「博客」又太单薄，故配一组三段式标语点出内容范围。
+const SITE_NAME = '跨环博客';
+const SITE_BEATS = '项目 · 知识 · 社群';
+const SITE_TAGLINE = '记录项目进展、社群知识与跨性别议题';
+const SITE_HOST = 'blog.transcircle.org';
+
 // 品牌横幅的展示尺寸（源文件 400×120，保持 10:3）
 const LOGO_W = 300;
 const LOGO_H = 90;
@@ -328,11 +335,11 @@ function buildCard(data: OgCardData, logo: string): Node {
           col({ gap: 3 }, [
             text(
               { fontSize: 27, fontWeight: 700, color: C.textMain, letterSpacing: '0.02em' },
-              '开发博客'
+              SITE_NAME
             ),
             text(
               { fontSize: 17, fontWeight: 400, color: C.textMuted, letterSpacing: '0.06em' },
-              'Dev Blog'
+              SITE_BEATS
             ),
           ]),
         ]),
@@ -421,16 +428,13 @@ function buildCover(logo: string): Node {
       col({ alignItems: 'center', gap: 16 }, [
         text(
           { fontSize: 46, fontWeight: 700, color: C.textMain, letterSpacing: '0.02em' },
-          '跨环开发博客'
+          SITE_NAME
         ),
-        text(
-          { fontSize: 29, fontWeight: 400, color: C.textSecondary },
-          '记录项目进度、团队报告与技术分享'
-        ),
+        text({ fontSize: 29, fontWeight: 400, color: C.textSecondary }, SITE_TAGLINE),
       ]),
       text(
         { fontSize: 24, fontWeight: 400, color: C.textMuted, letterSpacing: '0.04em' },
-        'blog.transcircle.org'
+        SITE_HOST
       ),
     ]
   );

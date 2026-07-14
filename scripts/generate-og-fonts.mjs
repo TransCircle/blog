@@ -29,9 +29,10 @@ const WEIGHTS = [
 // 无论文章内容如何，卡片都会绘制的字符：品牌字标、元信息标签、
 // 数字日期骨架、分隔符与标签前缀。确保「页面外壳」永远不缺字。
 const CHROME =
-  'TransCircle Development Blog 跨环开发博客' +
+  'TransCircle Blog 跨环博客' +
   '作者编辑更新于发布字阅读约分钟标签分类暂无简介等' +
-  '记录项目进度、团队报告与技术分享' + // 站点默认封面卡（/og-cover.png）的标语
+  '项目 · 知识 · 社群' + // 文章卡页眉的三段式标语
+  '记录项目进展、社群知识与跨性别议题' + // 站点默认封面卡（/og-cover.png）的标语
   '年月日时分·•#／/、，。：；！？（）【】「」《》〈〉—–…“”‘’·.,:;!?()[]{}@&%+-' +
   '0123456789' +
   'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

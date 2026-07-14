@@ -35,9 +35,9 @@ const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
 const paginatedPosts = publishedPosts.slice(startIndex, startIndex + POSTS_PER_PAGE);
 
 const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
-const homeTitle = '跨环开发博客';
+const homeTitle = '跨环博客';
 const homeDescription =
-  '跨环（TransCircle Project）官方开发博客：公开记录服务于中文 MtF 跨性别社群的项目开发进度、团队报告与技术分享。内容遵循 CC BY-SA 4.0，代码遵循 AGPL-3.0。';
+  '跨环（TransCircle Project）官方博客：记录项目进展、社群知识与跨性别议题，涵盖跨性别医疗（HRT）、社群语言与档案、技术与设计实践，服务于中文 MtF 跨性别社群。内容遵循 CC BY-SA 4.0，代码遵循 AGPL-3.0。';
 
 // Blog 结构化数据：列出最新文章，帮助搜索引擎与 AI 理解站点为「博客」实体及其文章集合
 const blogSchema = {
@@ -45,8 +45,8 @@ const blogSchema = {
   '@type': 'Blog',
   '@id': `${siteURL}#blog`,
   url: siteURL,
-  name: 'TransCircle 开发博客',
-  alternateName: 'TransCircle Development Blog',
+  name: '跨环博客',
+  alternateName: 'TransCircle Blog',
   description: homeDescription,
   inLanguage: 'zh-CN',
   publisher: { '@id': `${siteURL}#organization` },
@@ -78,10 +78,12 @@ const pageTitle = currentPage > 1 ? `${homeTitle}（第 ${currentPage} 页）` :
 
   <main id="main-content" class="container">
     <section class="hero anim-fade-in-up" aria-label="博客介绍">
-      <h1>TransCircle 开发博客</h1>
+      <p class="hero-eyebrow">TransCircle Blog</p>
+      <h1>跨环博客</h1>
       <p class="hero-description">
-        记录项目开发进度、团队报告与技术分享
+        记录项目进展、社群知识与跨性别议题
       </p>
+      <p class="hero-beats">项目 · 知识 · 社群</p>
     </section>
 
     <section class="posts-section" aria-label="文章列表">
@@ -118,6 +120,16 @@ const pageTitle = currentPage > 1 ? `${homeTitle}（第 ${currentPage} 页）` :
     margin-bottom: 2rem;
   }
 
+  /* 品牌小标：与 OG 卡片的「字标 → 站名 → 标语」锁定关系保持一致 */
+  .hero-eyebrow {
+    color: var(--accent-pink);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 0.5rem;
+  }
+
   .hero h1 {
     margin-bottom: 0.75rem;
   }
@@ -127,6 +139,13 @@ const pageTitle = currentPage > 1 ? `${homeTitle}（第 ${currentPage} 页）` :
     font-size: 1rem;
     max-width: 500px;
     margin: 0 auto;
+  }
+
+  .hero-beats {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    margin: 0.85rem auto 0;
   }
 
   .section-title {

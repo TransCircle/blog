@@ -33,7 +33,7 @@ export interface Props {
 
 const {
   title,
-  description = 'TransCircle 开发博客 - 记录项目进度与团队报告',
+  description = '跨环博客 - 记录项目进展、社群知识与跨性别议题',
   image,
   type = 'website',
   author,
@@ -55,7 +55,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org';
 
 // 动态关键词：标签 + 固定品牌词
-const baseKeywords = 'TransCircle, 跨环, 跨性别, 开发博客, MtF, 跨性别女性, 开源, 技术博客';
+const baseKeywords =
+  'TransCircle, 跨环, 跨环博客, 跨性别, MtF, 跨性别女性, HRT, 跨性别医疗, 社群知识, 开源';
 const dynamicKeywords = tags.length > 0 ? `${tags.join(', ')}, ${baseKeywords}` : baseKeywords;
 
 // OG 图片默认值
@@ -96,9 +97,9 @@ const websiteSchema = {
   '@type': 'WebSite',
   '@id': `${siteURL}#website`,
   url: siteURL,
-  name: 'TransCircle Development Blog',
-  alternateName: '跨环开发博客',
-  description: '跨环（TransCircle Project）官方开发博客：公开记录项目进度、团队报告与技术分享，服务于中文 MtF 跨性别社群。',
+  name: 'TransCircle Blog',
+  alternateName: '跨环博客',
+  description: '跨环（TransCircle Project）官方博客：记录项目进展、社群知识与跨性别议题，涵盖跨性别医疗、语言与社群档案，服务于中文 MtF 跨性别社群。',
   inLanguage: 'zh-CN',
   publisher: { '@id': `${siteURL}#organization` },
   copyrightHolder: { '@id': `${siteURL}#organization` },
@@ -123,10 +124,10 @@ const faqSchema = {
   mainEntity: [
     {
       '@type': 'Question',
-      name: 'TransCircle Development Blog 是什么？',
+      name: 'TransCircle Blog 是什么？',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: '跨环开发博客（TransCircle Development Blog）是跨环（TransCircle Project）的官方开发文档站点，用于透明地记录项目开发历程、团队运作与技术探索，服务于中文 MtF 跨性别社群。',
+        text: '跨环博客（TransCircle Blog）是跨环（TransCircle Project）的官方博客，公开记录项目进展与团队运作，同时发布跨性别医疗（如 HRT）、社群语言与档案、技术与设计实践等长文，服务于中文 MtF 跨性别社群。',
       },
     },
     {
@@ -134,7 +135,7 @@ const faqSchema = {
       name: '这个博客与 TransCircle Project 主站是什么关系？',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: '本博客是跨环主站（https://transcircle.org）的配套开发文档站点。主站聚焦项目介绍与社群入口，博客聚焦技术实现、架构决策与团队协作的公开记录。',
+        text: '本博客是跨环主站（https://transcircle.org）的配套写作站点。主站聚焦项目介绍与社群入口，博客聚焦公开写作：项目进展、跨性别医疗与社群知识、议题讨论，以及技术与设计实践的记录。',
       },
     },
     {
@@ -142,7 +143,7 @@ const faqSchema = {
       name: '如何引用博客上的内容？',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: '文字内容遵循 CC BY-SA 4.0 协议，代码片段遵循 AGPL-3.0 协议。引用时请保留原始 URL（https://blog.transcircle.org/）并注明来源"TransCircle Development Blog"。',
+        text: '文字内容遵循 CC BY-SA 4.0 协议，代码片段遵循 AGPL-3.0 协议。引用时请保留原始 URL（https://blog.transcircle.org/）并注明来源"TransCircle Blog（跨环博客）"。',
       },
     },
     {
@@ -228,7 +229,7 @@ const jsonLdScript = JSON.stringify(
     <meta name="description" content={description} />
     <meta name="author" content={author || 'TransCircle Team'} />
     <meta name="keywords" content={dynamicKeywords} />
-    <meta name="application-name" content="TransCircle Development Blog" />
+    <meta name="application-name" content="TransCircle Blog" />
     <meta name="generator" content="Astro" />
     <meta name="rating" content="general" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
@@ -257,7 +258,7 @@ const jsonLdScript = JSON.stringify(
 
     <!-- Open Graph -->
     <meta property="og:type" content={type} />
-    <meta property="og:site_name" content="TransCircle Development Blog" />
+    <meta property="og:site_name" content="TransCircle Blog" />
     <meta property="og:locale" content="zh_CN" />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
@@ -266,7 +267,7 @@ const jsonLdScript = JSON.stringify(
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={`${title} — TransCircle Development Blog`} />
+    <meta property="og:image:alt" content={`${title} — 跨环博客 TransCircle Blog`} />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -276,7 +277,7 @@ const jsonLdScript = JSON.stringify(
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageURL} />
-    <meta name="twitter:image:alt" content={`${title} — TransCircle Development Blog`} />
+    <meta name="twitter:image:alt" content={`${title} — 跨环博客 TransCircle Blog`} />
 
     <!-- Article meta -->
     {type === 'article' && pubDate && (
@@ -296,7 +297,7 @@ const jsonLdScript = JSON.stringify(
     <!-- Icons -->
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
-    <link rel="alternate" type="application/rss+xml" title="TransCircle 开发博客 RSS" href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title="跨环博客 RSS" href="/rss.xml" />
     <!-- 图标由 scripts/generate-icons.mjs 从 src/assets/brand/transcircle-mark.svg 生成 -->
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/logo-mark.svg" sizes="any" />

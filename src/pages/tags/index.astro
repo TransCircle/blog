@@ -17,7 +17,7 @@ tags.forEach((tag: string) => {
 });
 
 const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
-const tagsDescription = `跨环（TransCircle）开发博客的全部文章标签，共 ${tags.length} 个标签、${publishedPosts.length} 篇文章，可按主题浏览。`;
+const tagsDescription = `跨环博客（TransCircle Blog）的全部文章标签，共 ${tags.length} 个标签、${publishedPosts.length} 篇文章，可按主题浏览。`;
 const breadcrumbs = [
   { name: '首页', item: siteURL },
   { name: '标签', item: `${siteURL}tags/` },

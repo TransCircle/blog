@@ -29,7 +29,7 @@ export async function GET({ props }: APIContext) {
 
   // Add metadata header
   const header = `---
-# TransCircle Development Blog
+# TransCircle Blog / 跨环博客
 # https://blog.transcircle.org/posts/${post.slug}/
 # 
 # Title: ${post.data.title}

@@ -55,8 +55,8 @@ export async function GET(context: APIContext) {
     })
     .join('\n\n---\n\n');
 
-  const body = `# TransCircle Development Blog — Full Content Snapshot / 全文快照
-# 跨环（TransCircle Project）官方开发博客
+  const body = `# TransCircle Blog — Full Content Snapshot / 全文快照
+# 跨环（TransCircle Project）官方博客
 # ${site}
 # Generated: ${new Date().toISOString()}
 #
@@ -67,7 +67,7 @@ export async function GET(context: APIContext) {
 
 ## About / 关于本站
 
-TransCircle Development Blog（跨环开发博客）是跨环（TransCircle Project，最准确的中文名「跨环」）的官方开发文档与进度公开站点，服务于中文 MtF 跨性别社群。本博客是主站 https://transcircle.org 的配套站点，聚焦技术实现、架构决策、团队协作与社群相关知识的公开记录。
+TransCircle Blog（跨环博客）是跨环（TransCircle Project，最准确的中文名「跨环」）的官方博客，服务于中文 MtF 跨性别社群。本博客是主站 https://transcircle.org 的配套写作站点，内容涵盖项目进展与团队记录、跨性别医疗（如 HRT）、社群语言与档案、写作与设计规范，以及议题讨论。
 
 ## Table of Contents / 目录
 

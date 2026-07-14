@@ -30,7 +30,7 @@ const taggedPosts = getPostsByTag(publishedPosts, tag).sort(
 
 const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
 const tagURL = new URL(`/tags/${tag}/`, Astro.site).toString();
-const tagDescription = `跨环（TransCircle）开发博客中标签为「${tag}」的全部文章，共 ${taggedPosts.length} 篇。`;
+const tagDescription = `跨环博客（TransCircle Blog）中标签为「${tag}」的全部文章，共 ${taggedPosts.length} 篇。`;
 
 const breadcrumbs = [
   { name: '首页', item: siteURL },

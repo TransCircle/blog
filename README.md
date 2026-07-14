@@ -1,6 +1,6 @@
-# TransCircle 开发博客
+# 跨环博客 TransCircle Blog
 
-> TransCircle 团队的开发进度记录与项目报告博客。
+> 跨环（TransCircle Project）官方博客：记录项目进展、社群知识与跨性别议题。
 > 
 > 在线地址：[blog.transcircle.org](https://blog.transcircle.org)
 

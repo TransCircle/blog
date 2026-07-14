@@ -1,7 +1,7 @@
 {
-  "name": "TransCircle Development Blog",
-  "short_name": "TransCircle Blog",
-  "description": "跨环（TransCircle Project）官方开发博客：公开记录项目进度、团队报告与技术分享，服务于中文 MtF 跨性别社群。",
+  "name": "跨环博客 TransCircle Blog",
+  "short_name": "跨环博客",
+  "description": "跨环（TransCircle Project）官方博客：记录项目进展、社群知识与跨性别议题，服务于中文 MtF 跨性别社群。",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
