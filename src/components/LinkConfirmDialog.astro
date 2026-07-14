@@ -8,6 +8,7 @@
  * 无障碍：role="dialog" + aria-modal，支持 Esc 关闭、Tab 焦点循环、
  * 打开时将主内容设为 inert，关闭后焦点回到触发链接。
  */
+import Button from './ui/Button.astro';
 ---
 
 <div
@@ -24,18 +25,20 @@
     <p id="link-confirm-desc" class="link-confirm-desc">即将前往以下地址，是否确认跳转？</p>
     <p class="link-confirm-url" id="link-confirm-url"></p>
     <div class="link-confirm-actions">
-      <button type="button" class="link-confirm-btn link-confirm-cancel" data-confirm-dismiss>
+      {/* 类名 link-confirm-cancel / link-confirm-go 是脚本的查询锚点，勿改 */}
+      <Button variant="secondary" class="link-confirm-cancel" data-confirm-dismiss>
         取消
-      </button>
-      <a
-        id="link-confirm-go"
-        class="link-confirm-btn link-confirm-go"
+      </Button>
+      <Button
+        variant="primary"
         href="#"
+        id="link-confirm-go"
+        class="link-confirm-go"
         target="_blank"
         rel="nofollow noopener noreferrer"
       >
         确认前往
-      </a>
+      </Button>
     </div>
   </div>
 </div>
@@ -52,12 +55,20 @@
     let lastFocused: HTMLElement | null = null;
     let isOpen = false;
 
+    // 弹窗声明了 aria-modal，背景就必须整体退出无障碍树：只冻结 <main> 的话，
+    // 顶栏、页脚仍能被读屏的虚拟光标浏览到，也仍可被程序聚焦。
+    const inertTargets = (): (Element | null)[] => [
+      mainContent,
+      document.querySelector('.site-header'),
+      document.querySelector('.site-footer'),
+    ];
+
     function openDialog(url: string, trigger: HTMLElement): void {
       lastFocused = trigger;
       goLink!.href = url;
       urlText!.textContent = url;
       dialog!.classList.add('is-open');
-      mainContent?.setAttribute('inert', '');
+      inertTargets().forEach((el) => el?.setAttribute('inert', ''));
       document.body.style.overflow = 'hidden';
       isOpen = true;
       goLink!.focus();
@@ -66,7 +77,8 @@
     function closeDialog(): void {
       if (!isOpen) return;
       dialog!.classList.remove('is-open');
-      mainContent?.removeAttribute('inert');
+      // 先解除 inert 再归还焦点：触发链接可能就在顶栏/页脚里
+      inertTargets().forEach((el) => el?.removeAttribute('inert'));
       document.body.style.overflow = '';
       isOpen = false;
       lastFocused?.focus();
@@ -133,7 +145,8 @@
   .link-confirm {
     position: fixed;
     inset: 0;
-    z-index: 200;
+    /* 1100：模态层，压住 header(80) 与抽屉(70) */
+    z-index: 1100;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -143,8 +156,8 @@
     opacity: 0;
     pointer-events: none;
     transition:
-      opacity 0.2s ease,
-      visibility 0.2s ease;
+      opacity var(--dur-base) var(--ease-standard),
+      visibility var(--dur-base) var(--ease-standard);
   }
 
   .link-confirm.is-open {
@@ -165,15 +178,17 @@
     position: relative;
     width: 100%;
     max-width: 420px;
-    padding: 1.75rem;
-    background-color: var(--bg-color);
+    /* dvh：移动端地址栏收起时不被裁切；内容超高时面板自身滚动 */
+    max-height: calc(100dvh - 3rem);
+    overflow-y: auto;
+    min-width: 0;
+    padding: 1.4rem;
+    background-color: var(--surface-card);
     border: 1px solid var(--divider-color);
-    border-radius: 16px;
-    box-shadow:
-      0 0 10px var(--shadow-color),
-      0 8px 28px rgba(0, 0, 0, 0.12);
-    transform: translateY(8px) scale(0.98);
-    transition: transform 0.2s ease;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-pop);
+    transform: translateY(8px) scale(0.985);
+    transition: transform var(--dur-base) var(--ease-emphasized);
   }
 
   .link-confirm.is-open .link-confirm-panel {
@@ -189,77 +204,29 @@
 
   .link-confirm-desc {
     margin-bottom: 0.75rem;
+    font-size: var(--fs-body);
     color: var(--text-secondary);
-    font-size: 0.92rem;
   }
 
+  /* URL 展示为 code-pill：任意长度都必须能断行，弹窗不得横向溢出 */
   .link-confirm-url {
-    margin-bottom: 1.5rem;
-    padding: 0.65rem 0.85rem;
+    margin-bottom: 1.25rem;
+    padding: 0.55rem 0.75rem;
+    min-width: 0;
     background-color: var(--hover-bg);
-    border: 1px solid var(--divider-color);
-    border-radius: 8px;
-    color: var(--accent-pink);
-    font-family: 'SF Mono', Monaco, 'Cascadia Code', Consolas, monospace;
-    font-size: 0.85rem;
-    word-break: break-all;
+    border-radius: var(--radius-xs);
+    color: var(--text-secondary);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: var(--fs-sm);
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .link-confirm-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.75rem;
-  }
-
-  .link-confirm-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem 1.2rem;
-    border-radius: 50px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    font-family: inherit;
-    text-decoration: none;
-    cursor: pointer;
-    transition:
-      background-color 0.2s ease,
-      color 0.2s ease,
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
-  }
-
-  .link-confirm-btn:focus-visible {
-    outline: 2px solid var(--primary-pink);
-    outline-offset: 2px;
-  }
-
-  .link-confirm-cancel {
-    background: none;
-    border: 1.5px solid var(--primary-pink);
-    color: var(--primary-pink);
-  }
-
-  .link-confirm-cancel:hover {
-    background-color: var(--hover-bg);
-    border-color: var(--accent-pink);
-    color: var(--accent-pink);
-  }
-
-  .link-confirm-go {
-    border: 1.5px solid transparent;
-    background-color: var(--accent-pink);
-    color: white;
-    box-shadow: 0 2px 8px var(--shadow-color-hover);
-  }
-
-  .link-confirm-go:hover {
-    color: white;
-    /* color-mix 平滑变暗，附带硬编码回退（与 DESIGN.md 一致） */
-    background-color: var(--cta-hover);
-    background-color: var(--cta-hover-mix);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px var(--shadow-color-hover);
+    gap: 0.6rem;
+    flex-wrap: wrap;
   }
 
   @media (max-width: 480px) {
@@ -267,8 +234,20 @@
       flex-direction: column-reverse;
     }
 
-    .link-confirm-btn {
+    /* :global 是必需的：按钮由 Button 组件渲染，不带本组件的作用域标记 */
+    .link-confirm-actions :global(.btn) {
       width: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .link-confirm,
+    .link-confirm-panel {
+      transition: none;
+    }
+
+    .link-confirm-panel {
+      transform: none;
     }
   }
 </style>

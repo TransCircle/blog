@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import type { Person } from '@utils/posts';
+import Pill from '@components/ui/Pill.astro';
 
 export interface Props {
   post: CollectionEntry<'posts'>;
@@ -16,29 +17,25 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
 });
 ---
 
-<article class="post-card">
-  <div class="post-card-meta">
-    <span class="post-card-category">{category}</span>
-    <time datetime={pubDate.toISOString()} class="post-card-date">{formattedDate}</time>
+<article class="post-row">
+  <div class="post-row-meta">
+    <Pill tone="accent">{category}</Pill>
+    <time datetime={pubDate.toISOString()}>{formattedDate}</time>
   </div>
 
-  <h2 class="post-card-title">
-    <a href={`/posts/${post.slug}`} class="post-card-link">{title}</a>
+  <h2 class="post-row-title">
+    <a href={`/posts/${post.slug}`}>{title}</a>
   </h2>
 
-  {description && <p class="post-card-description">{description}</p>}
+  {description && <p class="post-row-desc">{description}</p>}
 
-  <div class="post-card-footer">
-    <span class="post-card-author">
+  <div class="post-row-footer">
+    <span class="post-row-authors">
       {author.map((person: Person, index: number) => (
         <Fragment>
-          {index > 0 && (
-            <span class="post-card-author-sep" aria-hidden="true">
-              、
-            </span>
-          )}
+          {index > 0 && <span aria-hidden="true">、</span>}
           <a
-            class="post-card-author-link"
+            class="post-row-author-link"
             href={person.link}
             target="_blank"
             rel="nofollow noopener noreferrer"
@@ -51,9 +48,9 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
     </span>
 
     {tags.length > 0 && (
-      <div class="post-card-tags">
+      <div class="post-row-tags">
         {tags.map((tag: string) => (
-          <a href={`/tags/${tag}`} class="post-card-tag">#{tag}</a>
+          <a href={`/tags/${tag}`} class="tag-link">#{tag}</a>
         ))}
       </div>
     )}
@@ -61,118 +58,34 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
 </article>
 
 <style>
-  .post-card {
-    padding: 1.5rem 0;
-    border-bottom: 1px solid var(--divider-color);
+  /* 行的视觉全部来自 global.css 的 .post-row-*；这里只补作者链接：
+   * 它比标签低一级，用 --text-muted 而非全局 a 的 accent，避免与 .tag-link 抢注意力。 */
+  .post-row-authors {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
-  .post-card:last-child {
-    border-bottom: none;
-  }
-
-  .post-card-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-    font-size: 0.82rem;
-  }
-
-  .post-card-category {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    background-color: var(--hover-bg);
-    color: var(--accent-pink);
-    border-radius: 4px;
-    font-weight: 500;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .post-card-date {
+  .post-row-author-link {
     color: var(--text-muted);
-  }
-
-  .post-card-title {
-    font-size: 1.35rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
-  }
-
-  .post-card-link {
-    color: var(--text-main);
-    text-decoration: none;
-    transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .post-card-link:hover {
-    color: var(--accent-pink);
-  }
-
-  .post-card-description {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 1rem;
-  }
-
-  .post-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .post-card-author {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-  }
-
-  .post-card-author-link {
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-
-  .post-card-author-link:hover {
-    color: var(--accent-pink);
     text-decoration: underline;
-    text-underline-offset: 2px;
+    text-underline-offset: 0.2em;
+    transition: color var(--dur-fast) var(--ease-standard);
   }
 
-  .post-card-author-link:focus-visible {
-    outline: 2px solid var(--primary-pink);
-    outline-offset: 2px;
-    border-radius: 2px;
-  }
-
-  .post-card-author-sep {
-    color: var(--text-muted);
-  }
-
-  .post-card-tags {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .post-card-tag {
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-
-  .post-card-tag:hover {
+  .post-row-author-link:hover {
     color: var(--accent-pink);
   }
 
-  @media (max-width: 768px) {
-    .post-card-title {
-      font-size: 1.2rem;
+  @media (any-pointer: coarse) {
+    .post-row-author-link {
+      display: inline-block;
+      min-height: var(--tap-min);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .post-row-author-link {
+      transition: none;
     }
   }
 </style>

@@ -79,30 +79,35 @@ const navLinks = [
 </header>
 
 <script>
+  // 移动端断点：必须与本文件 CSS 中的 1100px 保持一致（唯一的导航断点）
+  const MOBILE_BREAKPOINT = 1100;
+
+  const siteHeader = document.querySelector('.site-header');
   const menuToggle = document.querySelector('.mobile-menu-toggle');
   const mobileMenu = document.getElementById('mobile-menu');
   const menuClose = document.querySelector('.mobile-menu-close');
   const menuOverlay = document.querySelector('.mobile-menu-overlay');
   const mainContent = document.getElementById('main-content');
 
+  const isOpen = () => mobileMenu?.classList.contains('is-open') ?? false;
+
+  // 抽屉声明了 aria-modal，焦点就必须真的被关在里面。只冻结 main 是不够的：
+  // 顶栏内条（logo / 主站 CTA / 主题开关）与整个页脚仍在 Tab 序里，
+  // Tab 走到最后一个抽屉链接后会溜到遮罩背后的页面上。
+  const inertTargets = () => [
+    mainContent,
+    document.querySelector('.header-container'),
+    document.querySelector('.site-footer'),
+  ];
+
   function openMenu() {
+    if (isOpen()) return;
     mobileMenu?.classList.add('is-open');
     menuToggle?.classList.add('is-active');
     menuToggle?.setAttribute('aria-expanded', 'true');
-    if (mainContent) mainContent.setAttribute('inert', '');
+    inertTargets().forEach((el) => el?.setAttribute('inert', ''));
     document.body.style.overflow = 'hidden';
-    // Animate menu items with stagger
-    const menuItems = mobileMenu?.querySelectorAll('.mobile-nav-list li');
-    menuItems?.forEach((item, index) => {
-      (item as HTMLElement).style.opacity = '0';
-      (item as HTMLElement).style.transform = 'translateX(-10px)';
-      setTimeout(() => {
-        (item as HTMLElement).style.transition = 'opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
-        (item as HTMLElement).style.opacity = '1';
-        (item as HTMLElement).style.transform = 'translateX(0)';
-      }, 100 + index * 40);
-    });
-    // Focus first link after animation starts
+    // 等面板滑入视口后再移焦，避免焦点落在屏幕外
     setTimeout(() => {
       const firstLink = mobileMenu?.querySelector('.mobile-nav-link');
       if (firstLink instanceof HTMLElement) firstLink.focus();
@@ -110,22 +115,18 @@ const navLinks = [
   }
 
   function closeMenu() {
+    if (!isOpen()) return;
+    mobileMenu?.classList.remove('is-open');
     menuToggle?.classList.remove('is-active');
     menuToggle?.setAttribute('aria-expanded', 'false');
-    if (mainContent) mainContent.removeAttribute('inert');
+    // 必须先解除 inert 再归还焦点：汉堡按钮就在 .header-container 里，
+    // 仍处于 inert 时 focus() 是无效的。
+    inertTargets().forEach((el) => el?.removeAttribute('inert'));
     document.body.style.overflow = '';
-    // Wait for panel close animation then hide menu
-    setTimeout(() => {
-      mobileMenu?.classList.remove('is-open');
-      // Reset menu items
-      const menuItems = mobileMenu?.querySelectorAll('.mobile-nav-list li');
-      menuItems?.forEach((item) => {
-        (item as HTMLElement).style.transition = '';
-        (item as HTMLElement).style.opacity = '';
-        (item as HTMLElement).style.transform = '';
-      });
-    }, 300);
-    (menuToggle as HTMLElement | null)?.focus();
+    // 若因视口变宽而关闭，按钮已 display:none，则不抢焦点
+    if (menuToggle instanceof HTMLElement && menuToggle.offsetParent !== null) {
+      menuToggle.focus();
+    }
   }
 
   menuToggle?.addEventListener('click', openMenu);
@@ -133,46 +134,90 @@ const navLinks = [
   menuOverlay?.addEventListener('click', closeMenu);
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && mobileMenu?.classList.contains('is-open')) {
-      closeMenu();
+    if (e.key === 'Escape' && isOpen()) closeMenu();
+  });
+
+  // 焦点陷阱：inert 只能冻结 header / main / footer，而 skip-link 挂在 body 上，
+  // Tab 走到抽屉最后一项后仍会跳到它。声明了 aria-modal 就必须真正闭环，
+  // 所以在抽屉内做 Tab 循环。
+  const menuPanel = mobileMenu?.querySelector('.mobile-menu-panel');
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab' || !isOpen() || !menuPanel) return;
+
+    const focusables = Array.from(
+      menuPanel.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')
+    ).filter((el) => el.offsetParent !== null);
+    if (focusables.length === 0) return;
+
+    const first = focusables[0]!;
+    const last = focusables[focusables.length - 1]!;
+    const active = document.activeElement;
+
+    if (e.shiftKey && (active === first || !menuPanel.contains(active))) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && (active === last || !menuPanel.contains(active))) {
+      e.preventDefault();
+      first.focus();
     }
   });
 
-  // Close menu when clicking on links
+  // 点击抽屉内链接后关闭（同页锚点不会触发导航，故同时监听 hashchange）
   mobileMenu?.querySelectorAll('.mobile-nav-link').forEach((link) => {
     link.addEventListener('click', closeMenu);
   });
+  window.addEventListener('hashchange', closeMenu);
+
+  // 视口回到桌面宽度时抽屉必须自动关闭：否则遮罩与 inert 会残留在无汉堡按钮的布局里
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > MOBILE_BREAKPOINT) closeMenu();
+  });
+
+  // 把顶栏真实高度写进 --app-nav-height，供 scroll-margin / 粘性定位消费
+  if (siteHeader) {
+    const syncNavHeight = () => {
+      const height = Math.ceil(siteHeader.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--app-nav-height', `${height}px`);
+    };
+    syncNavHeight();
+    new ResizeObserver(syncNavHeight).observe(siteHeader);
+  }
 </script>
 
 <style>
+  /* 顶栏是外壳而非卡片：只有一条分隔线，不投影 */
   .site-header {
     position: sticky;
     top: 0;
-    z-index: 50;
+    z-index: 80;
     background-color: var(--nav-bg);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
     border-bottom: 1px solid var(--divider-color);
-    box-shadow: 0 1px 2px var(--shadow-color);
   }
 
+  /* 外壳轨道 1280px，与页脚内条对齐；正文轨道（960px）更窄是刻意的 */
   .header-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0.75rem 3rem;
+    gap: 1rem;
+    max-width: var(--width-content);
+    margin-inline: auto;
+    padding: 0.6rem 1.5rem;
   }
 
   .logo {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    min-width: 0;
     color: var(--text-main);
     font-weight: 600;
     font-size: 1.1rem;
     text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-standard);
   }
 
   .logo:hover {
@@ -193,29 +238,38 @@ const navLinks = [
 
   .main-nav {
     display: block;
+    min-width: 0;
   }
 
   .nav-list {
     display: flex;
     list-style: none;
-    gap: 2rem;
+    gap: 0.75rem;
     margin: 0;
     padding: 0;
   }
 
   .nav-link {
     display: block;
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.75rem;
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: var(--fs-body);
     text-decoration: none;
-    border-radius: 7px;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    border-radius: var(--radius-control);
+    transition:
+      background-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
   }
 
   .nav-link:hover {
     background-color: var(--hover-bg);
-    color: var(--accent-pink);
+    color: var(--text-main);
+  }
+
+  @supports (background-color: color-mix(in srgb, red, red)) {
+    .nav-link:hover {
+      background-color: var(--hover-bg-mix);
+    }
   }
 
   .nav-link[aria-current='page'] {
@@ -226,58 +280,66 @@ const navLinks = [
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem;
+    flex-shrink: 0;
   }
 
+  /* 主站入口是全站唯一的 CTA：胶囊 + 实底 + 悬停 1px 抬升 */
   .main-site-link {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    padding: 0.4rem 1rem;
-    border: 1.5px solid var(--primary-pink);
-    color: var(--primary-pink);
-    font-size: 0.875rem;
+    height: var(--control-h);
+    padding: 0 1.1rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--cta-bg);
+    color: var(--cta-color);
+    font-size: var(--fs-sm);
     font-weight: 500;
-    border-radius: 50px;
+    white-space: nowrap;
     text-decoration: none;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    box-shadow: var(--shadow-card);
+    transition:
+      background-color var(--dur-base) var(--ease-standard),
+      transform var(--dur-base) var(--ease-standard),
+      box-shadow var(--dur-base) var(--ease-standard);
   }
 
   .main-site-link:hover {
-    background-color: var(--hover-bg);
-    border-color: var(--accent-pink);
-    color: var(--accent-pink);
+    background-color: var(--cta-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card-hover);
   }
 
   .mobile-menu-toggle {
+    position: relative;
+    z-index: 75; /* 抽屉之上，避免被面板盖住 */
     display: none;
-    flex-direction: column;
-    justify-content: center;
     align-items: center;
-    width: 40px;
-    height: 40px;
+    justify-content: center;
+    width: var(--control-h);
+    height: var(--control-h);
+    padding: 8px;
     background: none;
     border: none;
+    border-radius: var(--radius-control);
     cursor: pointer;
-    border-radius: 6px;
-    padding: 0.5rem;
+    color: var(--text-main);
+    transition: background-color var(--dur-fast) var(--ease-standard);
   }
 
   .mobile-menu-toggle:hover {
     background-color: var(--hover-bg);
   }
 
-  .mobile-menu-toggle:focus-visible {
-    outline: 2px solid var(--primary-pink);
-    outline-offset: 2px;
-  }
-
   .hamburger {
     display: block;
+    position: relative;
     width: 20px;
     height: 2px;
     background-color: var(--text-main);
-    position: relative;
-    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--radius-xs);
+    transition: opacity 0.2s ease;
   }
 
   .hamburger::before,
@@ -288,7 +350,8 @@ const navLinks = [
     width: 100%;
     height: 2px;
     background-color: var(--text-main);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--radius-xs);
+    transition: transform 0.25s ease;
   }
 
   .hamburger::before {
@@ -299,58 +362,66 @@ const navLinks = [
     top: 6px;
   }
 
-  /* Hamburger to X animation */
+  /* 汉堡 → X：中杠隐去，上下杠平移到中线后旋转。
+   * 中杠必须用 background-color: transparent 而非 opacity: 0——
+   * opacity 作用于整个元素，会把承载 X 两笔的 ::before/::after 一起变透明，
+   * 按钮在打开态就成了一块空白。 */
   .mobile-menu-toggle.is-active .hamburger {
     background-color: transparent;
   }
 
   .mobile-menu-toggle.is-active .hamburger::before {
-    top: 0;
-    transform: rotate(45deg);
+    transform: translateY(6px) rotate(45deg);
   }
 
   .mobile-menu-toggle.is-active .hamburger::after {
-    top: 0;
-    transform: rotate(-45deg);
+    transform: translateY(-6px) rotate(-45deg);
   }
 
-  /* Mobile menu */
+  /* 抽屉：用 visibility 而非 display 切换，进场/退场动画都能播完，
+   * 且 visibility: hidden 会使内部链接退出焦点序列（display 切换做不到动画） */
   .mobile-menu {
-    display: none;
+    visibility: hidden;
+    transition: visibility 0s linear 0.3s;
   }
 
   .mobile-menu.is-open {
-    display: block;
+    visibility: visible;
+    transition-delay: 0s;
   }
 
   .mobile-menu-overlay {
     position: fixed;
     inset: 0;
+    z-index: 65;
     background-color: var(--overlay-bg);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
-    z-index: 60;
     opacity: 0;
-    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    transition: opacity 0.3s ease;
   }
 
   .mobile-menu.is-open .mobile-menu-overlay {
     opacity: 1;
+    pointer-events: auto;
   }
 
   .mobile-menu-panel {
     position: fixed;
     top: 0;
     left: 0;
-    width: 280px;
-    height: 100vh;
-    background-color: var(--bg-color);
+    bottom: 0;
     z-index: 70;
+    width: 280px;
+    max-width: 84vw;
     padding: 1.5rem;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
-    transform: translateX(-100%);
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    background-color: var(--surface-card);
+    border-right: 1px solid var(--divider-color);
+    box-shadow: var(--shadow-pop);
     overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
   }
 
   .mobile-menu.is-open .mobile-menu-panel {
@@ -361,36 +432,39 @@ const navLinks = [
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 0.5rem;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--divider-color);
   }
 
   .mobile-menu-title {
+    min-width: 0;
     font-weight: 600;
     color: var(--text-main);
   }
 
   .mobile-menu-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-secondary);
-    padding: 0.25rem;
-    border-radius: 6px;
+    position: relative;
+    z-index: 75;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    padding: 0.25rem;
+    background: none;
+    border: none;
+    border-radius: var(--radius-control);
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition:
+      background-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
   }
 
   .mobile-menu-close:hover {
     background-color: var(--hover-bg);
     color: var(--text-main);
-  }
-
-  .mobile-menu-close:focus-visible {
-    outline: 2px solid var(--primary-pink);
-    outline-offset: 2px;
   }
 
   .mobile-nav-list {
@@ -406,15 +480,23 @@ const navLinks = [
     display: block;
     padding: 0.75rem 1rem;
     color: var(--text-body);
+    font-size: var(--fs-subtitle);
     text-decoration: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    border-radius: var(--radius-control);
+    transition:
+      background-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
   }
 
   .mobile-nav-link:hover {
     background-color: var(--hover-bg);
     color: var(--accent-pink);
+  }
+
+  @supports (background-color: color-mix(in srgb, red, red)) {
+    .mobile-nav-link:hover {
+      background-color: var(--hover-bg-mix);
+    }
   }
 
   .mobile-nav-divider {
@@ -424,31 +506,91 @@ const navLinks = [
     list-style: none;
   }
 
-  @media (max-width: 1200px) {
+  /* 唯一的导航断点；JS 中的 MOBILE_BREAKPOINT 必须同步 */
+  @media (max-width: 1100px) {
     .header-container {
-      padding: 0.75rem 1.5rem;
+      padding: 0.4rem 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 1.05rem;
+    }
+
+    /* 抽屉靠 JS 打开，所以「隐藏桌面导航 + 显示汉堡」这套只在有 JS 时成立。
+     * 无 JS 时保持导航链接可见（必要时换行），否则窄屏下首页/标签/搜索三个
+     * 入口会一起消失，整站在无 JS 下不可导航。 */
+    :global(html.js) .main-nav {
+      display: none;
+    }
+
+    :global(html.js) .mobile-menu-toggle {
+      display: flex;
     }
 
     .main-nav {
-      display: none;
+      order: 3;
+      width: 100%;
     }
 
-    .header-actions .main-site-link {
-      display: none;
+    .nav-list {
+      justify-content: center;
+      padding-bottom: 0.25rem;
     }
 
-    .mobile-menu-toggle {
-      display: flex;
+    /* CTA 不在窄屏隐藏，只压缩内边距（高度仍为 34px，顶栏不变形） */
+    .main-site-link {
+      padding: 0 0.9rem;
     }
   }
 
-  @media (max-width: 1280px) {
-    .nav-list {
-      gap: 1rem;
+  /* 触摸设备：控件视觉尺寸不变，用伪元素把命中区扩到 44px */
+  @media (any-pointer: coarse) {
+    .nav-link,
+    .mobile-nav-link {
+      display: flex;
+      align-items: center;
+      min-height: var(--tap-min);
     }
 
-    .nav-link {
-      font-size: 0.85rem;
+    .main-site-link::after,
+    .mobile-menu-toggle::after,
+    .mobile-menu-close::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: var(--tap-min);
+      height: var(--tap-min);
+      transform: translate(-50%, -50%);
+    }
+
+    /* CTA 是胶囊，横向命中区应覆盖整条按钮而非固定 44px */
+    .main-site-link::after {
+      left: 0;
+      width: 100%;
+      transform: translateY(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logo,
+    .nav-link,
+    .main-site-link,
+    .mobile-menu-toggle,
+    .mobile-menu-close,
+    .mobile-nav-link,
+    .mobile-menu,
+    .mobile-menu-overlay,
+    .mobile-menu-panel,
+    .hamburger,
+    .hamburger::before,
+    .hamburger::after {
+      transition: none;
+    }
+
+    .main-site-link:hover {
+      transform: none;
     }
   }
 </style>

@@ -6,62 +6,54 @@ export interface Props {
 
 const { type, license } = Astro.props;
 
-const licenseConfig: Record<string, { label: string; url: string; description: string; icon: string; color: string }> = {
+const licenseConfig: Record<string, { label: string; url: string; description: string; icon: string }> = {
   'CC-BY-SA-4.0': {
     label: 'CC BY-SA 4.0',
     url: 'https://creativecommons.org/licenses/by-sa/4.0/',
     description: '知识共享 署名-相同方式共享 4.0 国际',
     icon: 'cc',
-    color: '#EF9421',
   },
   'CC-BY-4.0': {
     label: 'CC BY 4.0',
     url: 'https://creativecommons.org/licenses/by/4.0/',
     description: '知识共享 署名 4.0 国际',
     icon: 'cc',
-    color: '#EF9421',
   },
   'CC0-1.0': {
     label: 'CC0 1.0',
     url: 'https://creativecommons.org/publicdomain/zero/1.0/',
     description: '公共领域 dedication',
     icon: 'cc',
-    color: '#7F7F7F',
   },
   'AGPL-3.0': {
     label: 'AGPL-3.0',
     url: 'https://www.gnu.org/licenses/agpl-3.0.html',
     description: 'GNU Affero General Public License v3.0',
     icon: 'code',
-    color: '#A42E2B',
   },
   'MIT': {
     label: 'MIT',
     url: 'https://opensource.org/licenses/MIT',
     description: 'MIT License',
     icon: 'code',
-    color: '#A42E2B',
   },
   'Apache-2.0': {
     label: 'Apache-2.0',
     url: 'https://www.apache.org/licenses/LICENSE-2.0',
     description: 'Apache License 2.0',
     icon: 'code',
-    color: '#A42E2B',
   },
   'BSD-3-Clause': {
     label: 'BSD-3-Clause',
     url: 'https://opensource.org/licenses/BSD-3-Clause',
     description: 'BSD 3-Clause License',
     icon: 'code',
-    color: '#A42E2B',
   },
   'Proprietary': {
     label: '专有',
     url: '#',
     description: '保留所有权利',
     icon: 'lock',
-    color: '#666666',
   },
 };
 
@@ -114,19 +106,24 @@ const label = type === 'content' ? '内容' : '代码';
 </a>
 
 <style>
+  /* 徽章沿用全站 pill 视觉；焦点环由全局 :focus-visible 提供，此处不再本地声明 */
   .license-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.35rem 0.75rem;
+    gap: 0.4rem;
+    padding: 0.15rem 0.6rem;
     background-color: var(--hover-bg);
     border: 1px solid var(--divider-color);
-    border-radius: 50px;
+    border-radius: var(--radius-pill);
     color: var(--text-secondary);
-    font-size: 0.82rem;
+    font-size: 0.75rem;
     font-weight: 500;
+    line-height: 1.6;
     text-decoration: none;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    transition:
+      background-color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
   }
 
   .license-badge:hover {
@@ -135,9 +132,11 @@ const label = type === 'content' ? '内容' : '代码';
     color: var(--accent-pink);
   }
 
-  .license-badge:focus-visible {
-    outline: 2px solid var(--primary-pink);
-    outline-offset: 2px;
+  /* color-mix 可用时用更贴合主题的混色，不可用时回落到上面的 --soft-pink */
+  @supports (background-color: color-mix(in srgb, red 15%, white)) {
+    .license-badge:hover {
+      background-color: var(--hover-bg-mix);
+    }
   }
 
   .license-icon {
@@ -146,5 +145,17 @@ const label = type === 'content' ? '内容' : '代码';
 
   .license-label {
     white-space: nowrap;
+  }
+
+  @media (any-pointer: coarse) {
+    .license-badge {
+      min-height: var(--tap-min);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .license-badge {
+      transition: none;
+    }
   }
 </style>
