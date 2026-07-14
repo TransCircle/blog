@@ -5,6 +5,7 @@ import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
 import LicenseBadge from '@components/LicenseBadge.astro';
 import PersonLinks from '@components/PersonLinks.astro';
+import FootnotePopover from '@components/FootnotePopover.astro';
 import PageHeader from '@components/ui/PageHeader.astro';
 import Pill from '@components/ui/Pill.astro';
 import SectionLabel from '@components/ui/SectionLabel.astro';
@@ -187,6 +188,9 @@ const ogImage = `/og/${post.slug}.png`;
   </main>
 
   <Footer />
+
+  <!-- 脚注：引用标记的预览卡片 + 跳转后的返回链接（脚注区样式也在其中） -->
+  <FootnotePopover />
 </Layout>
 
 <style>

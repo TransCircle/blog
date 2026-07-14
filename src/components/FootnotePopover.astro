@@ -1,0 +1,519 @@
+---
+// 注释交互（Wikipedia 式引用预览）。
+//
+// 背景：GFM 会给「每一次引用」都在注释条目后挂一个回跳箭头，一条文献被引 4 次就有
+// 4 个箭头。那些箭头已在 rehype 层删除（见 astro.config.mjs），这里补上它们本该
+// 解决、却解决得很难看的那个需求——「我想看看这条引用讲了什么」。
+//
+// 做法：
+//   1. 悬停 / 键盘聚焦正文里的 [n] 引用标记 → 就地弹出该条注释全文，不用跳走。
+//   2. 真的跳过去时（点击标记、或直接访问 #user-content-fn-N），高亮该条目，并且
+//      只在此时注入**一个**「返回正文」链接，指回刚才那次引用的位置。
+//   3. 手指 / 触控笔点击标记 → 不跳转，就地展开卡片（再点一次、点别处或点 × 收起）。
+//      指针类型按**每次交互**判定，不做设备探测——媒体查询判错就会让触屏走桌面分支。
+---
+
+<div id="fn-pop" class="fn-pop" hidden aria-hidden="true">
+  <div class="fn-pop-head">
+    <span class="fn-pop-index">注释 <b class="fn-pop-num"></b></span>
+    <button type="button" class="fn-pop-close" tabindex="-1" aria-label="关闭注释预览">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+  <div class="fn-pop-body"></div>
+  <span class="fn-pop-arrow"></span>
+</div>
+
+<script>
+  const article = document.querySelector<HTMLElement>('.article-content');
+  const pop = document.getElementById('fn-pop');
+
+  if (article && pop) {
+    const refs = Array.from(
+      article.querySelectorAll<HTMLAnchorElement>('a[data-footnote-ref]')
+    );
+
+    if (refs.length === 0) {
+      pop.remove();
+    } else {
+      // 绑定到已收窄的局部常量：下面的函数是在闭包里调用的，
+      // 直接用 pop / article 会丢失非空收窄
+      const card = pop;
+      const root = article;
+
+      // 挂到 body 下：正文列有 overflow / 层叠上下文，留在里面会被裁切
+      document.body.appendChild(card);
+
+      const popBody = card.querySelector<HTMLElement>('.fn-pop-body')!;
+      const popNum = card.querySelector<HTMLElement>('.fn-pop-num')!;
+      const popClose = card.querySelector<HTMLButtonElement>('.fn-pop-close')!;
+
+      let current: HTMLAnchorElement | null = null;
+      let showTimer: ReturnType<typeof setTimeout> | undefined;
+      let hideTimer: ReturnType<typeof setTimeout> | undefined;
+      let rafId = 0;
+
+      // 不做「设备探测」（媒体查询 any-pointer: coarse 在混合设备 / 某些浏览器上
+      // 判断并不可靠，一旦判错，触屏就会走桌面分支：点一下直接跳走，只有 focus
+      // 顺带把预览框打开了）。改为记录**这一次交互**用的是什么指针：
+      // 鼠标 → 悬停预览、点击跳转；手指/触控笔 → 点击就地展开，不跳转。
+      let lastPointer: string = 'mouse';
+      document.addEventListener(
+        'pointerdown',
+        (e) => {
+          lastPointer = e.pointerType || 'mouse';
+        },
+        true
+      );
+      const touchMode = () => lastPointer !== 'mouse';
+
+      const targetIdOf = (ref: HTMLAnchorElement) =>
+        decodeURIComponent((ref.getAttribute('href') || '').slice(1));
+
+      /** 把脚注条目的内容搬进卡片。内部链接置为不可 Tab：卡片是视觉便利，
+       *  屏幕阅读器与键盘用户走的是标记本身指向的真实脚注。 */
+      function fill(ref: HTMLAnchorElement): boolean {
+        const li = document.getElementById(targetIdOf(ref));
+        if (!li) return false;
+
+        const clone = li.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll('.fn-back').forEach((n) => n.remove());
+        popBody.innerHTML = clone.innerHTML;
+        popBody.querySelectorAll('a').forEach((a) => a.setAttribute('tabindex', '-1'));
+
+        popNum.textContent = ref.textContent || '';
+        return true;
+      }
+
+      /** 定位：优先出现在标记上方；上方放不下（会被吸顶导航压住）则翻到下方。 */
+      function place(): void {
+        if (!current) return;
+        const r = current.getBoundingClientRect();
+        const pw = card.offsetWidth;
+        const ph = card.offsetHeight;
+        const margin = 12;
+        const navH = parseInt(
+          getComputedStyle(document.documentElement).getPropertyValue('--app-nav-height'),
+          10
+        );
+        const topLimit = (Number.isNaN(navH) ? 57 : navH) + margin;
+
+        let left = r.left + r.width / 2 - pw / 2;
+        left = Math.max(margin, Math.min(left, window.innerWidth - pw - margin));
+
+        let top = r.top - ph - 10;
+        const below = top < topLimit;
+        if (below) top = r.bottom + 10;
+
+        card.style.left = `${Math.round(left)}px`;
+        card.style.top = `${Math.round(top)}px`;
+        card.classList.toggle('is-below', below);
+
+        // 箭头对准标记中心，但不越过卡片圆角
+        const arrowX = Math.max(18, Math.min(r.left + r.width / 2 - left, pw - 18));
+        card.style.setProperty('--fn-arrow-x', `${Math.round(arrowX)}px`);
+      }
+
+      function open(ref: HTMLAnchorElement): void {
+        if (!fill(ref)) return;
+        current?.classList.remove('is-active');
+        current = ref;
+        ref.classList.add('is-active');
+        card.hidden = false;
+        // 先让浏览器算出卡片尺寸，再定位，避免第一帧闪在错误位置
+        requestAnimationFrame(() => {
+          place();
+          card.classList.add('is-open');
+        });
+      }
+
+      function close(): void {
+        clearTimeout(showTimer);
+        clearTimeout(hideTimer);
+        current?.classList.remove('is-active');
+        current = null;
+        card.classList.remove('is-open');
+        card.hidden = true;
+      }
+
+      let originRefId: string | null = null;
+
+      refs.forEach((ref) => {
+        // 鼠标：悬停即预览（120ms 意图延迟，划过文字时不会乱闪）。
+        // 触屏也会补发 mouseenter，所以这里按指针类型忽略掉。
+        ref.addEventListener('mouseenter', () => {
+          if (touchMode()) return;
+          clearTimeout(hideTimer);
+          showTimer = setTimeout(() => open(ref), 120);
+        });
+        ref.addEventListener('mouseleave', () => {
+          if (touchMode()) return;
+          clearTimeout(showTimer);
+          hideTimer = setTimeout(close, 200);
+        });
+
+        // 只有**键盘**聚焦才预览。点击也会让链接获得焦点：触屏上的事件序列是
+        // pointerdown → mouseenter → focus → click，若 focus 就开框，紧接着的
+        // click 会被当成「再点一次」而把它收起——表现就是「点了没反应」。
+        ref.addEventListener('focus', () => {
+          if (ref.matches(':focus-visible')) open(ref);
+        });
+        // 触屏下不靠 blur 关闭：点卡片里的链接会先让标记 blur，框被关掉就点不到了
+        ref.addEventListener('blur', () => {
+          if (!touchMode()) close();
+        });
+
+        ref.addEventListener('click', (e) => {
+          const byKeyboard = e.detail === 0; // 回车触发的 click 没有指针细节
+
+          // 手指 / 触控笔：不跳转，就地展开（再点一次收起）
+          if (!byKeyboard && touchMode()) {
+            e.preventDefault();
+            if (current === ref) close();
+            else open(ref);
+            return;
+          }
+
+          // 鼠标 / 键盘：跳转到注释。记下出发点，并且**必须关掉预览框**——
+          // 页面滚走后 mouseleave 不一定会触发，之前正是因此，跳下去再点「返回」
+          // 时预览框还开着。
+          originRefId = ref.id || null;
+          close();
+        });
+      });
+
+      // 指针移进卡片时不关闭：卡片里的链接要能点
+      card.addEventListener('mouseenter', () => {
+        if (!touchMode()) clearTimeout(hideTimer);
+      });
+      card.addEventListener('mouseleave', () => {
+        if (!touchMode()) hideTimer = setTimeout(close, 200);
+      });
+
+      popClose.addEventListener('click', close);
+
+      // 点卡片和标记以外的地方 → 关闭（触屏的主要退出方式）
+      document.addEventListener('click', (e) => {
+        const t = e.target as Node;
+        if (current && !card.contains(t) && !current.contains(t)) close();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && current) {
+          const ref = current;
+          close();
+          ref.focus();
+        }
+      });
+
+      // 任何地址栏 hash 变化（含点「返回正文」）都关掉预览框
+      window.addEventListener('hashchange', close);
+
+      // 开着的时候跟随滚动 / 缩放重新定位；标记滚出视口就关掉，
+      // 免得卡片孤零零地飘在屏幕上
+      const reposition = () => {
+        if (!current) return;
+        const r = current.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > window.innerHeight) {
+          close();
+          return;
+        }
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(place);
+      };
+      window.addEventListener('scroll', reposition, { passive: true });
+      window.addEventListener('resize', reposition);
+
+      function syncBackLink(): void {
+        const id = decodeURIComponent(location.hash.slice(1));
+        root.querySelectorAll('.fn-back').forEach((n) => n.remove());
+        if (!id.startsWith('user-content-fn-') || !originRefId) return;
+
+        const li = document.getElementById(id);
+        if (!li) return;
+
+        const back = document.createElement('a');
+        back.className = 'fn-back';
+        back.href = `#${originRefId}`;
+        back.textContent = '↑ 返回正文';
+        back.setAttribute('aria-label', '返回正文中引用此注释的位置');
+        back.addEventListener('click', () => {
+          originRefId = null;
+          setTimeout(() => back.remove(), 0);
+        });
+
+        (li.querySelector('p:last-of-type') || li).append(' ', back);
+      }
+
+      window.addEventListener('hashchange', syncBackLink);
+      syncBackLink();
+    }
+  }
+</script>
+
+<style is:global>
+  /* ── 正文里的引用标记 [n] ────────────────────────────────────────────── */
+  /* 方括号是非颜色线索：相邻编号（1 和 3）不会被读成 13 */
+  .article-content a[data-footnote-ref]::before {
+    content: '[';
+  }
+
+  .article-content a[data-footnote-ref]::after {
+    content: ']';
+  }
+
+  .article-content a[data-footnote-ref] {
+    color: var(--accent-pink);
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0 0.15em;
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
+  }
+
+  /* 标记有底色作为反馈，就不再叠下划线 */
+  .article-content a[data-footnote-ref]:hover,
+  .article-content a[data-footnote-ref]:focus-visible,
+  .article-content a[data-footnote-ref].is-active {
+    background-color: var(--hover-bg);
+    color: var(--cta-hover);
+    text-decoration: none;
+  }
+
+  @supports (background-color: color-mix(in srgb, red, red)) {
+    .article-content a[data-footnote-ref]:hover,
+    .article-content a[data-footnote-ref]:focus-visible,
+    .article-content a[data-footnote-ref].is-active {
+      background-color: var(--hover-bg-mix);
+    }
+  }
+
+  /* ── 预览卡片 ────────────────────────────────────────────────────────── */
+  .fn-pop {
+    position: fixed;
+    z-index: 50; /* 浮层档：压过正文，低于对话框 */
+    width: min(380px, calc(100vw - 24px));
+    padding: 0.85rem 1rem 0.9rem;
+    background-color: var(--surface-card);
+    border: 1px solid var(--divider-color);
+    border-radius: var(--radius-pop);
+    /* 浅色主题的 --shadow-pop 几乎不可见，叠一层品牌粉光晕才浮得起来 */
+    box-shadow:
+      var(--shadow-pop),
+      var(--shadow-card-hover);
+    font-size: var(--fs-sm);
+    line-height: 1.65;
+    color: var(--text-body);
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity var(--dur-fast) var(--ease-standard),
+      transform var(--dur-base) var(--ease-emphasized);
+  }
+
+  .fn-pop[hidden] {
+    display: none;
+  }
+
+  .fn-pop.is-open {
+    opacity: 1;
+    transform: none;
+  }
+
+  .fn-pop-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.55rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--divider-color);
+  }
+
+  .fn-pop-index {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .fn-pop-num {
+    color: var(--accent-pink);
+  }
+
+  .fn-pop-close {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: -4px -4px -4px 0;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-xs);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition:
+      background-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
+  }
+
+  .fn-pop-close:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-main);
+  }
+
+  /* 触屏命中区放大到 44px，但按钮视觉尺寸不变 */
+  @media (any-pointer: coarse) {
+    .fn-pop-close::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: var(--tap-min);
+      height: var(--tap-min);
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  /* 滚动放在内层：放在卡片上会把箭头裁掉 */
+  .fn-pop-body {
+    max-height: min(320px, 50vh);
+    overflow-y: auto;
+    overflow-wrap: anywhere;
+  }
+
+  .fn-pop-body p {
+    margin: 0 0 0.5rem;
+  }
+
+  .fn-pop-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .fn-pop-body a {
+    color: var(--accent-pink);
+    text-decoration: none;
+  }
+
+  .fn-pop-body a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .fn-pop-arrow {
+    position: absolute;
+    left: var(--fn-arrow-x, 50%);
+    bottom: -7px;
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    background-color: var(--surface-card);
+    border-right: 1px solid var(--divider-color);
+    border-bottom: 1px solid var(--divider-color);
+    transform: rotate(45deg);
+  }
+
+  .fn-pop.is-below .fn-pop-arrow {
+    top: -7px;
+    bottom: auto;
+    border: none;
+    border-left: 1px solid var(--divider-color);
+    border-top: 1px solid var(--divider-color);
+  }
+
+  /* ── 底部脚注区 ──────────────────────────────────────────────────────── */
+  .article-content section.footnotes {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--divider-color);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-body);
+    color: var(--text-secondary);
+  }
+
+  /* GFM 的 "Footnotes" 标题是 sr-only；给视觉用户补一个中文小标 */
+  .article-content section.footnotes::before {
+    content: '注释';
+    display: block;
+    margin-bottom: 1rem;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  .article-content section.footnotes ol {
+    padding-left: 1.5rem;
+  }
+
+  .article-content section.footnotes li {
+    margin-bottom: 0.6rem;
+    /* 吸顶导航会盖住跳转目标，锚点落位时留出让位 */
+    scroll-margin-top: calc(var(--app-nav-height, 57px) + 1.5rem);
+  }
+
+  .article-content section.footnotes li::marker {
+    color: var(--accent-pink);
+    font-weight: 600;
+  }
+
+  .article-content section.footnotes a {
+    overflow-wrap: anywhere;
+  }
+
+  /* 跳转落点高亮：告诉用户「你要找的是这条」 */
+  .article-content section.footnotes li:target {
+    background-color: var(--hover-bg);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 0 0 8px var(--hover-bg);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .article-content section.footnotes li:target {
+      animation: fn-flash 1.4s var(--ease-standard);
+    }
+
+    @keyframes fn-flash {
+      from {
+        background-color: var(--soft-pink);
+        box-shadow: 0 0 0 8px var(--soft-pink);
+      }
+    }
+  }
+
+  /* 跳转后按需注入的唯一返回链接（正文里的引用标记同样留出让位） */
+  .article-content [id^='user-content-fnref'] {
+    scroll-margin-top: calc(var(--app-nav-height, 57px) + 1.5rem);
+  }
+
+  .article-content .fn-back {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.55rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--hover-bg);
+    color: var(--accent-pink);
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color var(--dur-fast) var(--ease-standard);
+  }
+
+  .article-content .fn-back:hover {
+    background-color: var(--soft-pink);
+    text-decoration: none;
+  }
+</style>

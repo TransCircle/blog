@@ -30,6 +30,60 @@ function rehypeTableWrapper() {
 }
 
 /**
+ * 剥离 GFM 脚注条目末尾的回跳锚点（↩ ↩² ↩³ …）。
+ *
+ * remark-gfm 会为「每一次引用」都在脚注条目后面挂一个回跳箭头：一条文献被引 4 次
+ * 就有 4 个箭头，本站某篇文章 24 条脚注一共挂了 132 个，纯粹是噪声。
+ *
+ * 这里在 HTML 树上直接删掉这些锚点（而不是用 CSS 藏起来——藏起来屏幕阅读器仍会
+ * 念到、键盘仍会 Tab 到）。「怎么回去」改由 FootnotePopover 承担：正文里的引用标记
+ * 悬停/聚焦即可预览脚注全文，通常无需跳转；真的跳过去时，脚本才注入**一个**
+ * 「返回正文」链接。
+ */
+function rehypeStripFootnoteBackrefs() {
+  const isBackref = (node) =>
+    node.type === 'element' &&
+    node.tagName === 'a' &&
+    node.properties &&
+    'dataFootnoteBackref' in node.properties;
+
+  return (tree) => {
+    const visit = (node) => {
+      if (!Array.isArray(node.children)) return;
+
+      // GFM 给注释区生成的是 sr-only 的英文标题 "Footnotes"（屏幕阅读器会读到，
+      // 引用标记的 aria-describedby 也指向它）。本站是中文站，改成「注释」。
+      if (
+        node.type === 'element' &&
+        node.tagName === 'h2' &&
+        node.properties &&
+        node.properties.id === 'footnote-label'
+      ) {
+        node.children = [{ type: 'text', value: '注释' }];
+        return;
+      }
+
+      if (node.children.some(isBackref)) {
+        node.children = node.children.filter((child) => !isBackref(child));
+        // 箭头前后残留的空白文本节点会在句末留下多余空格，一并收干净
+        while (
+          node.children.length > 0 &&
+          node.children[node.children.length - 1].type === 'text' &&
+          node.children[node.children.length - 1].value.trim() === ''
+        ) {
+          node.children.pop();
+        }
+        const last = node.children[node.children.length - 1];
+        if (last && last.type === 'text') last.value = last.value.replace(/\s+$/, '');
+      }
+
+      node.children.forEach(visit);
+    };
+    visit(tree);
+  };
+}
+
+/**
  * 构建时读取文章 frontmatter 的发布 / 更新日期，供 sitemap 生成精确的 <lastmod>。
  * 真实的 per-post lastmod 比「每次构建都用当前时间」更可信，避免被搜索引擎判定为
  * 「全站每天都在变」而降低抓取信任度。slug 与 Astro 默认一致（文件名去扩展名后小写）。
@@ -126,7 +180,7 @@ export default defineConfig({
     }),
   ],
   markdown: {
-    rehypePlugins: [rehypeTableWrapper],
+    rehypePlugins: [rehypeTableWrapper, rehypeStripFootnoteBackrefs],
     shikiConfig: {
       // 双主题：Shiki 把两套语法色写成 --shiki-light / --shiki-dark 变量，
       // 由 global.css 按 data-theme 选择。此前固定 github-dark，浅色主题下

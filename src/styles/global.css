@@ -568,25 +568,5 @@ th {
   }
 }
 
-/* ── GFM 脚注区 ─────────────────────────────────────────── */
-/* 引用编号用 [] 包裹，避免相邻编号（1 和 3）被误读成 13；也是非颜色线索 */
-.article-content a[data-footnote-ref]::before {
-  content: '[';
-}
-
-.article-content a[data-footnote-ref]::after {
-  content: ']';
-}
-
-.article-content section.footnotes {
-  margin-top: 2.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--divider-color);
-  font-size: var(--fs-sm);
-  line-height: var(--lh-body);
-  color: var(--text-secondary);
-}
-
-.article-content section.footnotes a {
-  overflow-wrap: anywhere;
-}
+/* GFM 脚注区的样式与交互都在 src/components/FootnotePopover.astro 里，
+ * 与那套「引用预览 + 按需返回链接」的行为放在一起，不在此重复。 */
