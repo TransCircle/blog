@@ -2,6 +2,7 @@
 import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
+import PageHeader from '@components/ui/PageHeader.astro';
 
 // 搜索索引由 /search-index.json 端点在构建时生成（见 src/pages/search-index.json.ts），
 // 客户端通过 fetch 加载，无需在此页面内联生成。
@@ -11,14 +12,14 @@ import Footer from '@components/Footer.astro';
 <Layout title="搜索文章" description="在跨环博客中全文搜索文章标题、描述、正文与标签。" noindex={true}>
   <Header />
 
-  <main id="main-content" class="container">
-    <section class="search-page">
-      <h1>搜索文章</h1>
+  <main id="main-content" tabindex="-1" class="container">
+    <div class="page search-page">
+      <PageHeader title="搜索文章" />
 
-      <div class="search-form">
+      <div class="search-form" role="search">
         <label for="search-input" class="sr-only">搜索关键词</label>
         <div class="search-input-wrapper">
-          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
@@ -30,16 +31,31 @@ import Footer from '@components/Footer.astro';
             autocomplete="off"
             aria-describedby="search-hint"
           />
+          <!-- 仅在有输入时出现；用 hidden 属性而非 class，确保同时移出无障碍树与 Tab 序 -->
+          <button type="button" id="search-clear" class="search-clear" aria-label="清除搜索内容" hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         </div>
-        <p id="search-hint" class="search-hint">支持搜索标题、描述、内容和标签</p>
+        <p id="search-hint" class="search-hint">支持搜索标题、描述、内容和标签，按 Esc 清空</p>
       </div>
+
+      <!-- 结果条数只播报、不显示：结果本身是可见的，屏幕阅读器需要的是数量变化 -->
+      <p id="search-status" class="sr-only" role="status" aria-live="polite"></p>
 
       <div id="search-results" class="search-results"></div>
 
-      <div id="search-empty" class="search-empty hidden">
+      <div id="search-empty" class="search-empty" hidden>
         <p>未找到匹配的文章</p>
       </div>
-    </section>
+
+      <!-- 索引拉取失败时的可见出口：否则搜索框看着能用，输入却永远没有反应 -->
+      <div id="search-error" class="search-error" role="alert" hidden>
+        <p>搜索索引加载失败，请检查网络后刷新页面重试。</p>
+      </div>
+    </div>
   </main>
 
   <Footer />
@@ -61,6 +77,7 @@ import Footer from '@components/Footer.astro';
   }
 
   let fuse: Fuse<SearchItem> | null = null;
+  let indexFailed = false;
 
   async function initSearch(): Promise<void> {
     try {
@@ -80,16 +97,19 @@ import Footer from '@components/Footer.astro';
         threshold: 0.4,
         includeScore: true,
       });
-
-      console.log('[Search] Index loaded successfully,', searchData.length, 'articles');
+      indexFailed = false;
     } catch (error) {
+      indexFailed = true;
       console.error('[Search] Failed to initialize:', error);
     }
   }
 
   const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+  const searchClear = document.getElementById('search-clear') as HTMLButtonElement | null;
   const searchResults = document.getElementById('search-results');
   const searchEmpty = document.getElementById('search-empty');
+  const searchError = document.getElementById('search-error');
+  const searchStatus = document.getElementById('search-status');
 
   function formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('zh-CN', {
@@ -99,81 +119,158 @@ import Footer from '@components/Footer.astro';
     });
   }
 
+  // 结果行由 innerHTML 拼装，标题/描述/标签来自文章内容，先转义再插入
+  function escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function setStatus(message: string): void {
+    if (searchStatus) searchStatus.textContent = message;
+  }
+
+  function toggleClear(): void {
+    if (searchClear) searchClear.hidden = !searchInput?.value;
+  }
+
+  /**
+   * 结果行使用 global.css 的 .post-row / .pill / .tag-link 等全局类：
+   * innerHTML 生成的节点拿不到 Astro 的 scoped 属性，scoped 样式对它们无效。
+   * 这样搜索结果与 PostCard 共用同一份行配方。
+   */
   function renderResults(results: FuseResult<SearchItem>[]): void {
     if (!searchResults) return;
 
     if (results.length === 0) {
       searchResults.innerHTML = '';
-      searchEmpty?.classList.remove('hidden');
+      if (searchEmpty) searchEmpty.hidden = false;
+      setStatus('未找到匹配的文章');
       return;
     }
 
-    searchEmpty?.classList.add('hidden');
+    if (searchEmpty) searchEmpty.hidden = true;
 
     const html = results
-      .map(
-        (result) => `
-          <article class="search-result">
-            <div class="search-result-meta">
-              <span class="search-result-category">${result.item.category}</span>
-              <time class="search-result-date">${formatDate(result.item.pubDate)}</time>
+      .map((result) => {
+        const item = result.item;
+        const tags = item.tags
+          .map((tag: string) => {
+            const safeTag = escapeHtml(tag);
+            return `<a href="/tags/${encodeURIComponent(tag)}/" class="tag-link">#${safeTag}</a>`;
+          })
+          .join('');
+
+        return `
+          <article class="post-row">
+            <div class="post-row-meta">
+              <span class="pill pill-accent">${escapeHtml(item.category)}</span>
+              <time datetime="${escapeHtml(item.pubDate)}">${formatDate(item.pubDate)}</time>
             </div>
-            <h2 class="search-result-title">
-              <a href="/posts/${result.item.slug}/">${result.item.title}</a>
+            <h2 class="post-row-title">
+              <a href="/posts/${encodeURIComponent(item.slug)}/">${escapeHtml(item.title)}</a>
             </h2>
-            ${result.item.description ? `<p class="search-result-description">${result.item.description}</p>` : ''}
-            ${result.item.tags.length > 0 ? `
-              <div class="search-result-tags">
-                ${result.item.tags.map((tag: string) => `<a href="/tags/${tag}/" class="search-result-tag">#${tag}</a>`).join('')}
-              </div>
-            ` : ''}
+            ${item.description ? `<p class="post-row-desc">${escapeHtml(item.description)}</p>` : ''}
+            ${tags ? `<div class="post-row-footer"><div class="post-row-tags">${tags}</div></div>` : ''}
           </article>
-        `
-      )
+        `;
+      })
       .join('');
 
     searchResults.innerHTML = html;
+    setStatus(`找到 ${results.length} 篇文章`);
   }
 
-  function handleSearch(query: string): void {
-    if (!fuse) {
-      console.warn('[Search] Fuse not initialized yet');
-      return;
-    }
+  function showError(): void {
+    if (searchError) searchError.hidden = false;
+    if (searchEmpty) searchEmpty.hidden = true;
+    if (searchResults) searchResults.innerHTML = '';
+    setStatus('搜索暂时不可用');
+  }
 
+  /**
+   * 索引尚未就绪时不能直接丢弃查询：慢网络下用户敲完一整个词，
+   * 之前会一直看到空白，必须再多敲一个字符才会出结果。
+   * 这里等索引就绪后用输入框的最新值重跑一次。
+   */
+  async function handleSearch(query: string): Promise<void> {
     if (!query.trim()) {
-      searchResults!.innerHTML = '';
-      searchEmpty?.classList.add('hidden');
+      if (searchResults) searchResults.innerHTML = '';
+      if (searchEmpty) searchEmpty.hidden = true;
+      if (searchError) searchError.hidden = true;
+      setStatus('');
       return;
     }
 
-    const results = fuse.search(query);
-    renderResults(results);
+    if (!fuse && !indexFailed) {
+      setStatus('正在加载搜索索引…');
+      await ensureIndex();
+      // 加载期间用户可能改了输入，以最新值为准
+      query = searchInput?.value ?? query;
+      if (!query.trim()) return;
+    }
+
+    if (!fuse) {
+      showError();
+      return;
+    }
+
+    if (searchError) searchError.hidden = true;
+    renderResults(fuse.search(query));
   }
 
   // Debounce search
   let debounceTimer: ReturnType<typeof setTimeout>;
   searchInput?.addEventListener('input', (e: Event) => {
     clearTimeout(debounceTimer);
+    toggleClear();
     const target = e.target as HTMLInputElement;
     debounceTimer = setTimeout(() => {
-      handleSearch(target.value);
+      void handleSearch(target.value);
     }, 200);
   });
 
-  // Initialize on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSearch);
-  } else {
-    initSearch();
+  function clearSearch(): void {
+    if (!searchInput) return;
+    clearTimeout(debounceTimer);
+    searchInput.value = '';
+    toggleClear();
+    void handleSearch('');
+    searchInput.focus();
   }
 
-  // Handle URL search param
+  searchClear?.addEventListener('click', clearSearch);
+
+  // Esc 清空输入（原生 search 输入的清除键已被样式关掉，键盘需保留等价出口）
+  searchInput?.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && searchInput.value) {
+      e.preventDefault();
+      clearSearch();
+    }
+  });
+
+  // 索引只加载一次：Astro 把 <script> 编译成 module，执行时 readyState 已是
+  // interactive，所以下面两处都会触发；不做记忆化的话，带 ?q= 进来会重复
+  // 拉一次 search-index.json 并重复构建一次 Fuse 索引。
+  let indexPromise: Promise<void> | null = null;
+  const ensureIndex = (): Promise<void> => (indexPromise ??= initSearch());
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => void ensureIndex());
+  } else {
+    void ensureIndex();
+  }
+
+  // 处理 URL 上的 ?q= 参数
   const urlParams = new URLSearchParams(window.location.search);
   const query = urlParams.get('q');
   if (query && searchInput) {
     searchInput.value = query;
-    initSearch().then(() => handleSearch(query));
+    toggleClear();
+    void handleSearch(query); // handleSearch 内部已负责等待索引就绪
   }
 </script>
 
@@ -182,165 +279,148 @@ import Footer from '@components/Footer.astro';
     padding: 2rem 0;
   }
 
-  .search-page h1 {
-    margin-bottom: 1.5rem;
-  }
-
   .search-form {
-    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
   }
 
   .search-input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
+    min-width: 0;
   }
 
   .search-icon {
     position: absolute;
-    left: 1rem;
+    left: 0.7rem;
     color: var(--text-muted);
     pointer-events: none;
   }
 
   .search-input {
     width: 100%;
-    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    min-width: 0;
+    min-height: 40px;
+    /* 左右各留出图标/清除键的位置 */
+    padding: 0.55rem 2.2rem;
     border: 1.5px solid var(--divider-color);
-    border-radius: 8px;
-    background-color: var(--bg-color);
-    color: var(--text-body);
-    font-size: 1rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--surface-card);
+    color: var(--text-main);
+    font-size: var(--fs-body);
     font-family: inherit;
-    transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-fast) var(--ease-standard);
   }
 
+  /* 输入框走光晕而非 outline（与 global.css 的输入类聚焦一致）；聚焦时绝不位移 */
   .search-input:focus {
-    outline: none;
     border-color: var(--primary-pink);
-    box-shadow: 0 0 0 4px rgba(255, 133, 162, 0.15);
-    transform: translateY(-1px);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
   .search-input::placeholder {
     color: var(--text-muted);
   }
 
-  .search-hint {
-    margin-top: 0.5rem;
+  /* 关掉 WebKit 的原生搜索控件，改用自绘的清除键 */
+  .search-input::-webkit-search-decoration,
+  .search-input::-webkit-search-cancel-button,
+  .search-input::-webkit-search-results-button,
+  .search-input::-webkit-search-results-decoration {
+    appearance: none;
+    display: none;
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-pill);
+    background-color: transparent;
     color: var(--text-muted);
-    font-size: 0.85rem;
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
+  }
+
+  .search-clear:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-main);
+  }
+
+  .search-clear[hidden] {
+    display: none;
+  }
+
+  .search-hint {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
   }
 
   .search-results {
     display: flex;
     flex-direction: column;
-  }
-
-  .search-result {
-    padding: 1.5rem 0;
-    border-bottom: 1px solid var(--divider-color);
-  }
-
-  .search-result:last-child {
-    border-bottom: none;
-  }
-
-  .search-result-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.5rem;
-    font-size: 0.82rem;
-  }
-
-  .search-result-category {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    background-color: var(--hover-bg);
-    color: var(--accent-pink);
-    border-radius: 4px;
-    font-weight: 500;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .search-result-date {
-    color: var(--text-muted);
-  }
-
-  .search-result-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
-  }
-
-  .search-result-title a {
-    color: var(--text-main);
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-
-  .search-result-title a:hover {
-    color: var(--accent-pink);
-  }
-
-  .search-result-description {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .search-result-tags {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .search-result-tag {
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-
-  .search-result-tag:hover {
-    color: var(--accent-pink);
+    min-width: 0;
   }
 
   .search-empty {
-    text-align: center;
-    padding: 4rem 0;
+    padding: 3rem 0;
     color: var(--text-muted);
+    text-align: center;
   }
 
-  .search-empty.hidden {
-    display: none;
+  /* 索引加载失败的提示面：浅底 + 柔边 + 深文字三件套 */
+  .search-error {
+    margin-top: 1rem;
+    padding: 0.9rem 1.1rem;
+    background-color: var(--soft-error-bg);
+    border: 1px solid var(--soft-error-border);
+    border-radius: var(--radius-control);
+    color: var(--soft-error-text);
+    font-size: var(--fs-sm);
   }
 
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+  .search-error p {
+    margin: 0;
+  }
+
+  /* 触屏：清除键放大到 44px，输入框同步加高并让出右侧内边距，避免命中区盖住文字 */
+  @media (any-pointer: coarse) {
+    .search-input {
+      min-height: var(--tap-min);
+      padding-right: 3rem;
+    }
+
+    .search-clear {
+      right: 0.25rem;
+      min-height: var(--tap-min);
+      min-width: var(--tap-min);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .search-input,
+    .search-clear {
+      transition: none;
+    }
   }
 
   @media (max-width: 768px) {
     .search-page {
       padding: 1rem 0;
-    }
-
-    .search-result-title {
-      font-size: 1.1rem;
     }
   }
 </style>

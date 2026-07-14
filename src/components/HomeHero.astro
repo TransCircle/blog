@@ -1,0 +1,41 @@
+---
+// 首页标题区。列表的第 1 页（index.astro）与第 2 页及之后（page/[page].astro）
+// 共用同一份，避免翻页时标题区从居中突变成左对齐。
+import PageHeader from './ui/PageHeader.astro';
+---
+
+<PageHeader
+  class="hero"
+  align="center"
+  eyebrow="TransCircle Blog"
+  title="跨环博客"
+  description="记录项目进展、社群知识与跨性别议题"
+>
+  <p class="hero-beats">项目 · 知识 · 社群</p>
+</PageHeader>
+
+<style>
+  /* 全站唯一一处居中：给首页一个落地页式的收口，列表仍走左轴 */
+  .hero {
+    padding: 1.5rem 0 0.5rem;
+  }
+
+  /* 三段式标语：两侧细线收束 */
+  .hero-beats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 0.6rem 0 0;
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .hero-beats::before,
+  .hero-beats::after {
+    content: '';
+    width: 2.5rem;
+    height: 1px;
+    background-color: var(--divider-color);
+  }
+</style>

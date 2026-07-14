@@ -5,25 +5,12 @@ import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
 import PostCard from '@components/PostCard.astro';
 import Pagination from '@components/Pagination.astro';
+import HomeHero from '@components/HomeHero.astro';
+import SectionLabel from '@components/ui/SectionLabel.astro';
 import { POSTS_PER_PAGE, type Person } from '@utils/posts';
 
-export async function getStaticPaths() {
-  const posts = await getCollection('posts');
-  const publishedPosts = posts.filter((post: CollectionEntry<'posts'>) => !post.data.draft);
-  const totalPages = Math.ceil(publishedPosts.length / POSTS_PER_PAGE);
-
-  const paths = [];
-  for (let i = 1; i <= totalPages; i++) {
-    paths.push({
-      params: i === 1 ? undefined : { page: String(i) },
-      props: { page: i },
-    });
-  }
-  return paths;
-}
-
-const { page } = Astro.props;
-const currentPage = page || 1;
+// 首页是静态路由，只渲染第 1 页；第 2 页及之后由 src/pages/page/[page].astro 负责
+const currentPage = 1;
 
 const posts = await getCollection('posts');
 const publishedPosts = posts
@@ -31,8 +18,7 @@ const publishedPosts = posts
   .sort((a: CollectionEntry<'posts'>, b: CollectionEntry<'posts'>) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 
 const totalPages = Math.ceil(publishedPosts.length / POSTS_PER_PAGE);
-const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
-const paginatedPosts = publishedPosts.slice(startIndex, startIndex + POSTS_PER_PAGE);
+const paginatedPosts = publishedPosts.slice(0, POSTS_PER_PAGE);
 
 const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
 const homeTitle = '跨环博客';
@@ -64,113 +50,51 @@ const blogSchema = {
     })),
   })),
 };
-
-const pageTitle = currentPage > 1 ? `${homeTitle}（第 ${currentPage} 页）` : homeTitle;
 ---
 
-<Layout
-  title={pageTitle}
-  description={homeDescription}
-  isHome={true}
-  additionalSchemas={currentPage === 1 ? [blogSchema] : []}
->
+<Layout title={homeTitle} description={homeDescription} isHome={true} additionalSchemas={[blogSchema]}>
   <Header />
 
-  <main id="main-content" class="container">
-    <section class="hero anim-fade-in-up" aria-label="博客介绍">
-      <p class="hero-eyebrow">TransCircle Blog</p>
-      <h1>跨环博客</h1>
-      <p class="hero-description">
-        记录项目进展、社群知识与跨性别议题
-      </p>
-      <p class="hero-beats">项目 · 知识 · 社群</p>
-    </section>
+  <main id="main-content" tabindex="-1" class="container">
+    <div class="page">
+      <HomeHero />
 
-    <section class="posts-section" aria-label="文章列表">
-      <h2 class="section-title scroll-animate">最新文章</h2>
+      <section class="posts-section" aria-label="文章列表">
+        <SectionLabel as="h2">最新文章</SectionLabel>
 
-      {paginatedPosts.length > 0 ? (
-        <div class="posts-list stagger-children">
-          {paginatedPosts.map((post: CollectionEntry<'posts'>, index: number) => (
-            <div class="scroll-animate" style={`transition-delay: ${index * 0.05}s`}>
+        {paginatedPosts.length > 0 ? (
+          <div class="posts-list">
+            {paginatedPosts.map((post: CollectionEntry<'posts'>) => (
               <PostCard post={post} />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div class="empty-state">
-          <p>暂无文章</p>
-        </div>
-      )}
+            ))}
+          </div>
+        ) : (
+          <div class="empty-state">
+            <p>暂无文章</p>
+          </div>
+        )}
 
-      <div class="scroll-animate scroll-animate-delay-2">
         <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl="/" />
-      </div>
-    </section>
+      </section>
+    </div>
   </main>
 
   <Footer />
 </Layout>
 
 <style>
-  .hero {
-    padding: 3rem 0 2rem;
-    text-align: center;
-    border-bottom: 1px solid var(--divider-color);
-    margin-bottom: 2rem;
-  }
+  /* 标题区见 components/HomeHero.astro（与分页页共用） */
 
-  /* 品牌小标：与 OG 卡片的「字标 → 站名 → 标语」锁定关系保持一致 */
-  .hero-eyebrow {
-    color: var(--accent-pink);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    margin: 0 0 0.5rem;
-  }
-
-  .hero h1 {
-    margin-bottom: 0.75rem;
-  }
-
-  .hero-description {
-    color: var(--text-secondary);
-    font-size: 1rem;
-    max-width: 500px;
-    margin: 0 auto;
-  }
-
-  .hero-beats {
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    letter-spacing: 0.12em;
-    margin: 0.85rem auto 0;
-  }
-
-  .section-title {
-    font-size: 0.68rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    margin-bottom: 1.5rem;
-  }
-
+  /* 列表本身不留间距：每行由 PostCard 自带分隔线 */
   .posts-list {
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
 
   .empty-state {
+    padding: 3rem 0;
     text-align: center;
-    padding: 4rem 0;
     color: var(--text-muted);
-  }
-
-  @media (max-width: 768px) {
-    .hero {
-      padding: 2rem 0 1.5rem;
-    }
   }
 </style>

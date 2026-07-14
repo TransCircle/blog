@@ -3,6 +3,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
+import PageHeader from '@components/ui/PageHeader.astro';
 import { getAllTags } from '@utils/posts';
 
 const posts = await getCollection('posts');
@@ -27,10 +28,12 @@ const breadcrumbs = [
 <Layout title="全部标签" description={tagsDescription} breadcrumbs={breadcrumbs}>
   <Header />
 
-  <main id="main-content" class="container">
+  <main id="main-content" tabindex="-1" class="container">
     <section class="tags-page">
-      <h1>标签</h1>
-      <p class="tags-description">共 {tags.length} 个标签，{publishedPosts.length} 篇文章</p>
+      <PageHeader
+        title="标签"
+        description={`共 ${tags.length} 个标签，${publishedPosts.length} 篇文章`}
+      />
 
       {tags.length > 0 ? (
         <div class="tags-cloud">
@@ -57,60 +60,62 @@ const breadcrumbs = [
     padding: 2rem 0;
   }
 
-  .tags-page h1 {
-    margin-bottom: 0.5rem;
-  }
-
-  .tags-description {
-    color: var(--text-secondary);
-    margin-bottom: 2rem;
-  }
-
   .tags-cloud {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
+    margin-top: 2rem;
   }
 
+  /* 可点标签（带计数）：Pill 视觉 + 真链接交互。
+   * 不做 translateY 抬起——1px 抬起只留给 CTA 级元素，标签用颜色变化作为 hover 信号。 */
   .tag-item {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    max-width: 100%;
+    min-width: 0;
     padding: 0.5rem 1rem;
     background-color: var(--hover-bg);
     color: var(--text-secondary);
-    border-radius: 50px;
+    border-radius: var(--radius-pill);
     text-decoration: none;
-    font-size: 0.9rem;
-    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    font-size: var(--fs-body);
+    transition:
+      background-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
   }
 
   .tag-item:hover {
     background-color: var(--soft-pink);
     color: var(--accent-pink);
-    transform: translateY(-1px);
   }
 
-  .tag-item:focus-visible {
-    outline: 2px solid var(--primary-pink);
-    outline-offset: 2px;
+  @supports (background-color: color-mix(in srgb, red 15%, white)) {
+    .tag-item:hover {
+      background-color: var(--hover-bg-mix);
+    }
   }
 
   .tag-name {
+    min-width: 0;
     font-weight: 500;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .tag-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     min-width: 20px;
     height: 20px;
     padding: 0 0.35rem;
-    background-color: var(--bg-color);
-    color: var(--text-muted);
-    border-radius: 10px;
-    font-size: 0.75rem;
+    background-color: var(--soft-pink);
+    color: var(--text-main);
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-sm);
     font-weight: 600;
   }
 
@@ -118,6 +123,19 @@ const breadcrumbs = [
     text-align: center;
     padding: 4rem 0;
     color: var(--text-muted);
+  }
+
+  /* 触屏：标签是主要导航入口，命中区必须够大 */
+  @media (any-pointer: coarse) {
+    .tag-item {
+      min-height: var(--tap-min);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tag-item {
+      transition: none;
+    }
   }
 
   @media (max-width: 768px) {
