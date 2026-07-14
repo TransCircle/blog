@@ -45,11 +45,17 @@ const SITE_HOST = 'blog.transcircle.org';
 // 会被自动挤到它上面，内容不可能掉进危险区。
 const SAFE_BOTTOM = 126;
 
-// 品牌横幅的展示尺寸（源文件 400×120，保持 10:3）
-const LOGO_W = 300;
-const LOGO_H = 90;
+// 品牌横幅的展示尺寸（源文件 400×120，保持 10:3）——仅封面卡使用
 const COVER_LOGO_W = 640;
 const COVER_LOGO_H = 192;
+
+// 文章卡：页眉的环形标（正方形）与底部带的字标（源文件 1221×179，紧裁无留白）。
+// 字标尺寸不是拍脑袋定的：把横幅 Logo 按 300px 宽渲染后实测，其中「TransCircle」
+// 字形的包围盒是 149×26px。这里让字形高度同样取 26px（按源文件比例即 177×26），
+// 字标在底部带里就与品牌横幅里的字标一样大，不会喧宾夺主。
+const MARK_SIZE = 88;
+const WORDMARK_H = 26;
+const WORDMARK_W = Math.round((WORDMARK_H * 1221) / 179); // 177
 
 // 跨性别旗：蓝 / 粉 / 白 / 粉 / 蓝五等分（用作强调条纹）
 const FLAG_GRADIENT =
@@ -87,12 +93,20 @@ const C = {
 };
 
 // ── 资源加载（字体 + Logo + 子集覆盖表），按进程缓存，避免逐张卡片重复读盘 ──
-let assets: { fonts: Font[]; logo: string; coverage: Set<string> } | null = null;
+let assets: {
+  fonts: Font[];
+  logo: string;
+  mark: string;
+  wordmark: string;
+  coverage: Set<string>;
+} | null = null;
 
-// 品牌横幅（图标 + TransCircle 字标）。satori 不渲染 SVG 滤镜，而标志的立体感依赖
-// 投影/柔化滤镜，因此先用 resvg 把矢量栅格化成 PNG，再以 data URI 交给 satori。
-// 按最大使用尺寸（封面卡 640px）的 2 倍栅格化，两种卡片共用同一份位图。
-const LOGO_RASTER_WIDTH = 1280;
+// 三份品牌位图。satori 不渲染 SVG 滤镜，而标志的立体感依赖投影/柔化滤镜，
+// 因此先用 resvg 把矢量栅格化成 PNG，再以 data URI 交给 satori。
+// 一律按最大使用尺寸的 2 倍栅格化，保证缩放后依然锐利。
+const LOGO_RASTER_WIDTH = 1280; // 横幅：封面卡最大 640px
+const MARK_RASTER_WIDTH = 176; // 环形标：文章卡页眉 88px
+const WORDMARK_RASTER_WIDTH = 400; // 字标：底部带 177px
 
 function rasterizeSvg(file: string, width: number): string {
   const svg = fs.readFileSync(file, 'utf-8');
@@ -110,10 +124,10 @@ function loadAssets() {
   const fontDir = path.join(process.cwd(), 'src/assets/og/fonts');
   const regular = fs.readFileSync(path.join(fontDir, 'NotoSansSC-Regular.subset.woff'));
   const bold = fs.readFileSync(path.join(fontDir, 'NotoSansSC-Bold.subset.woff'));
-  const logo = rasterizeSvg(
-    path.join(process.cwd(), 'src/assets/brand/transcircle-horizontal.svg'),
-    LOGO_RASTER_WIDTH
-  );
+  const brandDir = path.join(process.cwd(), 'src/assets/brand');
+  const logo = rasterizeSvg(path.join(brandDir, 'transcircle-horizontal.svg'), LOGO_RASTER_WIDTH);
+  const mark = rasterizeSvg(path.join(brandDir, 'transcircle-mark.svg'), MARK_RASTER_WIDTH);
+  const wordmark = rasterizeSvg(path.join(brandDir, 'transcircle-text.svg'), WORDMARK_RASTER_WIDTH);
   // coverage.txt 由 scripts/generate-og-fonts.mjs 写出，记录子集实际包含的字符，
   // 供 findUncovered() 在构建期校验文章是否用到了未覆盖的字形。缺失则跳过校验。
   let coverage = new Set<string>();
@@ -128,6 +142,8 @@ function loadAssets() {
       { name: 'Noto Sans SC', data: bold, weight: 700, style: 'normal' },
     ],
     logo,
+    mark,
+    wordmark,
     coverage,
   };
   return assets;
@@ -242,13 +258,33 @@ function formatDate(d: Date): string {
   return `${d.getUTCFullYear()}年${d.getUTCMonth() + 1}月${d.getUTCDate()}日`;
 }
 
+// ── 标签：只排一行，排不下的收进「+N」 ────────────────────────────────────
+// satori 无法回读排版结果，只能预估宽度：CJK 全角 ≈ 字号，拉丁 ≈ 0.55 字号
+// （与 visualLen 的口径一致），再加左右内边距与描边。宁可估宽一点，也不能溢出。
+const TAG_FS = 22;
+const TAG_GAP = 10;
+const TAG_AREA = 470; // 页脚右半区留给标签的宽度上限
+
+const pillWidth = (label: string) => Math.ceil(visualLen(label) * TAG_FS * 1.05) + 44;
+
+function fitTags(tags: string[]): { shown: string[]; rest: number } {
+  const label = (t: string) => `#${clampVisual(t, 12)}`;
+  for (let k = tags.length; k > 0; k--) {
+    const rest = tags.length - k;
+    let w =
+      tags.slice(0, k).reduce((sum, t) => sum + pillWidth(label(t)), 0) + TAG_GAP * (k - 1);
+    if (rest > 0) w += TAG_GAP + pillWidth(`+${rest}`);
+    if (w <= TAG_AREA) return { shown: tags.slice(0, k), rest };
+  }
+  return { shown: [], rest: tags.length };
+}
+
 // ── 构建卡片节点树 ────────────────────────────────────────────────────────
-function buildCard(data: OgCardData, logo: string): Node {
+function buildCard(data: OgCardData, mark: string, wordmark: string): Node {
   const title = clampVisual(data.title, 52);
   const description = data.description ? clampVisual(data.description, 66) : '';
   const showCategory = !!data.category && data.category !== 'general';
-  const tags = (data.tags ?? []).slice(0, 4);
-  const extraTags = (data.tags?.length ?? 0) - tags.length;
+  const { shown: tags, rest: extraTags } = fitTags(data.tags ?? []);
 
   // 元信息条目（图标 + 文本），仅在有值时加入
   const metaItems: Node[] = [
@@ -310,12 +346,13 @@ function buildCard(data: OgCardData, logo: string): Node {
   const tagPills: Node[] = tags.map((t) =>
     text(
       {
-        fontSize: 22,
+        fontSize: TAG_FS,
         color: C.accentDeep,
         backgroundColor: C.pillBg,
         padding: '8px 20px',
-        borderRadius: 50,
+        borderRadius: 999,
         border: `1px solid ${C.soft}`,
+        flexShrink: 0,
       },
       `#${clampVisual(t, 12)}`
     )
@@ -323,7 +360,14 @@ function buildCard(data: OgCardData, logo: string): Node {
   if (extraTags > 0) {
     tagPills.push(
       text(
-        { fontSize: 22, color: C.textMuted, padding: '8px 8px', borderRadius: 50 },
+        {
+          fontSize: TAG_FS,
+          color: C.textMuted,
+          padding: '8px 20px',
+          borderRadius: 999,
+          border: `1px solid ${C.divider}`,
+          flexShrink: 0,
+        },
         `+${extraTags}`
       )
     );
@@ -339,18 +383,17 @@ function buildCard(data: OgCardData, logo: string): Node {
     [
       frame(),
 
-      // ── 页眉：品牌横幅（图标 + 字标）+ 站点名 ↔ 分类徽标 ────────────────
+      // ── 页眉：环形标 + 站点名（贴合，无分隔线）↔ 分类徽标 ────────────────
       row({ justifyContent: 'space-between' }, [
-        row({ gap: 20 }, [
-          image(logo, { width: LOGO_W, height: LOGO_H }),
-          el('div', { display: 'flex', width: 1, height: 46, backgroundColor: C.divider }),
+        row({ gap: 14 }, [
+          image(mark, { width: MARK_SIZE, height: MARK_SIZE }),
           col({ gap: 3 }, [
             text(
-              { fontSize: 27, fontWeight: 700, color: C.textMain, letterSpacing: '0.02em' },
+              { fontSize: 30, fontWeight: 700, color: C.textMain, letterSpacing: '0.02em' },
               SITE_NAME
             ),
             text(
-              { fontSize: 17, fontWeight: 400, color: C.textMuted, letterSpacing: '0.06em' },
+              { fontSize: 18, fontWeight: 400, color: C.textMuted, letterSpacing: '0.06em' },
               SITE_BEATS
             ),
           ]),
@@ -404,36 +447,32 @@ function buildCard(data: OgCardData, logo: string): Node {
         ]),
       ]),
 
-      // ── 页脚：左边署名 / 日期两行，右边标签胶囊 ─────────────────────────
+      // ── 页脚：左边署名 / 日期两行，右边标签胶囊（只排一行，多余的收进 +N）──
       // 标签靠右，是为了彻底离开 X 的左下角标签区；两行元信息也整体上移。
       row({ justifyContent: 'space-between', alignItems: 'flex-end', gap: 24 }, [
-        col({ gap: 10, flexGrow: 1 }, [
+        col({ gap: 10, flexShrink: 1, minWidth: 0 }, [
           bylineRow,
           row({ fontSize: 22, fontWeight: 400 }, metaRow),
         ]),
         tagPills.length > 0
-          ? row(
-              { gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: 420 },
-              tagPills
-            )
+          ? row({ gap: TAG_GAP, justifyContent: 'flex-end', flexShrink: 0 }, tagPills)
           : el('div', { display: 'flex' }),
       ]),
 
-      // ── 底部保留带：留给 X 的域名标签，本站只在右侧放一行域名 ───────────
+      // ── 底部保留带：整条留给 X 的域名标签，本站只在右侧放字标 ───────────
+      // paddingBottom 抵消描边框 22px 的下内缩：字标要在「分隔线到边框底边」这段
+      // 可见区域里上下居中，而不是在整条带子里居中（那样看着会偏低）。
       row(
         {
           height: SAFE_BOTTOM,
           marginTop: 18,
+          paddingBottom: 22,
           borderTop: `1px solid ${C.divider}`,
           justifyContent: 'flex-end',
+          alignItems: 'center',
           flexShrink: 0,
         },
-        [
-          text(
-            { fontSize: 22, fontWeight: 400, color: C.textMuted, letterSpacing: '0.04em' },
-            SITE_HOST
-          ),
-        ]
+        [image(wordmark, { width: WORDMARK_W, height: WORDMARK_H })]
       ),
     ]
   );
@@ -494,8 +533,8 @@ async function toPng(node: Node, fonts: Font[]): Promise<Buffer> {
 
 /** 文章社交卡片（/og/<slug>.png） */
 export async function renderOgImage(data: OgCardData): Promise<Buffer> {
-  const { fonts, logo } = loadAssets();
-  return toPng(buildCard(data, logo), fonts);
+  const { fonts, mark, wordmark } = loadAssets();
+  return toPng(buildCard(data, mark, wordmark), fonts);
 }
 
 /** 站点默认封面卡（/og-cover.png） */
