@@ -79,12 +79,8 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
     text-underline-offset: 0.2em;
   }
 
-  @media (any-pointer: coarse) {
-    .post-row-author-link {
-      display: inline-block;
-      min-height: var(--tap-min);
-    }
-  }
+  /* 作者名是夹在文字里的行内链接：目标尺寸规则对行内链接本就有豁免，
+     强行撑到 44px 只会把整行拉高、把版式搞乱。保持行内尺寸即可。 */
 
   @media (prefers-reduced-motion: reduce) {
     .post-row-author-link {

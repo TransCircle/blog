@@ -70,6 +70,7 @@ const breadcrumbs = [
   /* 可点标签（带计数）：Pill 视觉 + 真链接交互。
    * 不做 translateY 抬起——1px 抬起只留给 CTA 级元素，标签用颜色变化作为 hover 信号。 */
   .tag-item {
+    position: relative; /* 触屏命中区伪元素的定位基准 */
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -125,10 +126,17 @@ const breadcrumbs = [
     color: var(--text-muted);
   }
 
-  /* 触屏：标签是主要导航入口，命中区必须够大 */
+  /* 触屏：标签是主要导航入口，命中区必须够大——但要靠伪元素撑，
+     直接给 min-height 会把胶囊拉成高椭圆（云里的间距已够，不会互相盖住） */
   @media (any-pointer: coarse) {
-    .tag-item {
-      min-height: var(--tap-min);
+    .tag-item::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: var(--tap-min);
+      transform: translateY(-50%);
     }
   }
 

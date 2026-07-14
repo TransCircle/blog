@@ -108,6 +108,7 @@ const label = type === 'content' ? '内容' : '代码';
 <style>
   /* 徽章沿用全站 pill 视觉；焦点环由全局 :focus-visible 提供，此处不再本地声明 */
   .license-badge {
+    position: relative; /* 触屏命中区伪元素的定位基准 */
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
@@ -147,9 +148,17 @@ const label = type === 'content' ? '内容' : '代码';
     white-space: nowrap;
   }
 
+  /* 触屏：命中区靠伪元素撑开，徽章的视觉尺寸不动
+     （直接给它 min-height: 44px 会把 26px 的胶囊拉成高椭圆） */
   @media (any-pointer: coarse) {
-    .license-badge {
-      min-height: var(--tap-min);
+    .license-badge::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: var(--tap-min);
+      transform: translateY(-50%);
     }
   }
 

@@ -317,9 +317,25 @@ hr {
   text-underline-offset: 0.2em;
 }
 
+/* 触屏：命中区靠伪元素撑开，胶囊的视觉尺寸不动。
+ * 之前是直接给胶囊设 min-height: 44px，26px 高的胶囊被拉成了高椭圆。 */
+.tag-link {
+  position: relative;
+}
+
 @media (any-pointer: coarse) {
   .tag-link {
-    min-height: var(--tap-min);
+    padding: 0.3rem 0.7rem; /* 视觉高度约 29px */
+  }
+
+  .tag-link::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: var(--tap-min); /* 命中区 44px，向上下各溢出约 7.5px */
+    transform: translateY(-50%);
   }
 }
 
@@ -398,6 +414,15 @@ hr {
   gap: 0.4rem;
   flex-wrap: wrap;
   min-width: 0;
+}
+
+/* 触屏：标签换行时把行间距拉到 1rem。胶囊视觉高 29px、命中区 44px，
+ * 行距 16px 时行间距（29 + 16 = 45 > 44）刚好让上下两行的命中区不重叠——
+ * 重叠会让贴近边界的一点落到相邻那行的标签上，点错。 */
+@media (any-pointer: coarse) {
+  .post-row-tags {
+    gap: 1rem 0.4rem;
+  }
 }
 
 /* ── 文章正文 ────────────────────────────────────────────

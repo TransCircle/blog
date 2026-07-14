@@ -253,6 +253,14 @@ const ogImage = `/og/${post.slug}.png`;
     min-width: 0;
   }
 
+  /* 触屏：标签的命中区是 44px（见 global.css），换行时行距要够，
+     否则上下两行的命中区会重叠、点错标签 */
+  @media (any-pointer: coarse) {
+    .post-tags {
+      gap: 1rem 0.5rem;
+    }
+  }
+
   .tags-label {
     font-size: var(--fs-sm);
     color: var(--text-muted);
