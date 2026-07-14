@@ -33,8 +33,7 @@ export async function GET({ props }: APIContext) {
 # https://blog.transcircle.org/posts/${post.slug}/
 # 
 # Title: ${post.data.title}
-# Author: ${formatPeople(post.data.author)}
-# Editor: ${formatPeople(post.data.editor)}
+# Author: ${formatPeople(post.data.author)}${post.data.editor.length > 0 ? `\n# Editor: ${formatPeople(post.data.editor)}` : ''}
 # Date: ${post.data.pubDate.toISOString().split('T')[0]}
 # Category: ${post.data.category}
 # Tags: ${post.data.tags.join(', ') || 'none'}

@@ -34,10 +34,10 @@ const personItemSchema = z.union([z.string(), personEntrySchema]);
  *
  * 这样既能让历史文章的纯字符串 frontmatter 继续工作，又支持为每个署名单独配置链接。
  */
-function people(defaultName: string) {
+function people(fallback: string | never[]) {
   return z
     .union([personItemSchema, z.array(personItemSchema)])
-    .default(defaultName)
+    .default(fallback)
     // 显式标注返回类型，确保 transform 后字段被推断为具体类型而非 any
     .transform((value): { name: string; link: string }[] => {
       const list = Array.isArray(value) ? value : [value];
@@ -55,7 +55,9 @@ const postsCollection = defineCollection({
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
     author: people('TransCircle Team'),
-    editor: people('TransCircle Team'),
+    // 编辑：frontmatter 里没写就是没有编辑——不再自动挂上团队署名，
+    // 空数组会让所有消费方（文章页、OG 卡片、结构化数据、导出）都不渲染「编辑」
+    editor: people([]),
     category: z.string().default('general'),
     tags: z.array(z.string()).default([]),
     cover: z.string().optional(),

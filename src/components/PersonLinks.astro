@@ -11,31 +11,34 @@ export interface Props {
 const { label, people } = Astro.props;
 ---
 
-<div class="person-links">
-  <span class="person-links-label">{label}</span>
-  <span class="person-links-names">
-    {
-      people.map((person, index) => (
-        <Fragment>
-          {index > 0 && (
-            <span class="person-links-sep" aria-hidden="true">
-              、
-            </span>
-          )}
-          <a
-            class="person-link"
-            href={person.link}
-            target="_blank"
-            rel="nofollow noopener noreferrer"
-            data-confirm-link
-          >
-            {person.name}
-          </a>
-        </Fragment>
-      ))
-    }
-  </span>
-</div>
+{/* 没有署名就整行不渲染，而不是留下一个孤零零的「编辑：」 */}
+{
+  people.length > 0 && (
+    <div class="person-links">
+      <span class="person-links-label">{label}</span>
+      <span class="person-links-names">
+        {people.map((person, index) => (
+          <Fragment>
+            {index > 0 && (
+              <span class="person-links-sep" aria-hidden="true">
+                、
+              </span>
+            )}
+            <a
+              class="person-link"
+              href={person.link}
+              target="_blank"
+              rel="nofollow noopener noreferrer"
+              data-confirm-link
+            >
+              {person.name}
+            </a>
+          </Fragment>
+        ))}
+      </span>
+    </div>
+  )
+}
 
 <style>
   .person-links {

@@ -42,7 +42,8 @@ export async function GET(context: APIContext) {
         `# Markdown: ${url.replace(/\/$/, '')}.md`,
         `# Date: ${d.pubDate.toISOString().split('T')[0]}${updated}`,
         `# Author: ${formatPeople(d.author)}`,
-        `# Editor: ${formatPeople(d.editor)}`,
+        // 没写编辑就不输出这一行（下面的 filter(Boolean) 会把 null 去掉）
+        d.editor.length > 0 ? `# Editor: ${formatPeople(d.editor)}` : null,
         `# Category: ${d.category}`,
         `# Tags: ${d.tags.join(', ') || 'none'}`,
         `# License: ${d.contentLicense} (content), ${d.codeLicense} (code)`,
