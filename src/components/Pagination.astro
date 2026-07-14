@@ -1,4 +1,7 @@
 ---
+// 分页导航。上一页/下一页复用 Button（secondary），页码为方形控件。
+import Button from './ui/Button.astro';
+
 export interface Props {
   currentPage: number;
   totalPages: number;
@@ -7,9 +10,10 @@ export interface Props {
 
 const { currentPage, totalPages, baseUrl } = Astro.props;
 
+// baseUrl 可能带结尾斜杠（如 "/"），拼接前必须去掉，否则会生成 "//page/2"
 function getPageUrl(page: number): string {
   if (page === 1) return baseUrl;
-  return `${baseUrl}/page/${page}`;
+  return `${baseUrl.replace(/\/$/, '')}/page/${page}`;
 }
 ---
 
@@ -21,12 +25,12 @@ function getPageUrl(page: number): string {
 
     <div class="pagination-buttons">
       {currentPage > 1 && (
-        <a href={getPageUrl(currentPage - 1)} class="pagination-btn pagination-prev" aria-label="上一页">
+        <Button href={getPageUrl(currentPage - 1)} variant="secondary" size="md" aria-label="上一页">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
           上一页
-        </a>
+        </Button>
       )}
 
       <div class="pagination-pages" role="group" aria-label="页码">
@@ -43,12 +47,12 @@ function getPageUrl(page: number): string {
       </div>
 
       {currentPage < totalPages && (
-        <a href={getPageUrl(currentPage + 1)} class="pagination-btn pagination-next" aria-label="下一页">
+        <Button href={getPageUrl(currentPage + 1)} variant="secondary" size="md" aria-label="下一页">
           下一页
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
             <polyline points="9 18 15 12 9 6"/>
           </svg>
-        </a>
+        </Button>
       )}
     </div>
   </nav>
@@ -56,16 +60,17 @@ function getPageUrl(page: number): string {
 
 <style>
   .pagination {
-    margin-top: 3rem;
-    padding-top: 2rem;
+    margin-top: 2rem;
+    padding-top: 1.4rem;
     border-top: 1px solid var(--divider-color);
+    min-width: 0;
   }
 
   .pagination-info {
+    margin-bottom: 1rem;
     text-align: center;
     color: var(--text-muted);
-    font-size: 0.85rem;
-    margin-bottom: 1rem;
+    font-size: var(--fs-sm);
   }
 
   .pagination-buttons {
@@ -74,50 +79,33 @@ function getPageUrl(page: number): string {
     justify-content: center;
     gap: 0.5rem;
     flex-wrap: wrap;
+    min-width: 0;
   }
 
-  .pagination-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.5rem 1rem;
-    border: 1.5px solid var(--primary-pink);
-    color: var(--primary-pink);
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: 50px;
-    text-decoration: none;
-    transition: background-color 0.2s ease, color 0.2s ease;
-  }
-
-  .pagination-btn:hover {
-    background-color: var(--hover-bg);
-    border-color: var(--accent-pink);
-    color: var(--accent-pink);
-  }
-
-  .pagination-btn:focus-visible {
-    outline: 2px solid var(--primary-pink);
-    outline-offset: 2px;
-  }
-
+  /* 页码是功能性控件，窄屏也不隐藏，只允许换行 */
   .pagination-pages {
     display: flex;
+    justify-content: center;
     gap: 0.25rem;
+    flex-wrap: wrap;
+    min-width: 0;
   }
 
   .pagination-page {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
+    min-width: 36px;
     height: 36px;
-    border-radius: 6px;
+    padding: 0 0.4rem;
+    border-radius: var(--radius-control);
     color: var(--text-secondary);
-    font-size: 0.875rem;
+    font-size: var(--fs-sm);
     font-weight: 500;
     text-decoration: none;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+      background-color var(--dur-base) var(--ease-standard),
+      color var(--dur-base) var(--ease-standard);
   }
 
   .pagination-page:hover {
@@ -125,19 +113,27 @@ function getPageUrl(page: number): string {
     color: var(--accent-pink);
   }
 
-  .pagination-page[aria-current='page'] {
-    background-color: var(--primary-pink);
-    color: white;
+  @supports (background-color: color-mix(in srgb, red, red)) {
+    .pagination-page:hover {
+      background-color: var(--hover-bg-mix);
+    }
   }
 
-  .pagination-page:focus-visible {
-    outline: 2px solid var(--primary-pink);
-    outline-offset: 2px;
+  .pagination-page[aria-current='page'],
+  .pagination-page[aria-current='page']:hover {
+    background-color: var(--cta-bg);
+    color: var(--cta-color);
   }
 
-  @media (max-width: 768px) {
-    .pagination-pages {
-      display: none;
+  @media (any-pointer: coarse) {
+    .pagination-page {
+      min-height: var(--tap-min);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pagination-page {
+      transition: none;
     }
   }
 </style>

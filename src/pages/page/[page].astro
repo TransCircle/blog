@@ -1,0 +1,77 @@
+---
+// 文章列表的第 2 页及以后（第 1 页是 /，由 index.astro 渲染）。
+//
+// 此前 Pagination 组件会指向 /page/2，但这个路由并不存在——文章数超过每页上限时
+// 分页链接会直接 404。这里补上真实路由，与首页共用同一套列表版式。
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Layout from '@layouts/Layout.astro';
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
+import PostCard from '@components/PostCard.astro';
+import Pagination from '@components/Pagination.astro';
+import HomeHero from '@components/HomeHero.astro';
+import SectionLabel from '@components/ui/SectionLabel.astro';
+import { POSTS_PER_PAGE } from '@utils/posts';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  const published = posts.filter((post: CollectionEntry<'posts'>) => !post.data.draft);
+  const totalPages = Math.ceil(published.length / POSTS_PER_PAGE);
+
+  // 第 1 页由 index.astro 承担，这里只生成 2..N
+  return Array.from({ length: Math.max(0, totalPages - 1) }, (_, i) => ({
+    params: { page: String(i + 2) },
+    props: { currentPage: i + 2, totalPages },
+  }));
+}
+
+interface Props {
+  currentPage: number;
+  totalPages: number;
+}
+
+const { currentPage, totalPages } = Astro.props;
+
+const posts = await getCollection('posts');
+const publishedPosts = posts
+  .filter((post: CollectionEntry<'posts'>) => !post.data.draft)
+  .sort(
+    (a: CollectionEntry<'posts'>, b: CollectionEntry<'posts'>) =>
+      b.data.pubDate.getTime() - a.data.pubDate.getTime()
+  );
+
+const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
+const pagePosts = publishedPosts.slice(startIndex, startIndex + POSTS_PER_PAGE);
+
+const title = `跨环博客（第 ${currentPage} 页）`;
+const description = `跨环博客文章列表第 ${currentPage} 页，共 ${totalPages} 页。`;
+---
+
+<Layout title={title} description={description}>
+  <Header />
+
+  <main id="main-content" tabindex="-1" class="container">
+    <div class="page">
+      <HomeHero />
+
+      <section aria-label="文章列表">
+        <SectionLabel as="h2">第 {currentPage} 页 / 共 {totalPages} 页</SectionLabel>
+        <div class="posts-list">
+          {pagePosts.map((post: CollectionEntry<'posts'>) => <PostCard post={post} />)}
+        </div>
+      </section>
+
+      <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl="/" />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .posts-list {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+</style>
