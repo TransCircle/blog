@@ -464,6 +464,14 @@ hr {
   margin-bottom: 0.5rem;
 }
 
+/* 页内锚点（目录 / URL #hash / 键盘聚焦）跳到标题时，吸顶导航会盖住目标标题，
+ * 落位时留出让位——与脚注区（FootnotePopover）同一套方案：用目标元素的
+ * scroll-margin（而非容器 scroll-padding），二者不叠加；--app-nav-height 由
+ * Header 的脚本按各设备/断点实时同步，57px 为无 JS 兜底。 */
+.article-content :is(h1, h2, h3, h4, h5, h6) {
+  scroll-margin-top: calc(var(--app-nav-height, 57px) + 1.5rem);
+}
+
 .article-content ul,
 .article-content ol {
   margin-bottom: 1rem;
