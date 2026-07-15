@@ -261,35 +261,35 @@ E2 偏低**不是一个单一的数字判断**，应结合 T 是否达标和有�
 
 ---
 
-[^1]: Hembree WC, et al. Endocrine Treatment of Gender-Dysphoric/Gender-Incongruent Persons: An Endocrine Society Clinical Practice Guideline. *J Clin Endocrinol Metab*. 2017;102(11):3869–3903. [全文链接](https://academic.oup.com/jcem/article/102/11/3869/4157558)
+[^1]: [Hembree WC, et al. Endocrine Treatment of Gender-Dysphoric/Gender-Incongruent Persons: An Endocrine Society Clinical Practice Guideline. *J Clin Endocrinol Metab*. 2017;102(11):3869–3903.](https://academic.oup.com/jcem/article/102/11/3869/4157558)
 
-[^2]: Coleman E, et al. Standards of Care for the Health of Transgender and Gender Diverse People, Version 8 (WPATH SOC8). *Int J Transgender Health*. 2022;23(Suppl 1):S1–S259. [链接](https://www.wpath.org/publications/soc8/)
+[^2]: [Coleman E, et al. Standards of Care for the Health of Transgender and Gender Diverse People, Version 8 (WPATH SOC8). *Int J Transgender Health*. 2022;23(Suppl 1):S1–S259.](https://www.wpath.org/publications/soc8/)
 
-[^3]: UCSF Transgender Care. Guidelines for the Primary and Gender-Affirming Care of Transgender and Gender Nonbinary People: Feminizing Hormone Therapy. [链接](https://transcare.ucsf.edu/guidelines/feminizing-hormone-therapy)
+[^3]: [UCSF Transgender Care. Guidelines for the Primary and Gender-Affirming Care of Transgender and Gender Nonbinary People: Feminizing Hormone Therapy.](https://transcare.ucsf.edu/guidelines/feminizing-hormone-therapy)
 
-[^4]: Winston-McPherson GN, et al. Estradiol Concentrations for Adequate Gender-Affirming Feminizing Therapy: A Systematic Review. *LGBT Health*. 2025;12(7):477–489. [DOI](https://doi.org/10.1089/lgbt.2024.0407)
+[^4]: [Winston-McPherson GN, et al. Estradiol Concentrations for Adequate Gender-Affirming Feminizing Therapy: A Systematic Review. *LGBT Health*. 2025;12(7):477–489.](https://doi.org/10.1089/lgbt.2024.0407)
 
-[^5]: Slack DJ, et al. Choice of Hormone Assay to Monitor Feminizing Gender-Affirming Hormone Therapy. *Endocrine Practice*. 2025;31(12):1521–1529. [链接](https://scholars.mssm.edu/en/publications/choice-of-hormone-assay-to-monitor-feminizing-gender-affirming-ho/)
+[^5]: [Slack DJ, et al. Choice of Hormone Assay to Monitor Feminizing Gender-Affirming Hormone Therapy. *Endocrine Practice*. 2025;31(12):1521–1529.](https://scholars.mssm.edu/en/publications/choice-of-hormone-assay-to-monitor-feminizing-gender-affirming-ho/)
 
-[^6]: Misakian AL, et al. Injectable Estradiol Monotherapy Effectively Suppresses Testosterone in Gender-Affirming Hormone Therapy. *Endocrine Practice*. 2025;31(11):1462–1469. [PubMed](https://pubmed.ncbi.nlm.nih.gov/40639470/)
+[^6]: [Misakian AL, et al. Injectable Estradiol Monotherapy Effectively Suppresses Testosterone in Gender-Affirming Hormone Therapy. *Endocrine Practice*. 2025;31(11):1462–1469.](https://pubmed.ncbi.nlm.nih.gov/40639470/)
 
-[^7]: Approach to Prolactin Monitoring and Hyperprolactinaemia in Transgender and Gender-Diverse Individuals Undergoing GAHT. *Frontiers in Endocrinology*. 2025. [全文链接](https://www.frontiersin.org/journals/endocrinology/articles/10.3389/fendo.2025.1608108/full)
+[^7]: [Approach to Prolactin Monitoring and Hyperprolactinaemia in Transgender and Gender-Diverse Individuals Undergoing GAHT. *Frontiers in Endocrinology*. 2025.](https://www.frontiersin.org/journals/endocrinology/articles/10.3389/fendo.2025.1608108/full)
 
-[^8]: EMA Direct Healthcare Professional Communication: Restrictions in Use of Cyproterone Acetate Due to Risk of Meningioma. [PDF](https://www.ema.europa.eu/en/documents/dhpc/direct-healthcare-professional-communication-dhpc-restrictions-use-cyproterone-acetate-due-risk-meningioma_en.pdf)
+[^8]: [EMA Direct Healthcare Professional Communication: Restrictions in Use of Cyproterone Acetate Due to Risk of Meningioma.](https://www.ema.europa.eu/en/documents/dhpc/direct-healthcare-professional-communication-dhpc-restrictions-use-cyproterone-acetate-due-risk-meningioma_en.pdf)
 
-[^9]: MHRA Drug Safety Update: Cyproterone Acetate — New Advice to Minimise Risk of Meningioma. [链接](https://www.gov.uk/drug-safety-update/cyproterone-acetate-new-advice-to-minimise-risk-of-meningioma)
+[^9]: [MHRA Drug Safety Update: Cyproterone Acetate — New Advice to Minimise Risk of Meningioma.](https://www.gov.uk/drug-safety-update/cyproterone-acetate-new-advice-to-minimise-risk-of-meningioma)
 
-[^10]: Pouw N, et al. Clinically Relevant Laboratory Monitoring of Gender-Affirming Hormone Therapy in Transgender People—Experiences from a Teaching Hospital in the Netherlands. *Journal of Applied Laboratory Medicine (JALM)*. 2024;9(3):440–455. [全文链接](https://academic.oup.com/jalm/article/9/3/440/7624141)
+[^10]: [Pouw N, et al. Clinically Relevant Laboratory Monitoring of Gender-Affirming Hormone Therapy in Transgender People—Experiences from a Teaching Hospital in the Netherlands. *Journal of Applied Laboratory Medicine (JALM)*. 2024;9(3):440–455.](https://academic.oup.com/jalm/article/9/3/440/7624141)
 
-[^11]: Hayes H, et al. The Utility of Monitoring Potassium in Transgender, Gender Diverse, and Nonbinary Individuals on Spironolactone. *J Endocr Soc*. 2022;6(11):bvac133. [全文链接](https://pmc.ncbi.nlm.nih.gov/articles/PMC9562816/)
+[^11]: [Hayes H, et al. The Utility of Monitoring Potassium in Transgender, Gender Diverse, and Nonbinary Individuals on Spironolactone. *J Endocr Soc*. 2022;6(11):bvac133.](https://pmc.ncbi.nlm.nih.gov/articles/PMC9562816/)
 
-[^12]: 国家卫生健康委等.《医疗机构检查检验结果互认管理办法》. 2022. [链接](https://www.gov.cn/zhengce/zhengceku/2022-02/19/content_5674575.htm)
+[^12]: [国家卫生健康委等.《医疗机构检查检验结果互认管理办法》. 2022.](https://www.gov.cn/zhengce/zhengceku/2022-02/19/content_5674575.htm)
 
-[^13]: Effectiveness and Safety of Different Estradiol Regimens in Transgender Females: A Randomized Controlled Trial（比较每日一次舌下、每日两次舌下和透皮 E2）. *J Endocr Soc*. 2024. [全文链接](https://academic.oup.com/jes/article/8/8/bvae108/7691571)
+[^13]: [Effectiveness and Safety of Different Estradiol Regimens in Transgender Females: A Randomized Controlled Trial（比较每日一次舌下、每日两次舌下和透皮 E2）. *J Endocr Soc*. 2024.](https://academic.oup.com/jes/article/8/8/bvae108/7691571)
 
-[^14]: Follow-Up Estradiol Levels Based on Regimen Formulation With Guideline-Concordant Gender-Affirming Hormone Therapy. *J Endocr Soc*. 2025. [全文链接](https://academic.oup.com/jes/article/9/3/bvae205/7923447)
+[^14]: [Follow-Up Estradiol Levels Based on Regimen Formulation With Guideline-Concordant Gender-Affirming Hormone Therapy. *J Endocr Soc*. 2025.](https://academic.oup.com/jes/article/9/3/bvae205/7923447)
 
-[^15]: Evaluating the Risk of Venous Thromboembolism in Transfeminine and Gender Diverse People: A Retrospective Analysis. 2024. [PubMed](https://pubmed.ncbi.nlm.nih.gov/39233010)
+[^15]: [Evaluating the Risk of Venous Thromboembolism in Transfeminine and Gender Diverse People: A Retrospective Analysis. 2024.](https://pubmed.ncbi.nlm.nih.gov/39233010)
 
 [^note-lcms]: 质谱法（LC-MS/MS）在低浓度时精度和特异性更高，免疫法在较高浓度时通常准确度足够且费用更低。当检测值与临床情况明显不符、数值异常偏低或偏高、或需要精确判断低浓度性激素时，优先考虑 LC-MS/MS 或咨询检验科/内分泌科解释。
 
@@ -303,14 +303,14 @@ E2 偏低**不是一个单一的数字判断**，应结合 T 是否达标和有�
 
 [^note-cpa]: EMA 和英国 MHRA 均已发布正式风险警示：CPA 相关脑膜瘤风险随累积剂量增加，≥25 mg/天时尤其受关注；有脑膜瘤病史或当前脑膜瘤者应避免使用，若诊断脑膜瘤应永久停用。参见参考文献 8 和 9。
 
-[^note-prl-stress]: 轻度高泌乳素血症常受采血压力影响，规范安静条件下复测后相当一部分会正常化。参见 Das M, Gogoi C., *Sci Rep*, 2023. [链接](https://www.nature.com/articles/s41598-022-27051-8)
+[^note-prl-stress]: [轻度高泌乳素血症常受采血压力影响，规范安静条件下复测后相当一部分会正常化。参见 Das M, Gogoi C., *Sci Rep*, 2023.](https://www.nature.com/articles/s41598-022-27051-8)
 
-[^16]: Nolan BJ, Cheung AS. Relationship Between Serum Estradiol Concentrations and Clinical Outcomes in Transgender Individuals Undergoing Feminizing Hormone Therapy: A Narrative Review. *Transgender Health*. 2021;6(3):125–131. [链接](https://journals.sagepub.com/doi/pdf/10.1089/trgh.2020.0077)
+[^16]: [Nolan BJ, Cheung AS. Relationship Between Serum Estradiol Concentrations and Clinical Outcomes in Transgender Individuals Undergoing Feminizing Hormone Therapy: A Narrative Review. *Transgender Health*. 2021;6(3):125–131.](https://journals.sagepub.com/doi/pdf/10.1089/trgh.2020.0077)
 
-[^17]: Goldstein Z, et al. Managing the Risk of Venous Thromboembolism in Transgender Adults Undergoing Hormone Therapy. *J Blood Med*. 2019;10:209–216. [PubMed](https://pubmed.ncbi.nlm.nih.gov/31372078/)
+[^17]: [Goldstein Z, et al. Managing the Risk of Venous Thromboembolism in Transgender Adults Undergoing Hormone Therapy. *J Blood Med*. 2019;10:209–216.](https://pubmed.ncbi.nlm.nih.gov/31372078/)
 
-[^18]: Kuijpers SME, et al. Toward a Lowest Effective Dose of Cyproterone Acetate in Trans Women: Results From the ENIGI Study. *J Clin Endocrinol Metab*. 2021;106(10):e3936–e3945. [全文链接](https://academic.oup.com/jcem/article/106/10/e3936/6298578)
+[^18]: [Kuijpers SME, et al. Toward a Lowest Effective Dose of Cyproterone Acetate in Trans Women: Results From the ENIGI Study. *J Clin Endocrinol Metab*. 2021;106(10):e3936–e3945.](https://academic.oup.com/jcem/article/106/10/e3936/6298578)
 
-[^19]: Misakian AL, et al. Injectable Estradiol Use in Transgender and Gender-Diverse Individuals throughout the United States（562 名注射 E2 使用者，E2 与剂量和距上次注射时间显著相关）. *J Clin Endocrinol Metab*. 2025;110(9):e2898–e2907. [链接](https://academic.oup.com/jcem/article-abstract/110/9/e2898/7951695)
+[^19]: [Misakian AL, et al. Injectable Estradiol Use in Transgender and Gender-Diverse Individuals throughout the United States（562 名注射 E2 使用者，E2 与剂量和距上次注射时间显著相关）. *J Clin Endocrinol Metab*. 2025;110(9):e2898–e2907.](https://academic.oup.com/jcem/article-abstract/110/9/e2898/7951695)
 
-[^20]: Safer JD, Tangpricha V. Care of Transgender Persons. *New England Journal of Medicine*. 2019;381(25):2451–2460. [PubMed](https://pubmed.ncbi.nlm.nih.gov/31851801/)
+[^20]: [Safer JD, Tangpricha V. Care of Transgender Persons. *New England Journal of Medicine*. 2019;381(25):2451–2460.](https://pubmed.ncbi.nlm.nih.gov/31851801/)

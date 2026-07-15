@@ -88,46 +88,46 @@ tags: ['扭转机构', '争议']
 
 <!-- 尾注（原文文末注，正文中以罗马数字标注） -->
 
-[^i]: "我回来了" <https://x.com/yanzhenzhen21/status/2032087196363268607>
+[^i]: ["我回来了"](https://x.com/yanzhenzhen21/status/2032087196363268607)
 
-[^ii]: "如你们所见这个被喷到销号的人…" <https://x.com/yanzhenzhen21/status/2032109390560399423>
+[^ii]: ["如你们所见这个被喷到销号的人…"](https://x.com/yanzhenzhen21/status/2032109390560399423)
 
-[^iii]: "他们强行威胁并剪去了我的头发…" <https://x.com/yanzhenzhen21/status/2032252235049046277>
+[^iii]: ["他们强行威胁并剪去了我的头发…"](https://x.com/yanzhenzhen21/status/2032252235049046277)
 
-[^iv]: 《这辈子都没有想到我会被送进戒网瘾学校，恳请广大网友为我发声》 <https://v.kuaishou.com/ntrUuUtA>
+[^iv]: [《这辈子都没有想到我会被送进戒网瘾学校，恳请广大网友为我发声》](https://v.kuaishou.com/ntrUuUtA)
 
-[^v]: "我们班级里面甚至关的有成年人…" <https://x.com/yanzhenzhen21/status/2032140646996418867>
+[^v]: ["我们班级里面甚至关的有成年人…"](https://x.com/yanzhenzhen21/status/2032140646996418867)
 
-[^vi]: "手机已经拿回来了…" <https://x.com/yanzhenzhen21/status/2033429471278313831>
+[^vi]: ["手机已经拿回来了…"](https://x.com/yanzhenzhen21/status/2033429471278313831)
 
 [^vii]: <https://x.com/yanzhenzhen21/status/2032342299712094535>
 
-[^viii]: "视频已经在这两个平台进行发布…" <https://x.com/yanzhenzhen21/status/2032330579497173289>
+[^viii]: ["视频已经在这两个平台进行发布…"](https://x.com/yanzhenzhen21/status/2032330579497173289)
 
-[^ix]: "发了" <https://x.com/yanzhenzhen21/status/2032345220872843401>
+[^ix]: ["发了"](https://x.com/yanzhenzhen21/status/2032345220872843401)
 
-[^x]: "我的父母帮助不了我…" <https://x.com/yanzhenzhen21/status/2032416586284564561>
+[^x]: ["我的父母帮助不了我…"](https://x.com/yanzhenzhen21/status/2032416586284564561)
 
-[^xi]: "我就知道他们靠不上…" <https://x.com/yanzhenzhen21/status/2032420118899347541>
+[^xi]: ["我就知道他们靠不上…"](https://x.com/yanzhenzhen21/status/2032420118899347541)
 
 [^xii]: ![知情人士截图](/images/zhiqingrenshi.png)
 
-[^xiii]: "这是一条定时推文" <https://x.com/yanzhenzhen21/status/2034661177373196540>
+[^xiii]: ["这是一条定时推文"](https://x.com/yanzhenzhen21/status/2034661177373196540)
 
-[^xiv]: 《还要有多少孩子死去，我们才能抵达终点？》<https://www.bilibili.com/video/BV1KFXVBLEPg/>
+[^xiv]: [《还要有多少孩子死去，我们才能抵达终点？》](https://www.bilibili.com/video/BV1KFXVBLEPg/)
 
-[^xv]: "我一直都不理解…" <https://x.com/SakurabaEma_ITN/status/2037972354014605383>
+[^xv]: ["我一直都不理解…"](https://x.com/SakurabaEma_ITN/status/2037972354014605383)
 
-[^xvi]: "我当然知道中国的反性少数的基本情况…" <https://x.com/SakurabaEma_ITN/status/2037973268536455302>
+[^xvi]: ["我当然知道中国的反性少数的基本情况…"](https://x.com/SakurabaEma_ITN/status/2037973268536455302)
 
-[^xvii]: "上次温柔和其他媒体为我发声的时候…" <https://x.com/yaming00742313/status/2038239148138704928>
+[^xvii]: ["上次温柔和其他媒体为我发声的时候…"](https://x.com/yaming00742313/status/2038239148138704928)
 
-[^xviii]: "关于死者的称呼问题…" <https://x.com/ValeriaEulabeia/status/2038257838980817382>
+[^xviii]: ["关于死者的称呼问题…"](https://x.com/ValeriaEulabeia/status/2038257838980817382)
 
-[^xix]: "很多时候不敢直白说出他们跨性别的…" <https://x.com/LwrDHYyuxR22499/status/2038266666614943939>
+[^xix]: ["很多时候不敢直白说出他们跨性别的…"](https://x.com/LwrDHYyuxR22499/status/2038266666614943939)
 
-[^xx]: "去除她的身份也只是为了最大程度上…" <https://x.com/LwrDHYyuxR22499/status/2038317125794939132>
+[^xx]: ["去除她的身份也只是为了最大程度上…"](https://x.com/LwrDHYyuxR22499/status/2038317125794939132)
 
-[^xxi]: "本次受温柔委托帮助其表述本次真实…" <https://x.com/LwrDHYyuxR22499/status/2038436599088939107>
+[^xxi]: ["本次受温柔委托帮助其表述本次真实…"](https://x.com/LwrDHYyuxR22499/status/2038436599088939107)
 
-[^xxii]: "添加了一个隐藏词…" <https://x.com/yaming00742313/status/2038279320972759294>
+[^xxii]: ["添加了一个隐藏词…"](https://x.com/yaming00742313/status/2038279320972759294)

@@ -321,7 +321,7 @@ tags: ['GAHT', '血检']
 
 希望这份筛查路径能帮助你在纷繁的信息中找到那条最适合你的路。
 
-[^fn-1]: *编者注：羽莉在2026年5月27日创作的文章。请见[本推文](https://x.com/liwanmiaohy/status/2059445407986667786)。后文称的《原指南》也是它。*
+[^fn-1]: [*编者注：羽莉在2026年5月27日创作的文章。请见本推文。后文称的《原指南》也是它。*](https://x.com/liwanmiaohy/status/2059445407986667786)
 
 [^fn-2]: *编者注：肝脏首过效应（又称首关效应或首过代谢）是指口服药物在被胃肠道吸收后，首先进入肝门静脉系统，在首次通过肠黏膜和肝脏时，部分药物即被代谢灭活，导致进入全身血液循环的有效药量减少、药效降低的生理现象*
 
@@ -333,4 +333,4 @@ tags: ['GAHT', '血检']
 
 [^fn-6]: 针剂的长期累积风险在年轻人群中相对可控，但依然存在。
 
-[^i]: Rothman MS et al., *The Use of Injectable Estradiol in Transgender and Gender Diverse Adults: A Scoping Review of Dose and Serum Estradiol Levels*, Endocr Pract, 2024;30(9):870–878 ([Scholars@Duke](https://scholars.duke.edu/publication/1634072)).
+[^i]: [Rothman MS et al., *The Use of Injectable Estradiol in Transgender and Gender Diverse Adults: A Scoping Review of Dose and Serum Estradiol Levels*, Endocr Pract, 2024;30(9):870–878.](https://scholars.duke.edu/publication/1634072)
