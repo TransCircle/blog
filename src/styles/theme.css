@@ -69,6 +69,10 @@
   --soft-amber-bg: #fff3e0;
   --soft-amber-border: #f0d9b0;
   --soft-amber-text: #b26a00;
+  /* 品牌粉软色组：软色组里没有的第五档，供「重要」提示框（callout-important）使用 */
+  --soft-brand-bg: #ffeef2;
+  --soft-brand-border: #f3b0c0;
+  --soft-brand-text: #c02c56;
 
   /* ── 博客扩展令牌 ───────────────────────────────────────
    * 设计系统面向应用，没有「代码块面」这一语义；博客必须有。
@@ -170,6 +174,9 @@
     --soft-amber-bg: rgba(240, 160, 50, 0.14);
     --soft-amber-border: rgba(240, 160, 50, 0.32);
     --soft-amber-text: #ffb74d;
+    --soft-brand-bg: rgba(255, 107, 157, 0.12);
+    --soft-brand-border: rgba(255, 107, 157, 0.34);
+    --soft-brand-text: #ff9db5;
 
     --code-bg: #16161f;
   }
@@ -223,6 +230,9 @@
   --soft-amber-bg: rgba(240, 160, 50, 0.14);
   --soft-amber-border: rgba(240, 160, 50, 0.32);
   --soft-amber-text: #ffb74d;
+  --soft-brand-bg: rgba(255, 107, 157, 0.12);
+  --soft-brand-border: rgba(255, 107, 157, 0.34);
+  --soft-brand-text: #ff9db5;
 
   --code-bg: #16161f;
 }

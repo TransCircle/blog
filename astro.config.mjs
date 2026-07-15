@@ -3,6 +3,7 @@ import sitemap from '@astrojs/sitemap';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import rehypeCallouts from './src/lib/markdown/rehype-callouts.mjs';
 
 /**
  * 将 Markdown 表格包裹进 <div class="table-wrapper">，
@@ -180,7 +181,7 @@ export default defineConfig({
     }),
   ],
   markdown: {
-    rehypePlugins: [rehypeTableWrapper, rehypeStripFootnoteBackrefs],
+    rehypePlugins: [rehypeCallouts, rehypeTableWrapper, rehypeStripFootnoteBackrefs],
     shikiConfig: {
       // 双主题：Shiki 把两套语法色写成 --shiki-light / --shiki-dark 变量，
       // 由 global.css 按 data-theme 选择。此前固定 github-dark，浅色主题下

@@ -494,6 +494,83 @@ hr {
   color: var(--text-secondary);
 }
 
+/* ── 提示 / 警告框（Callout）───────────────────────────────
+ * 由 src/lib/markdown/rehype-callouts.mjs 把 `> [!类型]` 引用块转成
+ * <div class="callout callout-类型">。这里是设计系统里少数刻意「成盒」的
+ * 强调块（与代码块同属例外）：软色底 + 柔边 + 左侧强调条，配色一律走 --soft-* 令牌，
+ * 不写死颜色。五种类型只改三个局部变量（底 / 边 / 强调色），主体规则复用。 */
+.article-content .callout {
+  --callout-bg: var(--soft-info-bg);
+  --callout-border: var(--soft-info-border);
+  --callout-accent: var(--soft-info-text);
+  margin: 1.5rem 0;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--callout-border);
+  border-left: 4px solid var(--callout-accent);
+  border-radius: var(--radius-sm);
+  background-color: var(--callout-bg);
+  color: var(--text-body);
+}
+
+.article-content .callout-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  color: var(--callout-accent);
+}
+
+.article-content .callout-icon {
+  display: inline-flex;
+  flex: none;
+}
+
+.article-content .callout-icon svg {
+  display: block;
+  width: 1.15em;
+  height: 1.15em;
+}
+
+/* 框内正文比正文默认更紧凑；最后一个块级元素去掉尾边距，让盒子内边距均匀 */
+.article-content .callout p {
+  margin-bottom: 0.65rem;
+}
+
+.article-content .callout > :last-child {
+  margin-bottom: 0;
+}
+
+.article-content .callout-note {
+  --callout-bg: var(--soft-info-bg);
+  --callout-border: var(--soft-info-border);
+  --callout-accent: var(--soft-info-text);
+}
+
+.article-content .callout-tip {
+  --callout-bg: var(--soft-success-bg);
+  --callout-border: var(--soft-success-border);
+  --callout-accent: var(--soft-success-text);
+}
+
+.article-content .callout-important {
+  --callout-bg: var(--soft-brand-bg);
+  --callout-border: var(--soft-brand-border);
+  --callout-accent: var(--soft-brand-text);
+}
+
+.article-content .callout-warning {
+  --callout-bg: var(--soft-amber-bg);
+  --callout-border: var(--soft-amber-border);
+  --callout-accent: var(--soft-amber-text);
+}
+
+.article-content .callout-caution {
+  --callout-bg: var(--soft-error-bg);
+  --callout-border: var(--soft-error-border);
+  --callout-accent: var(--soft-error-text);
+}
+
 .article-content img {
   border-radius: var(--radius-lg);
 }
