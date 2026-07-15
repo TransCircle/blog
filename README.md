@@ -271,6 +271,52 @@ pnpm run og:fonts   # 重新裁剪字体子集，随后提交更新后的 .woff 
 
 ---
 
+## 文章 PDF 导出
+
+每篇文章文末都有一个「**下载 PDF**」链接，读者点一下即可下载一份**文字型 PDF**
+（可选中、可搜索、链接可点、矢量高清、白底、每页顶部带站点标识），适合离线阅读与打印。
+
+这些 PDF 在**构建时自动生成**，无需手动制作：
+
+1. `astro build` 先产出每篇文章的「打印视图」`dist/print/<slug>/index.html`
+   （由 `src/pages/print/[...slug].astro` 渲染——一份只含 logo、文章头、正文、脚注、协议的
+   干净文档，去掉了导航 / 页脚 / 主题切换等站点 UI）。这些 HTML 只是 PDF 的**渲染源**。
+2. `scripts/generate-pdfs.mjs` 再用无头 Chrome 打开这些页面，以浏览器打印引擎输出
+   `dist/print/<slug>.pdf`（`/print/<slug>.pdf`），**并随即删除对应的 HTML 目录**——
+   最终 `dist/print/` 下只保留干净的 `.pdf`，不把中间产物部署上线。
+
+二者已合并进 `pnpm run build`（即 `astro build && node scripts/generate-pdfs.mjs`），
+因此 Cloudflare Pages 现有的构建流程会**自动**产出 PDF，无需改动。
+
+> 本地开发：`pnpm run dev` **不**生成 PDF（那是构建产物）。因此文末「下载 PDF」在 dev 下
+> 改为指向可实时渲染的打印视图页（用于预览排版）；`pnpm run build` / 线上部署时才是真正的
+> `.pdf` 下载。要在本地看成品 PDF，用 `pnpm run build` 后打开 `dist/print/*.pdf`。
+
+几个要点：
+
+- **中文字体**：CF 构建环境没有中文系统字体，脚本会从**已渲染的 HTML** 收集全部用到的
+  字形（连 callout 标签、脚注「注释」等由插件生成、Markdown 源里没有的文字也一并覆盖），
+  据此把 Noto Sans SC 子集化后内嵌进 PDF——既不缺字、体积又小，且**未来新增的组件文字会自动纳入**。
+- **正文样式复用** `.article-content`，所以任何未来新增、影响正文的全局样式都会自动出现在 PDF 里。
+- **每页顶部 logo** 由打印引擎的每页页眉渲染（读取 `src/assets/brand/transcircle-horizontal.svg`）。
+- **失败不阻断部署**：在 Cloudflare 构建中若无头浏览器不可用，脚本会跳过并以 0 退出
+  （沿用 `indexnow` 的约定），部署照常，只是这次没有更新 PDF。
+
+### 相关命令
+
+```bash
+pnpm run build       # 构建站点并生成全部文章 PDF（CF 用这个）
+pnpm run build:site  # 只构建站点、不生成 PDF（本地快速预览产物时用）
+pnpm run pdf         # 站点已构建（dist/ 存在）时，单独重跑 PDF 生成
+```
+
+> 依赖说明：PDF 生成依赖 `puppeteer`。`package.json` 里的
+> `pnpm.onlyBuiltDependencies` 已放行它的安装脚本，`pnpm install` 会自动下载配套的
+> Chromium（约 150 MB，含在 pnpm 缓存中）。首次生成若本地无字体源，会从
+> notofonts/noto-cjk 下载完整 Noto Sans SC 到 `.cache/`（与 `og:fonts` 共用缓存）。
+
+---
+
 ## 品牌图标
 
 站点图标只有一个源文件，全部产物都由它生成：

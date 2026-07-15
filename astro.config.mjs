@@ -141,7 +141,9 @@ export default defineConfig({
       // 排除搜索页（robots.txt 已 Disallow）与各类非 HTML 端点，避免无效 / 重复 URL
       filter: (page) => {
         const p = new URL(page).pathname.replace(/\/$/, '') || '/';
-        if (p === '/search') return false;
+        // 搜索页与文章打印视图（/print/*）都不进站点地图：前者已 Disallow，
+        // 后者是正式文章页的可打印副本，收录会构成重复内容
+        if (p === '/search' || p === '/print' || p.startsWith('/print/')) return false;
         if (/\.(md|txt|json|xml)$/i.test(p)) return false;
         return true;
       },

@@ -73,6 +73,10 @@ const breadcrumbs = [
 // 文章 OG 图：构建期按文章元数据自动生成的卡片（见 src/pages/og/[...slug].png.ts）。
 // frontmatter 的 cover 仅用于页内题图，不再作为社交分享图。
 const ogImage = `/og/${post.slug}.png`;
+
+// 「下载 PDF」：成品 PDF 由构建脚本生成（dist/print/<slug>.pdf）。开发服务器（astro dev）
+// 不生成 PDF，此时改为指向可实时渲染的打印视图页，便于本地预览排版。
+const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.slug}.pdf`;
 ---
 
 <Layout
@@ -129,6 +133,29 @@ const ogImage = `/og/${post.slug}.png`;
 
       <div class="article-content">
         <Content />
+      </div>
+
+      <div class="post-export section-divider">
+        <a class="pdf-link" href={pdfHref} download={!import.meta.env.DEV}>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          下载 PDF
+        </a>
+        <span class="pdf-hint">文字版 PDF · 可选中可搜索 · 每页含站点标识</span>
       </div>
 
       {
@@ -243,6 +270,53 @@ const ogImage = `/og/${post.slug}.png`;
     width: 100%;
     height: auto;
     border-radius: var(--radius-lg);
+  }
+
+  /* 文末「导出为 PDF」：进入可打印的文档视图，再由浏览器另存为 PDF */
+  .post-export {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    min-width: 0;
+  }
+
+  .pdf-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--divider-color);
+    border-radius: var(--radius-pill);
+    background-color: var(--surface-card);
+    color: var(--accent-pink);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background-color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+
+  .pdf-link:hover {
+    background-color: var(--hover-bg);
+    border-color: var(--primary-pink);
+  }
+
+  .pdf-link svg {
+    flex: none;
+  }
+
+  .pdf-hint {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    min-width: 0;
+  }
+
+  @media (any-pointer: coarse) {
+    .pdf-link {
+      min-height: var(--tap-min);
+    }
   }
 
   .post-tags {

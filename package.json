@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/generate-pdfs.mjs",
+    "build:site": "astro build",
+    "pdf": "node scripts/generate-pdfs.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "typecheck": "astro check",
@@ -33,6 +35,7 @@
     "globals": "^17.6.0",
     "prettier": "^3.5.3",
     "prettier-plugin-astro": "^0.14.1",
+    "puppeteer": "^25.3.0",
     "satori": "^0.26.0",
     "subset-font": "^2.5.0",
     "typescript": "^5.8.3",
