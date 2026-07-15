@@ -1,0 +1,341 @@
+---
+/**
+ * 文章的「打印视图」——供无头浏览器渲染成可下载 PDF 的**渲染源**页面。
+ *
+ * 生成链路：`astro build` 产出本页 HTML → `scripts/generate-pdfs.mjs` 用无头 Chrome
+ * 打开本页、注入按全文子集化的中文字体、以 `page.pdf()` 输出 `/print/<slug>.pdf`。
+ * 文章页文末的「下载 PDF」直接指向那个 .pdf 文件。
+ *
+ * 为什么是独立页面而非搬运网站：这是一份**正经的文章文档**——只保留 logo（由 PDF
+ * 的每页页眉提供）、文章头、正文、脚注、协议，去掉导航 / 页脚 / 主题切换等站点 UI。
+ *
+ * 设计要点：
+ *  - 强制浅色（data-theme=light + 白底），避免深色主题把 PDF 变黑底。
+ *  - 正文复用 `.article-content`（global.css）与脚注样式（FootnotePopover 的 is:global），
+ *    因此**任何未来新增、影响正文的全局样式都会自动出现在 PDF 里**，无需改本页。
+ *  - 紧凑排版集中在 `@media print`（`page.pdf()` 走 print media），一页能容纳更多内容。
+ *  - 中文字体不在本页写死：由生成脚本按全文子集化后注入，保证 PDF 中文不缺字、体积可控。
+ *  - 每页顶部 logo 由 `page.pdf` 的 headerTemplate 每页渲染（比 CSS fixed 更可靠）；
+ *    本页仅在**屏幕预览**时于文档顶部放一枚 logo（打印/PDF 时隐藏，交给页眉）。
+ */
+import { getCollection, type CollectionEntry } from 'astro:content';
+import FootnotePopover from '@components/FootnotePopover.astro';
+import { formatDate, formatPeople } from '@utils/posts';
+import logoSvg from '../../assets/brand/transcircle-horizontal.svg?raw';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  return posts
+    .filter((post: CollectionEntry<'posts'>) => !post.data.draft)
+    .map((post: CollectionEntry<'posts'>) => ({
+      params: { slug: post.slug },
+      props: { post },
+    }));
+}
+
+export interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+const {
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  author,
+  editor,
+  category,
+  tags,
+  contentLicense,
+  codeLicense,
+} = post.data;
+
+// 字数（中文字符 + 英文单词），与文章页口径一致
+const rawBody = post.body || '';
+const chineseChars = (rawBody.match(/[一-龥]/g) || []).length;
+const englishWords = (rawBody.match(/[a-zA-Z]+/g) || []).length;
+const wordCount = chineseChars + englishWords;
+
+const authorText = formatPeople(author);
+const editorText = formatPeople(editor);
+const formattedDate = formatDate(pubDate);
+const formattedUpdated = updatedDate ? formatDate(updatedDate) : null;
+
+const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
+const canonical = new URL(`/posts/${post.slug}/`, siteURL).toString();
+---
+
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · 打印版 · 跨环博客</title>
+    <meta name="description" content={description || title} />
+    {/* 打印视图不参与检索：避免与正式文章页构成重复内容 */}
+    <meta name="robots" content="noindex, follow" />
+    <link rel="canonical" href={canonical} />
+
+    <style is:global>
+      @import '../../styles/global.css';
+    </style>
+
+    <style is:global>
+      /* 强制浅色文档：盖掉 global.css 的 body 骨架（flex / 100dvh / 粉白底）。
+       * 屏幕上用浅灰衬托白纸；PDF（print media）整体纯白。 */
+      :root {
+        color-scheme: light;
+      }
+      html {
+        scroll-behavior: auto;
+      }
+      /* 用 html body 提高特异性，稳赢 global.css 的 body{background-color:var(--bg-color)}
+       * ——否则打印时 body 会保留浅粉底（--bg-color=#fff9fb），最后一页正文不满页处
+       * 会露出一块粉色。 */
+      html body {
+        display: block;
+        min-height: 100vh;
+        margin: 0;
+        background: #e9ebef;
+        color: #1a1a1a;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* 屏幕预览：把文档做成居中的白色纸张（仅为直接访问者预览，PDF 不走这套） */
+      .print-sheet {
+        max-width: 190mm;
+        margin: 24px auto 48px;
+        padding: 20mm 18mm 16mm;
+        background: #fff;
+        border-radius: 4px;
+        box-shadow: 0 3px 20px rgba(0, 0, 0, 0.14);
+      }
+
+      /* 屏幕预览顶部的品牌 logo；打印/PDF 时隐藏，改由 page.pdf 的每页页眉提供 */
+      .print-screen-logo {
+        margin: 0 0 10mm;
+        line-height: 0;
+      }
+      .print-screen-logo svg {
+        display: block;
+        width: 150px;
+        height: auto;
+      }
+
+      /* ── 文档头（标题 / 简介 / 元信息）：文章文档的抬头，非网站 UI ── */
+      .print-head {
+        margin-bottom: 1.4rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0c2ce;
+      }
+      .print-title {
+        margin: 0 0 0.45rem;
+        font-size: 1.7rem;
+        font-weight: 700;
+        line-height: 1.25;
+        color: #111;
+      }
+      .print-desc {
+        margin: 0 0 0.6rem;
+        font-size: 0.98rem;
+        line-height: 1.55;
+        color: #444;
+      }
+      .print-meta {
+        margin: 0;
+        font-size: 0.82rem;
+        line-height: 1.55;
+        color: #666;
+      }
+      .print-meta span + span::before {
+        content: '·';
+        margin: 0 0.5em;
+        color: #bbb;
+      }
+
+      .print-sheet .article-content {
+        color: #1a1a1a;
+      }
+
+      /* ── 文末：标签 / 协议 / 原文链接 ─────────────────────────── */
+      .print-foot {
+        margin-top: 1.8rem;
+        padding-top: 0.9rem;
+        border-top: 1px solid #e6d3da;
+        font-size: 0.8rem;
+        line-height: 1.6;
+        color: #555;
+      }
+      .print-foot p {
+        margin: 0.15rem 0;
+      }
+      .print-foot a {
+        color: #b83e5e;
+        text-decoration: none;
+        word-break: break-all;
+      }
+
+      /* ══ PDF / 打印态：紧凑排版，一页容纳更多 ═══════════════════
+       * page.pdf() 走 print media，故 PDF 外观由这里决定。字号用 pt。 */
+      @media print {
+        html body {
+          background: #fff;
+        }
+        .print-screen-logo {
+          display: none; /* 每页 logo 交给 page.pdf 的页眉 */
+        }
+        .print-sheet {
+          max-width: none;
+          margin: 0;
+          padding: 0;
+          background: #fff;
+          border-radius: 0;
+          box-shadow: none;
+        }
+
+        .print-head {
+          margin-bottom: 9pt;
+          padding-bottom: 7pt;
+        }
+        .print-title {
+          font-size: 17pt;
+        }
+        .print-desc {
+          font-size: 10pt;
+        }
+        .print-meta {
+          font-size: 8pt;
+        }
+
+        /* 正文紧凑：10.5pt / 1.55，标题按层级递减、间距收紧 */
+        .print-sheet .article-content {
+          font-size: 10.5pt;
+          line-height: 1.55;
+        }
+        .article-content p {
+          margin-bottom: 5pt;
+        }
+        .article-content h2 {
+          font-size: 13pt;
+          margin-top: 11pt;
+          padding-top: 6pt;
+          margin-bottom: 5pt;
+        }
+        /* 正文紧跟文档头：首个 h2 不再画章节分隔线，避免与文档头下边线夹出大片空白 */
+        .article-content > h2:first-child {
+          margin-top: 0;
+          padding-top: 0;
+          border-top: none;
+        }
+        /* 章节分隔线（--- / hr）在纸面收紧高度，避免显得空 */
+        .article-content hr {
+          margin: 7pt 0;
+          border-top-color: #e6d3da;
+        }
+        .article-content h3 {
+          font-size: 11.5pt;
+          margin-top: 10pt;
+          margin-bottom: 4pt;
+        }
+        .article-content h4 {
+          font-size: 10.5pt;
+          margin-top: 8pt;
+          margin-bottom: 3pt;
+        }
+        .article-content ul,
+        .article-content ol {
+          margin-bottom: 5pt;
+        }
+        .article-content li {
+          margin-bottom: 2pt;
+        }
+        .article-content blockquote {
+          margin: 8pt 0;
+        }
+        .article-content .callout {
+          margin: 8pt 0;
+          padding: 7pt 9pt;
+        }
+
+        /* 代码 / 表格在纸面不能横向滚动，改为换行，字号更小 */
+        .article-content pre,
+        .article-content :not(pre) > code {
+          font-size: 8.6pt;
+        }
+        .article-content pre,
+        .article-content pre code {
+          white-space: pre-wrap;
+          word-break: break-word;
+        }
+        .article-content .table-wrapper {
+          overflow: visible;
+        }
+        .article-content table {
+          font-size: 8.4pt;
+        }
+        .article-content th,
+        .article-content td {
+          padding: 3pt 5pt;
+        }
+
+        /* 分页：标题不落单在页底；成块内容尽量不被切断 */
+        .article-content :is(h2, h3, h4, h5, h6) {
+          break-after: avoid;
+        }
+        .article-content :is(pre, blockquote, figure, table, .callout, img) {
+          break-inside: avoid;
+        }
+        .article-content li {
+          break-inside: avoid;
+        }
+
+        .print-foot {
+          margin-top: 14pt;
+          padding-top: 8pt;
+          font-size: 8pt;
+        }
+
+        /* FootnotePopover 的悬浮预览卡片不应出现在纸上 */
+        #fn-pop,
+        .fn-pop {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="print-sheet">
+      {/* 屏幕预览的品牌 logo；PDF 每页页眉由 page.pdf 提供 */}
+      <div class="print-screen-logo" aria-hidden="true" set:html={logoSvg}></div>
+
+      <header class="print-head">
+        <h1 class="print-title">{title}</h1>
+        {description && <p class="print-desc">{description}</p>}
+        <p class="print-meta">
+          <span>{category}</span>
+          <span>{formattedDate}发布</span>
+          {formattedUpdated && <span>{formattedUpdated}更新</span>}
+          <span>作者：{authorText}</span>
+          {editorText && <span>编辑：{editorText}</span>}
+          <span>约 {wordCount} 字</span>
+        </p>
+      </header>
+
+      <article class="article-content">
+        <Content />
+      </article>
+
+      <footer class="print-foot">
+        {tags.length > 0 && <p>标签：{tags.join(' · ')}</p>}
+        <p>内容协议：{contentLicense} ｜ 代码协议：{codeLicense}</p>
+        <p>原文永久链接：<a href={canonical}>{canonical}</a></p>
+      </footer>
+    </main>
+
+    {/* 复用脚注的 is:global 样式，让脚注在文档里正确呈现 */}
+    <FootnotePopover />
+  </body>
+</html>

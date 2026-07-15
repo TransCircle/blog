@@ -1,3 +1,6 @@
 allowBuilds:
   esbuild: true
   sharp: true
+  # 放行 puppeteer 的安装脚本：pnpm install（含 Cloudflare 构建）会自动下载配套
+  # Chromium —— 文章 PDF 由无头浏览器在构建期生成（见 scripts/generate-pdfs.mjs）。
+  puppeteer: true
