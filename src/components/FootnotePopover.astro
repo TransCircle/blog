@@ -24,6 +24,9 @@
     </button>
   </div>
   <div class="fn-pop-body"></div>
+  <div class="fn-pop-footer">
+    <a class="fn-pop-jump" href="">跳转到脚注 &raquo;</a>
+  </div>
   <span class="fn-pop-arrow"></span>
 </div>
 
@@ -50,6 +53,7 @@
       const popBody = card.querySelector<HTMLElement>('.fn-pop-body')!;
       const popNum = card.querySelector<HTMLElement>('.fn-pop-num')!;
       const popClose = card.querySelector<HTMLButtonElement>('.fn-pop-close')!;
+      const popJump = card.querySelector<HTMLAnchorElement>('.fn-pop-jump')!;
 
       let current: HTMLAnchorElement | null = null;
       let showTimer: ReturnType<typeof setTimeout> | undefined;
@@ -85,6 +89,7 @@
         popBody.querySelectorAll('a').forEach((a) => a.setAttribute('tabindex', '-1'));
 
         popNum.textContent = ref.textContent || '';
+        popJump.href = ref.getAttribute('href') || '#';
         return true;
       }
 
@@ -194,6 +199,10 @@
       });
 
       popClose.addEventListener('click', close);
+
+      popJump.addEventListener('click', () => {
+        originRefId = current?.id || null;
+      });
 
       // 点卡片和标记以外的地方 → 关闭（触屏的主要退出方式）
       document.addEventListener('click', (e) => {
@@ -350,7 +359,7 @@
 
   .fn-pop-close {
     position: relative;
-    display: flex;
+    display: none; /* 触屏才显示关闭键，桌面端鼠标离开即收起 */
     align-items: center;
     justify-content: center;
     width: 24px;
@@ -375,6 +384,9 @@
 
   /* 触屏命中区放大到 44px，但按钮视觉尺寸不变 */
   @media (any-pointer: coarse) {
+    .fn-pop-close {
+      display: flex;
+    }
     .fn-pop-close::after {
       content: '';
       position: absolute;
@@ -383,6 +395,36 @@
       width: var(--tap-min);
       height: var(--tap-min);
       transform: translate(-50%, -50%);
+    }
+  }
+
+  /* ── 跳转到脚注 ──────────────────────────────────────────────────────── */
+  .fn-pop-footer {
+    display: none; /* 桌面端隐藏，触屏端通过 @media 显示 */
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid var(--divider-color);
+  }
+
+  .fn-pop-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent-pink);
+    text-decoration: none;
+  }
+
+  .fn-pop-jump:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  @media (any-pointer: coarse) {
+    .fn-pop-footer {
+      display: flex;
     }
   }
 
