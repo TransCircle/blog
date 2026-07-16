@@ -10,7 +10,7 @@ import PageHeader from '@components/ui/PageHeader.astro';
 import Pill from '@components/ui/Pill.astro';
 import SectionLabel from '@components/ui/SectionLabel.astro';
 import Button from '@components/ui/Button.astro';
-import { formatDate, formatPeople } from '@utils/posts';
+import { formatDate, formatPeople, countWords } from '@utils/posts';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
@@ -44,11 +44,7 @@ const {
   codeLicense,
 } = post.data;
 
-// 计算字数（中文字符 + 英文单词）
-const rawBody = post.body || '';
-const chineseChars = (rawBody.match(/[\u4e00-\u9fa5]/g) || []).length;
-const englishWords = (rawBody.match(/[a-zA-Z]+/g) || []).length;
-const totalWordCount = chineseChars + englishWords;
+const totalWordCount = countWords(post.body || '');
 
 const formattedDate = formatDate(pubDate);
 const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;

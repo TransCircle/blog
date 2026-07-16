@@ -26,6 +26,22 @@ export function formatDate(date: Date): string {
   });
 }
 
+/**
+ * 统计正文字数（中文字符 + 英文单词），**排除脚注**：既剥掉文末的脚注定义
+ * （`[^id]: …`，多为参考文献），也剥掉正文里的引用标记（`[^id]`）。
+ * 文章页、打印 / PDF、OG 卡片共用此口径，确保处处一致。
+ */
+export function countWords(body: string): number {
+  const text = (body || '')
+    // 脚注定义整行：[^id]: 参考文献…（含末尾换行）
+    .replace(/^[ \t]*\[\^[^\]]+\]:.*(?:\r?\n|$)/gm, '')
+    // 正文中的脚注引用标记：[^id]
+    .replace(/\[\^[^\]]+\]/g, '');
+  const chinese = (text.match(/[一-龥]/g) || []).length;
+  const english = (text.match(/[a-zA-Z]+/g) || []).length;
+  return chinese + english;
+}
+
 export function getAllTags(posts: Array<{ data: { tags: string[] } }>): string[] {
   const tagSet = new Set<string>();
   posts.forEach((post) => {
