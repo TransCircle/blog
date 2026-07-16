@@ -151,7 +151,6 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
           </svg>
           下载 PDF
         </a>
-        <span class="pdf-hint">文字版 PDF · 可选中可搜索 · 每页含站点标识</span>
       </div>
 
       {
@@ -301,12 +300,6 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
 
   .pdf-link svg {
     flex: none;
-  }
-
-  .pdf-hint {
-    font-size: var(--fs-sm);
-    color: var(--text-muted);
-    min-width: 0;
   }
 
   @media (any-pointer: coarse) {
