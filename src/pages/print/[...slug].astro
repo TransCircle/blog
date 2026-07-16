@@ -225,10 +225,12 @@ const canonical = new URL(`/posts/${post.slug}/`, siteURL).toString();
           padding-top: 0;
           border-top: none;
         }
-        /* 章节分隔线（--- / hr）在纸面收紧高度，避免显得空 */
+        /* 章节分隔线（--- / hr）在纸面收紧高度，避免显得空；
+         * break-before: avoid 让它尽量跟着上文留在页尾，而不是孤零零出现在下一页页首 */
         .article-content hr {
           margin: 7pt 0;
           border-top-color: #e6d3da;
+          break-before: avoid;
         }
         .article-content h3 {
           font-size: 11.5pt;
