@@ -484,6 +484,14 @@
     color: var(--text-secondary);
   }
 
+  /* 自适配：文章末尾若作者已手写 `---`（渲染成 hr），脚注区就不再重复画自己的上边线，
+   * 免得与那条 hr 叠成两条分隔线；没写 `---` 的文章仍保留脚注区自带的上边线。 */
+  .article-content hr + section.footnotes {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
   /* GFM 的 "Footnotes" 标题是 sr-only；给视觉用户补一个中文小标 */
   .article-content section.footnotes::before {
     content: '注释';
