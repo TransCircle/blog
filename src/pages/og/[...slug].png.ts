@@ -7,7 +7,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { renderOgImage, findUncovered } from '@/lib/og/render';
-import type { Person } from '@utils/posts';
+import { countWords, type Person } from '@utils/posts';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
@@ -26,9 +26,8 @@ export const GET: APIRoute = async ({ props }) => {
   const authors = author.map((p: Person) => p.name);
   const editors = editor.map((p: Person) => p.name);
 
-  // 字数：中文字符 + 英文单词，与文章页 [...slug].astro 的口径保持一致
-  const body = post.body || '';
-  const wordCount = (body.match(/[一-龥]/g) || []).length + (body.match(/[a-zA-Z]+/g) || []).length;
+  // 字数（排除脚注），与文章页 / 打印视图同口径
+  const wordCount = countWords(post.body || '');
 
   // 构建期校验：卡片要绘制的文案若有字形不在已提交字体子集中，会渲染成 □，此处告警。
   const missing = findUncovered(

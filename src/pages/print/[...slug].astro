@@ -20,7 +20,7 @@
  */
 import { getCollection, type CollectionEntry } from 'astro:content';
 import FootnotePopover from '@components/FootnotePopover.astro';
-import { formatDate, formatPeople } from '@utils/posts';
+import { formatDate, formatPeople, countWords } from '@utils/posts';
 import logoSvg from '../../assets/brand/transcircle-horizontal.svg?raw';
 
 export async function getStaticPaths() {
@@ -52,11 +52,7 @@ const {
   codeLicense,
 } = post.data;
 
-// 字数（中文字符 + 英文单词），与文章页口径一致
-const rawBody = post.body || '';
-const chineseChars = (rawBody.match(/[一-龥]/g) || []).length;
-const englishWords = (rawBody.match(/[a-zA-Z]+/g) || []).length;
-const wordCount = chineseChars + englishWords;
+const wordCount = countWords(post.body || '');
 
 const authorText = formatPeople(author);
 const editorText = formatPeople(editor);
