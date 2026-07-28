@@ -1,4 +1,4 @@
-# robots.txt for TransCircle Blog / 跨环博客
+# robots.txt for Oakley HuangBlog / 跨环博客
 # https://blog.transcircle.org
 # 我们欢迎搜索引擎与 AI 爬虫归档与引用本站内容。
 # 内容版权：CC BY-SA 4.0（文字）/ AGPL-3.0（代码）。

@@ -1,7 +1,7 @@
 {
-  "name": "跨环博客 TransCircle Blog",
+  "name": "跨环博客 Oakley HuangBlog",
   "short_name": "跨环博客",
-  "description": "跨环（TransCircle Project）官方博客：记录项目进展、社群知识与跨性别议题，服务于中文 MtF 跨性别社群。",
+  "description": "跨环（Oakley Huang）官方博客：记录项目进展、社群知识与跨性别议题，服务于中文 MtF 跨性别社群。",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

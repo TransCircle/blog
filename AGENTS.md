@@ -1,6 +1,6 @@
-# TransCircle Project - AGENTS.md
+# Oakley Huang - AGENTS.md
 
-> 本文档面向 AI 编码助手。请严格遵循以下规范为 TransCircle 项目生成代码。
+> 本文档面向 AI 编码助手。请严格遵循以下规范为 Oakley Huang项目生成代码。
 
 ## 1. 项目概述
 
@@ -267,7 +267,7 @@ audit:read                查看审计日志
 
 ## 6. 无障碍规范 (Accessibility)
 
-> **强制要求**：TransCircle 项目默认遵循 WCAG 2.1+ 标准。
+> **强制要求**：Oakley Huang项目默认遵循 WCAG 2.1+ 标准。
 
 ### 6.1 核心原则
 

@@ -23,7 +23,7 @@ const paginatedPosts = publishedPosts.slice(0, POSTS_PER_PAGE);
 const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
 const homeTitle = '跨环博客';
 const homeDescription =
-  '跨环（TransCircle Project）官方博客：记录项目进展、社群知识与跨性别议题，涵盖跨性别医疗（HRT）、社群语言与档案、技术与设计实践，服务于中文 MtF 跨性别社群。内容遵循 CC BY-SA 4.0，代码遵循 AGPL-3.0。';
+  '跨环（Oakley Huang）官方博客：记录项目进展、社群知识与跨性别议题，涵盖跨性别医疗（HRT）、社群语言与档案、技术与设计实践，服务于中文 MtF 跨性别社群。内容遵循 CC BY-SA 4.0，代码遵循 AGPL-3.0。';
 
 // Blog 结构化数据：列出最新文章，帮助搜索引擎与 AI 理解站点为「博客」实体及其文章集合
 const blogSchema = {
@@ -32,7 +32,7 @@ const blogSchema = {
   '@id': `${siteURL}#blog`,
   url: siteURL,
   name: '跨环博客',
-  alternateName: 'TransCircle Blog',
+  alternateName: 'Oakley HuangBlog',
   description: homeDescription,
   inLanguage: 'zh-CN',
   publisher: { '@id': `${siteURL}#organization` },

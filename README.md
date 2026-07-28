@@ -1,8 +1,8 @@
-# 跨环博客 TransCircle Blog
+# Oakley Huang Blog
 
-> 跨环（TransCircle Project）官方博客：记录项目进展、社群知识与跨性别议题。
+> Oakley Huang/羊圈Yan-Gyan官方博客：记录项目进展、社群知识与跨性别议题。
 > 
-> 在线地址：[blog.transcircle.org](https://blog.transcircle.org)
+> 在线地址：[blog.oakleyhuang.org](https://blog.oakleyhuang.org)
 
 ---
 
@@ -12,7 +12,7 @@
 - [发布文章](#发布文章)
 - [修改文章](#修改文章)
 - [文章格式说明](#文章格式说明)
-- [社交分享图（OG 卡片）](#社交分享图og-卡片)
+- [社交分享图（OG卡片）](#社交分享图og-卡片)
 - [品牌图标](#品牌图标)
 - [本地预览](#本地预览)
 - [发布流程](#发布流程)
@@ -106,7 +106,7 @@ updatedDate: 2026-05-21  # 添加这行表示更新时间
 | `description` | 可选 | 文章简介，显示在列表中 | `'本周完成的工作内容'` |
 | `pubDate` | ✅ | 发布日期 | `2026-05-21` |
 | `updatedDate` | 可选 | 更新日期 | `2026-05-22` |
-| `author` | 可选 | 作者署名（默认：TransCircle 项目组），写法见下节 | `'张三'` |
+| `author` | 可选 | 作者署名（默认：Oakley Huang项目组），写法见下节 | `'张三'` |
 | `editor` | 可选 | 编辑署名，**不写就不显示**，写法见下节 | `'李四'` |
 | `category` | 可选 | 分类（默认：general） | `'开发进度'` 或 `'团队报告'` |
 | `tags` | 可选 | 标签数组 | `['前端', 'astro']` |
@@ -122,7 +122,7 @@ updatedDate: 2026-05-21  # 添加这行表示更新时间
 ```markdown
 ---
 # 1. 只写名字：不带链接，署名显示为纯文本，点不了
-author: 'TransCircle 文案组'
+author: 'Oakley Huang文案组'
 
 # 2. 名字 + 链接：署名可点，在新标签页打开
 author: { name: '翅膀', link: 'https://x.com/axzameyzed' }
@@ -131,7 +131,7 @@ author: { name: '翅膀', link: 'https://x.com/axzameyzed' }
 author:
   - { name: '羽莉', link: 'https://x.com/liwanmiaohy' }
   - { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
-  - 'TransCircle 文案组'          # 这一位没有链接，就是纯文本
+  - 'Oakley Huang文案组'          # 这一位没有链接，就是纯文本
 ---
 ```
 
@@ -140,7 +140,7 @@ author:
 - **不写 `link` 就是没有链接**，署名保持纯文本、不做跳转，也不会被"顺手"指向主站。
 - **不写 `editor` 就是没有编辑**，文章页、分享图、结构化数据里都不会出现「编辑」这一行；
   不会自动署上团队名。
-- `author` 不写时才回退到 `TransCircle 项目组`。
+- `author` 不写时才回退到 `Oakley Huang项目组`。
 - `link` 只接受 `http(s)` 链接，其它协议（如 `javascript:`）会在构建时直接报错。
 - 多人署名用顿号（、）连接；点击带链接的署名会先弹出外链确认框。
 
@@ -460,7 +460,7 @@ A: 分类是文章的大类（如"开发进度"），标签是更细粒度的关
 
 ## 设计规范
 
-本项目遵循 TransCircle 全局设计系统（`../docs/DESIGN.md`），落地方式与博客特有的偏离记录在
+本项目遵循 Oakley Huang全局设计系统（`../docs/DESIGN.md`），落地方式与博客特有的偏离记录在
 [`DESIGN.md`](DESIGN.md)：
 
 - 两套主题：浅色 / 深色（高对比度模式已按全局规范移除，对比度由令牌自身色值保证）

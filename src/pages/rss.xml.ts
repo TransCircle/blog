@@ -10,7 +10,7 @@ export async function GET(context: APIContext) {
     .sort((a: CollectionEntry<'posts'>, b: CollectionEntry<'posts'>) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 
   return rss({
-    title: '跨环博客 TransCircle Blog',
+    title: '跨环博客 Oakley HuangBlog',
     description: '记录项目进展、社群知识与跨性别议题',
     site: context.site || 'https://blog.transcircle.org',
     items: publishedPosts.map((post: CollectionEntry<'posts'>) => ({

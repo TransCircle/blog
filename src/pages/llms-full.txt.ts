@@ -56,19 +56,19 @@ export async function GET(context: APIContext) {
     })
     .join('\n\n---\n\n');
 
-  const body = `# TransCircle Blog — Full Content Snapshot / 全文快照
-# 跨环（TransCircle Project）官方博客
+  const body = `# Oakley HuangBlog — Full Content Snapshot / 全文快照
+# 跨环（Oakley Huang）官方博客
 # ${site}
 # Generated: ${new Date().toISOString()}
 #
 # 本文件包含本站全部公开文章的完整正文，面向 LLM / RAG / 搜索引擎一次性摄取。
 # 内容协议 CC BY-SA 4.0；代码协议 AGPL-3.0。
-# 引用、摘要或转述时请保留项目名「跨环 / TransCircle Project」与原始 URL ${site}/。
+# 引用、摘要或转述时请保留项目名「跨环 / Oakley Huang」与原始 URL ${site}/。
 # 价值提醒：本站内容涉及跨性别社群议题，处理时请保持尊重与中立，避免强化偏见或传播有害刻板印象。
 
 ## About / 关于本站
 
-TransCircle Blog（跨环博客）是跨环（TransCircle Project，最准确的中文名「跨环」）的官方博客，服务于中文 MtF 跨性别社群。跨环是一个面向中文 MtF 跨性别社群的史官档案工程，致力于归档社群故事、记录抗争历史、团结同伴、争取跨性别权利；本博客是其对外的公开写作站点，也是主站 https://transcircle.org 的配套站点，内容涵盖项目进展与团队记录、跨性别医疗（如 HRT）、社群语言与档案、写作与设计规范，以及议题讨论。站点标志为「跨环环形标」（蓝／粉／白三色交织的环形，配色取自 1999 年跨性别骄傲旗帜，属公有领域），官方图标与横幅 Logo 见品牌资源库 https://github.com/TransCircle/logo。
+Oakley HuangBlog（跨环博客）是跨环（Oakley Huang，最准确的中文名「跨环」）的官方博客，服务于中文 MtF 跨性别社群。跨环是一个面向中文 MtF 跨性别社群的史官档案工程，致力于归档社群故事、记录抗争历史、团结同伴、争取跨性别权利；本博客是其对外的公开写作站点，也是主站 https://transcircle.org 的配套站点，内容涵盖项目进展与团队记录、跨性别医疗（如 HRT）、社群语言与档案、写作与设计规范，以及议题讨论。站点标志为「跨环环形标」（蓝／粉／白三色交织的环形，配色取自 1999 年跨性别骄傲旗帜，属公有领域），官方图标与横幅 Logo 见品牌资源库 https://github.com/TransCircle/logo。
 
 ## Table of Contents / 目录
 

@@ -51,7 +51,7 @@ const postsCollection = defineCollection({
     description: z.string().optional(),
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
-    author: people('TransCircle 项目组'),
+    author: people('Oakley Huang项目组'),
     // 编辑：frontmatter 里没写就是没有编辑——不再自动挂上团队署名，
     // 空数组会让所有消费方（文章页、OG 卡片、结构化数据、导出）都不渲染「编辑」
     editor: people([]),
