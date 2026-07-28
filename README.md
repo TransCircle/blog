@@ -1,6 +1,6 @@
 # Oakley Huang Blog
 
-> Oakley Huang/羊圈Yan-Gyan官方博客：记录项目进展、社群知识与跨性别议题。
+> Oakley Huang/羊圈Yan-Gyan个人博客。
 > 
 > 在线地址：[blog.oakleyhuang.org](https://blog.oakleyhuang.org)
 
