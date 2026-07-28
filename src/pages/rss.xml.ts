@@ -10,8 +10,8 @@ export async function GET(context: APIContext) {
     .sort((a: CollectionEntry<'posts'>, b: CollectionEntry<'posts'>) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 
   return rss({
-    title: '跨环博客 Oakley HuangBlog',
-    description: '记录项目进展、社群知识与跨性别议题',
+    title: 'Oakley Huang/羊圈Yan-Gyan 的个人博客',
+    description: '记录本地化、翻译与游戏相关的笔记与作品',
     site: context.site || 'https://blog.transcircle.org',
     items: publishedPosts.map((post: CollectionEntry<'posts'>) => ({
       title: post.data.title,
@@ -20,7 +20,7 @@ export async function GET(context: APIContext) {
       link: `/posts/${post.slug}/`,
       categories: post.data.tags,
       author: formatPeople(post.data.author),
-    })),
+    })) ,
     customData: `<language>zh-CN</language>
 <managingEditor>team@transcircle.org</managingEditor>
 <webMaster>team@transcircle.org</webMaster>

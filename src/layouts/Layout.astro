@@ -1,53 +1,3 @@
----
-import LinkConfirmDialog from '@components/LinkConfirmDialog.astro';
-
-interface Person {
-  name: string;
-  link: string;
-}
-
-interface Breadcrumb {
-  name: string;
-  item: string;
-}
-
-export interface Props {
-  title: string;
-  description?: string;
-  image?: string;
-  type?: string;
-  author?: string;
-  authors?: Person[];
-  editors?: Person[];
-  pubDate?: Date;
-  updatedDate?: Date;
-  tags?: string[];
-  category?: string;
-  wordCount?: number;
-  isHome?: boolean;
-  noindex?: boolean;
-  breadcrumbs?: Breadcrumb[];
-  additionalSchemas?: Record<string, unknown>[];
-  license?: string;
-}
-
-const {
-  title,
-  description = '跨环博客 - 记录项目进展、社群知识与跨性别议题',
-  image,
-  type = 'website',
-  author,
-  authors,
-  editors,
-  pubDate,
-  updatedDate,
-  tags = [],
-  category,
-  wordCount,
-  isHome = false,
-  noindex = false,
-  breadcrumbs = [],
-  additionalSchemas = [],
   license,
 } = Astro.props;
 
@@ -56,7 +6,7 @@ const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.o
 
 // 动态关键词：标签 + 固定品牌词
 const baseKeywords =
-  'TransCircle, 跨环, 跨环博客, 跨性别, MtF, 跨性别女性, HRT, 跨性别医疗, 社群知识, 开源';
+  'Oakley Huang/羊圈Yan-Gyan, 本地化, 翻译, 游戏, 翻译, 本地化工程, 译者, 填词';
 const dynamicKeywords = tags.length > 0 ? `${tags.join(', ')}, ${baseKeywords}` : baseKeywords;
 
 // OG 图片默认值
@@ -66,11 +16,11 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
 // JSON-LD 数据
 const orgSchema = {
   '@context': 'https://schema.org',
-  '@type': 'Organization',
+  '@type': 'Person',
   '@id': `${siteURL}#organization`,
-  name: 'Oakley Huang',
-  alternateName: ['跨环', '跨性别圈工程', '跨性别中文圈', '中文跨性别圈', 'TransCircleProject'],
-  url: 'https://transcircle.org/',
+  name: 'Oakley Huang/羊圈Yan-Gyan',
+  alternateName: ['译者', '填词人'],
+  url: 'https://blog.transcircle.org/',
   logo: {
     '@type': 'ImageObject',
     url: `${siteURL}icon-512.png`,
@@ -78,16 +28,14 @@ const orgSchema = {
     height: 512,
   },
   image: `${siteURL}og-cover.png`,
-  description: '跨环（Oakley Huang）是一个面向中文 MtF 跨性别社群的史官档案工程，致力于归档社群故事、记录抗争历史、团结同伴、争取跨性别权利。',
+  description: '个人博客：记录本地化、翻译与游戏相关的笔记与作品。作者为译者与填词人，代表译作：《电子依存症：摩登罗马书》、《形影伤红》、《八尺大人：芳草恶灵抄》。',
   sameAs: [
     'https://github.com/TransCircle/TransCircle',
     'https://x.com/TransCircleOrg',
     'https://bsky.app/profile/TransCircle.org',
   ],
   knowsAbout: [
-    '跨环', '跨性别', 'MtF', 'Male-to-Female', '性别认同', '跨性别历史',
-    '跨性别社群档案', '中文 MtF 社群', '跨性别故事', 'TransCircle',
-    'Oakley Huang', 'transgender community', 'Chinese MtF community',
+    '本地化', '翻译', '游戏', '本地化工程', '译者', '填词人'
   ],
   inLanguage: 'zh-CN',
 };
@@ -97,280 +45,12 @@ const websiteSchema = {
   '@type': 'WebSite',
   '@id': `${siteURL}#website`,
   url: siteURL,
-  name: 'Oakley HuangBlog',
-  alternateName: '跨环博客',
-  description: '跨环（Oakley Huang）官方博客：记录项目进展、社群知识与跨性别议题，涵盖跨性别医疗、语言与社群档案，服务于中文 MtF 跨性别社群。',
+  name: 'Oakley Huang/羊圈Yan-Gyan',
+  alternateName: '个人博客',
+  description: '个人博客：记录本地化、翻译与游戏相关的笔记与作品。',
   inLanguage: 'zh-CN',
   publisher: { '@id': `${siteURL}#organization` },
   copyrightHolder: { '@id': `${siteURL}#organization` },
   copyrightYear: 2026,
-  license: 'https://creativecommons.org/licenses/by-sa/4.0/',
-  // 站内搜索动作：允许 Google 在结果中展示 sitelinks 搜索框
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: {
-      '@type': 'EntryPoint',
-      urlTemplate: `${siteURL}search?q={search_term_string}`,
-    },
-    'query-input': 'required name=search_term_string',
-  },
+  license: 'https://www.gnu.org/licenses/agpl-3.0.html',
 };
-
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  '@id': `${siteURL}#faq`,
-  inLanguage: 'zh-CN',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: 'Oakley HuangBlog 是什么？',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: '跨环博客（Oakley HuangBlog）是跨环（Oakley Huang）的官方博客，公开记录项目进展与团队运作，同时发布跨性别医疗（如 HRT）、社群语言与档案、技术与设计实践等长文，服务于中文 MtF 跨性别社群。',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '这个博客与 Oakley Huang 主站是什么关系？',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: '本博客是跨环主站（https://transcircle.org）的配套写作站点。主站聚焦项目介绍与社群入口，博客聚焦公开写作：项目进展、跨性别医疗与社群知识、议题讨论，以及技术与设计实践的记录。',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '如何引用博客上的内容？',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: '文字内容遵循 CC BY-SA 4.0 协议，代码片段遵循 AGPL-3.0 协议。引用时请保留原始 URL（https://blog.transcircle.org/）并注明来源"Oakley HuangBlog（跨环博客）"。',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '如何参与 Oakley Huang 的开发？',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: '可以通过 GitHub 仓库（github.com/TransCircle/TransCircle）提交 PR 或 Issue，也可以通过主站的申请表单（https://transcircle.org/s/join）加入项目协作。',
-      },
-    },
-  ],
-};
-
-// 将 { name, link }[] 规整为 schema.org Person 节点；缺省回退到团队 + 主站
-const toPersons = (people?: Person[]) =>
-  people && people.length > 0
-    ? people.map((p) => ({
-        '@type': 'Person',
-        name: p.name,
-        ...(p.link ? { url: p.link } : {}),
-      }))
-    : null;
-
-const schemaAuthors =
-  toPersons(authors) || [
-    { '@type': 'Person', name: author || 'Oakley Huang项目组', url: 'https://transcircle.org' },
-  ];
-const schemaEditors = toPersons(editors);
-
-const articleSchema = type === 'article' && pubDate ? {
-  '@context': 'https://schema.org',
-  '@type': 'BlogPosting',
-  '@id': `${canonicalURL}#article`,
-  headline: title,
-  description: description,
-  url: canonicalURL.toString(),
-  mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalURL.toString() },
-  datePublished: pubDate.toISOString(),
-  dateModified: (updatedDate || pubDate).toISOString(),
-  author: schemaAuthors,
-  ...(schemaEditors ? { editor: schemaEditors } : {}),
-  publisher: { '@id': `${siteURL}#organization` },
-  isPartOf: { '@id': `${siteURL}#website` },
-  image: [ogImageURL],
-  keywords: tags?.join(', ') || '',
-  articleSection: category || 'general',
-  ...(license ? { license } : {}),
-  inLanguage: 'zh-CN',
-  isAccessibleForFree: true,
-  ...(wordCount ? { wordCount } : {}),
-} : null;
-
-const breadcrumbSchema = breadcrumbs.length > 0 ? {
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: breadcrumbs.map((b, i) => ({
-    '@type': 'ListItem',
-    position: i + 1,
-    name: b.name,
-    item: b.item,
-  })),
-} : null;
-
-// Organization 与 WebSite 在每个页面都输出，确保各页 @id 引用都能在本页解析
-const jsonLdSchemas: Record<string, unknown>[] = [orgSchema, websiteSchema];
-if (isHome) jsonLdSchemas.push(faqSchema);
-if (breadcrumbSchema) jsonLdSchemas.push(breadcrumbSchema);
-if (articleSchema) jsonLdSchemas.push(articleSchema);
-if (additionalSchemas.length > 0) jsonLdSchemas.push(...additionalSchemas);
-
-const jsonLdScript = JSON.stringify(
-  jsonLdSchemas.length === 1 ? jsonLdSchemas[0] : { '@graph': jsonLdSchemas }
-);
----
-
-<!doctype html>
-<!-- 不写死 data-theme：留空才能让 theme.css 里 :root:not([data-theme]) 的
-     系统偏好深色回退在无 JS 时生效；有 JS 时下面的引导脚本会在首屏 paint 前写入。 -->
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-
-    <title>{title} | Oakley HuangBlog</title>
-    <meta name="description" content={description} />
-    <meta name="author" content={author || 'Oakley Huang项目组'} />
-    <meta name="keywords" content={dynamicKeywords} />
-    <meta name="application-name" content="Oakley HuangBlog" />
-    <meta name="generator" content="Astro" />
-    <meta name="rating" content="general" />
-    <meta name="referrer" content="strict-origin-when-cross-origin" />
-
-    <!-- Robots -->
-    {noindex ? (
-      <meta name="robots" content="noindex, follow" />
-    ) : (
-      <>
-        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-        <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large" />
-        <meta name="bingbot" content="index, follow" />
-      </>
-    )}
-
-    <!-- Theme：theme-color 取页面底色（--bg-color），不是品牌强调色 -->
-    <meta name="theme-color" content="#fff9fb" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#12121a" media="(prefers-color-scheme: dark)" />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="msapplication-TileColor" content="#ff85a2" />
-
-    <!-- Canonical & Alternate -->
-    <link rel="canonical" href={canonicalURL} />
-    <link rel="alternate" hreflang="zh-CN" href={canonicalURL} />
-    <link rel="alternate" hreflang="x-default" href={canonicalURL} />
-
-    <!-- Open Graph -->
-    <meta property="og:type" content={type} />
-    <meta property="og:site_name" content="Oakley HuangBlog" />
-    <meta property="og:locale" content="zh_CN" />
-    <meta property="og:url" content={canonicalURL} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:image" content={ogImageURL} />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={`${title} — 跨环博客 Oakley HuangBlog`} />
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@TransCircleOrg" />
-    <meta name="twitter:creator" content="@TransCircleOrg" />
-    <meta name="twitter:url" content={canonicalURL} />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImageURL} />
-    <meta name="twitter:image:alt" content={`${title} — 跨环博客 Oakley HuangBlog`} />
-
-    <!-- Article meta -->
-    {type === 'article' && pubDate && (
-      <>
-        <meta property="article:published_time" content={pubDate.toISOString()} />
-        {author && <meta property="article:author" content={author} />}
-        {category && <meta property="article:section" content={category} />}
-        {tags.map((tag) => (
-          <meta property="article:tag" content={tag} />
-        ))}
-      </>
-    )}
-    {type === 'article' && updatedDate && (
-      <meta property="article:modified_time" content={updatedDate.toISOString()} />
-    )}
-
-    <!-- Icons -->
-    <link rel="manifest" href="/site.webmanifest" />
-    <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
-    <link rel="alternate" type="application/rss+xml" title="跨环博客 RSS" href="/rss.xml" />
-    <!-- 图标由 scripts/generate-icons.mjs 从 src/assets/brand/transcircle-mark.svg 生成 -->
-    <link rel="icon" href="/favicon.ico" sizes="32x32" />
-    <link rel="icon" type="image/svg+xml" href="/logo-mark.svg" sizes="any" />
-    <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
-    <link rel="icon" type="image/png" href="/icon-192.png" sizes="192x192" />
-    <link rel="icon" type="image/png" href="/icon-512.png" sizes="512x512" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
-
-    <!-- JSON-LD -->
-    {jsonLdScript && (
-      <script is:inline type="application/ld+json" set:html={jsonLdScript} />
-    )}
-
-    <!-- 主题引导：首屏 paint 前写入 data-theme，避免明色基线先渲染再跳暗的闪白。
-         主题枚举严格等于 light / dark：旧版本可能在 localStorage 里存过已废弃的
-         'contrast'，这里的白名单会把它清掉。 -->
-    <script is:inline>
-      (function () {
-        const root = document.documentElement;
-        // 标记「JS 可用」：顶栏据此才把导航折叠成汉堡抽屉。无 JS 时导航链接保持可见。
-        root.classList.add('js');
-
-        const VALID = ['light', 'dark'];
-        let stored = null;
-        // 隐私模式 / 沙箱 iframe 下访问 localStorage 会抛 SecurityError，
-        // 裸调用会让整段引导中断、主题停在浅色基线。
-        try {
-          stored = localStorage.getItem('transcircle-theme');
-          if (stored && !VALID.includes(stored)) {
-            localStorage.removeItem('transcircle-theme');
-            stored = null;
-          }
-        } catch {
-          stored = null;
-        }
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        root.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
-      })();
-    </script>
-
-    <style is:global>
-      @import '../styles/global.css';
-    </style>
-  </head>
-  <body>
-    <a href="#main-content" class="skip-link">跳转到主内容</a>
-    <slot />
-
-    <!-- 外链跳转确认弹窗（全站共用，拦截带 data-confirm-link 的链接） -->
-    <LinkConfirmDialog />
-
-    <!-- Noscript fallback -->
-    <noscript>
-      <style>
-        .noscript-notice {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          padding: 0.75rem;
-          background: var(--surface-card);
-          border-top: 1px solid var(--divider-color);
-          text-align: center;
-          font-size: var(--fs-sm);
-          color: var(--text-secondary);
-          z-index: 1200;
-        }
-      </style>
-      <div class="noscript-notice">
-        您已禁用 JavaScript。本站核心内容可正常访问，但主题切换和搜索功能需要启用 JavaScript。
-      </div>
-    </noscript>
-  </body>
-</html>

@@ -1,27 +1,10 @@
----
-import SectionLabel from './ui/SectionLabel.astro';
-
-const currentYear = new Date().getFullYear();
-
-const footerLinks = [
-  { label: 'RSS', href: '/rss.xml' },
-  { label: 'Sitemap', href: '/sitemap-index.xml' },
-];
-
-const friendLinks = [
-  { label: 'Epheia', href: 'https://desuwa.org' },
-];
----
-
-<footer class="site-footer" role="contentinfo">
-  <div class="footer-container">
     <div class="footer-main">
       <div class="footer-brand">
-        <a href="/" class="footer-logo" aria-label="Oakley HuangBlog">
+        <a href="/" class="footer-logo" aria-label="Oakley Huang/羊圈Yan-Gyan">
           <img class="footer-logo-mark" src="/logo-mark.svg" width="22" height="22" alt="" aria-hidden="true" />
-          <span>Oakley HuangBlog</span>
+          <span>Oakley Huang/羊圈Yan-Gyan</span>
         </a>
-        <p class="footer-description">记录项目进展、社群知识与跨性别议题</p>
+        <p class="footer-description">记录本地化、翻译与游戏相关的笔记与作品</p>
       </div>
 
       <div class="footer-section">
@@ -59,7 +42,7 @@ const friendLinks = [
 
     <div class="footer-bottom">
       <p class="footer-copyright">
-        © {currentYear} TransCircle. AGPL-3.0 License.
+        © {currentYear} Oakley Huang/羊圈Yan-Gyan. AGPL-3.0 License.
       </p>
       <p class="footer-ai-agent">
         <span aria-hidden="true">🤖</span> AI Agent? See <a href="/llms.txt" rel="nofollow">/llms.txt</a> for structured context about this site.
@@ -67,181 +50,3 @@ const friendLinks = [
     </div>
   </div>
 </footer>
-
-<style>
-  /* 页脚由 body 的 flex column + .container{flex:1} 推到底部，不需要 margin-top */
-  .site-footer {
-    padding: 2rem 0 1.5rem;
-    border-top: 1px solid var(--divider-color);
-    background-color: var(--bg-color);
-  }
-
-  /* 内栏与 Header 共用轨道（--width-content = 1280px）。
-   * 左右内边距必须与 Header 逐字一致（1.5rem，≤1100px 时 0.85rem）：
-   * 之前这里用的是 clamp，宽屏下算出 3rem，页脚 logo 比页眉 logo 右移 24px，
-   * 两条本该重合的轴线肉眼可见地错开。 */
-  .footer-container {
-    width: 100%;
-    max-width: var(--width-content);
-    margin-inline: auto;
-    padding: 0 1.5rem;
-  }
-
-  @media (max-width: 1100px) {
-    .footer-container {
-      padding: 0 0.85rem;
-    }
-  }
-
-  .footer-main {
-    display: grid;
-    /* minmax(0, …) 而非裸 1fr：否则长内容会撑破轨道导致横向滚动 */
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
-    gap: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .footer-brand {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    min-width: 0;
-  }
-
-  .footer-section {
-    min-width: 0;
-  }
-
-  .footer-logo {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: fit-content;
-    max-width: 100%;
-    color: var(--text-main);
-    font-weight: 600;
-    font-size: var(--fs-subtitle);
-    text-decoration: none;
-    transition: color var(--dur-fast) var(--ease-standard);
-  }
-
-  .footer-logo:hover {
-    color: var(--accent-pink);
-  }
-
-  .footer-logo-mark {
-    display: block;
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-  }
-
-  .footer-description {
-    margin: 0;
-    min-width: 0;
-    color: var(--text-secondary);
-    font-size: var(--fs-body);
-    overflow-wrap: break-word;
-  }
-
-  .footer-links {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    min-width: 0;
-  }
-
-  .footer-links a {
-    display: inline-block;
-    max-width: 100%;
-    color: var(--text-muted);
-    font-size: var(--fs-sm);
-    text-decoration: none;
-    overflow-wrap: break-word;
-    transition: color var(--dur-fast) var(--ease-standard);
-  }
-
-  .footer-links a:hover {
-    color: var(--accent-pink);
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
-  }
-
-  .footer-bottom {
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--divider-color);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    min-width: 0;
-  }
-
-  /* 0.78rem 是法律/元信息文字的可读性下限，不得再缩小 */
-  .footer-copyright {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    text-align: center;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .footer-ai-agent {
-    margin: 0;
-    min-width: 0;
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    text-align: center;
-    overflow-wrap: break-word;
-  }
-
-  .footer-ai-agent a {
-    color: var(--accent-pink);
-    text-decoration: none;
-    overflow-wrap: anywhere;
-  }
-
-  .footer-ai-agent a:hover,
-  .footer-ai-agent a:focus-visible {
-    color: var(--cta-hover);
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
-  }
-
-  @media (max-width: 768px) {
-    .footer-main {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1.5rem;
-    }
-
-    .footer-brand {
-      grid-column: 1 / -1;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .footer-main {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
-
-  @media (any-pointer: coarse) {
-    .footer-logo,
-    .footer-links a {
-      display: inline-flex;
-      align-items: center;
-      min-height: var(--tap-min);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .footer-logo,
-    .footer-links a {
-      transition: none;
-    }
-  }
-</style>

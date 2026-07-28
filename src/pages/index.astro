@@ -1,5 +1,4 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
@@ -21,9 +20,9 @@ const totalPages = Math.ceil(publishedPosts.length / POSTS_PER_PAGE);
 const paginatedPosts = publishedPosts.slice(0, POSTS_PER_PAGE);
 
 const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
-const homeTitle = '跨环博客';
+const homeTitle = 'Oakley Huang/羊圈Yan-Gyan';
 const homeDescription =
-  '跨环（Oakley Huang）官方博客：记录项目进展、社群知识与跨性别议题，涵盖跨性别医疗（HRT）、社群语言与档案、技术与设计实践，服务于中文 MtF 跨性别社群。内容遵循 CC BY-SA 4.0，代码遵循 AGPL-3.0。';
+  'Oakley Huang/羊圈Yan-Gyan 的个人博客，记录本地化、翻译与游戏相关的笔记与作品；作者为译者与填词人，代表译作：《电子依存症：摩登罗马书》、《形影伤红》、《八尺大人：芳草恶灵抄》。';
 
 // Blog 结构化数据：列出最新文章，帮助搜索引擎与 AI 理解站点为「博客」实体及其文章集合
 const blogSchema = {
@@ -31,8 +30,8 @@ const blogSchema = {
   '@type': 'Blog',
   '@id': `${siteURL}#blog`,
   url: siteURL,
-  name: '跨环博客',
-  alternateName: 'Oakley HuangBlog',
+  name: 'Oakley Huang/羊圈Yan-Gyan',
+  alternateName: '个人博客',
   description: homeDescription,
   inLanguage: 'zh-CN',
   publisher: { '@id': `${siteURL}#organization` },
@@ -48,7 +47,7 @@ const blogSchema = {
       name: a.name,
       ...(a.link ? { url: a.link } : {}),
     })),
-  })),
+  }))
 };
 ---
 
@@ -61,21 +60,12 @@ const blogSchema = {
 
       <section class="posts-section" aria-label="文章列表">
         <SectionLabel as="h2">最新文章</SectionLabel>
-
-        {paginatedPosts.length > 0 ? (
-          <div class="posts-list">
-            {paginatedPosts.map((post: CollectionEntry<'posts'>) => (
-              <PostCard post={post} />
-            ))}
-          </div>
-        ) : (
-          <div class="empty-state">
-            <p>暂无文章</p>
-          </div>
-        )}
-
-        <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl="/" />
+        <div class="posts-list">
+          {paginatedPosts.map((post: CollectionEntry<'posts'>) => <PostCard post={post} />)}
+        </div>
       </section>
+
+      <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl="/" />
     </div>
   </main>
 
@@ -83,18 +73,9 @@ const blogSchema = {
 </Layout>
 
 <style>
-  /* 标题区见 components/HomeHero.astro（与分页页共用） */
-
-  /* 列表本身不留间距：每行由 PostCard 自带分隔线 */
   .posts-list {
     display: flex;
     flex-direction: column;
     min-width: 0;
-  }
-
-  .empty-state {
-    padding: 3rem 0;
-    text-align: center;
-    color: var(--text-muted);
   }
 </style>
