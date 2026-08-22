@@ -46,7 +46,10 @@ export async function GET(context: APIContext) {
         d.editor.length > 0 ? `# Editor: ${formatPeople(d.editor)}` : null,
         `# Category: ${d.category}`,
         `# Tags: ${d.tags.join(', ') || 'none'}`,
-        `# License: ${d.contentLicense} (content), ${d.codeLicense} (code)`,
+        // 没声明代码协议就是这篇文章没有代码要授权，只输出内容协议
+        d.codeLicense
+          ? `# License: ${d.contentLicense} (content), ${d.codeLicense} (code)`
+          : `# License: ${d.contentLicense} (content)`,
         d.description ? `# Description: ${d.description}` : null,
       ]
         .filter(Boolean)

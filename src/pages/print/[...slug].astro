@@ -328,7 +328,7 @@ const canonical = new URL(`/posts/${post.slug}/`, siteURL).toString();
 
       <footer class="print-foot">
         {tags.length > 0 && <p>标签：{tags.join(' · ')}</p>}
-        <p>内容协议：{contentLicense} ｜ 代码协议：{codeLicense}</p>
+        <p>内容协议：{contentLicense}{codeLicense && ` ｜ 代码协议：${codeLicense}`}</p>
         <p>原文永久链接：<a href={canonical}>{canonical}</a></p>
       </footer>
     </main>

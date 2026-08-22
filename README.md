@@ -112,8 +112,8 @@ updatedDate: 2026-05-21  # 添加这行表示更新时间
 | `tags` | 可选 | 标签数组 | `['前端', 'astro']` |
 | `cover` | 可选 | 封面图路径 | `'/images/cover.png'` |
 | `draft` | 可选 | 草稿标记（默认：false） | `true` 或 `false` |
-| `contentLicense` | 可选 | 内容协议（默认：CC-BY-SA-4.0） | `'CC-BY-SA-4.0'` |
-| `codeLicense` | 可选 | 代码协议（默认：AGPL-3.0） | `'AGPL-3.0'` |
+| `contentLicense` | 可选 | 正文的内容协议（默认：CC-BY-SA-4.0） | `'CC-BY-SA-4.0'` |
+| `codeLicense` | 可选 | 正文代码块的协议，**没有代码就别写**，写法见下节 | `'MIT'` |
 
 ### 作者与编辑署名（`author` / `editor`）
 
@@ -153,27 +153,50 @@ author:
 
 ### 许可协议
 
-每篇文章底部会显示两个协议徽章：
+一篇文章可能同时装着两类作品：正文（文字、论述、表格）是创作性作品，代码块是软件。
+两者的授权方式不一样——Creative Commons 官方就不建议拿 CC 协议去授权软件——所以拆成两个字段。
 
-**内容协议（contentLicense）**：
+**内容协议（`contentLicense`）**——管正文，每篇文章都会显示，不写就用默认值：
+
 - `CC-BY-SA-4.0`（默认）- 知识共享 署名-相同方式共享 4.0
 - `CC-BY-4.0` - 知识共享 署名 4.0
 - `CC0-1.0` - 公共领域
 - `Proprietary` - 保留所有权利
 
-**代码协议（codeLicense）**：
-- `AGPL-3.0`（默认）- GNU Affero General Public License v3.0
+**代码协议（`codeLicense`）**——只管正文里的代码块，**不写就不显示，没有默认值**：
+
+- `AGPL-3.0` - GNU Affero General Public License v3.0
 - `MIT` - MIT License
 - `Apache-2.0` - Apache License 2.0
 - `BSD-3-Clause` - BSD 3-Clause License
 - `Proprietary` - 保留所有权利
 
-不指定时使用默认值。示例：
+几条规则：
+
+- **文章里一行代码都没有，就别写 `codeLicense`。** 给不存在的代码挂协议是空转，
+  还会让读者误以为正文、甚至整站源码受它约束。
+- 写了 `codeLicense`，页脚才多出「代码」那枚徽章；打印版、Markdown 导出、
+  `llms-full.txt` 里的代码协议行同样只在写了的时候才输出。
+- 它约束的只是**别人把你文章里那段代码抄进自己项目**时该遵守什么，
+  和本站自己的源码无关——站点源码由仓库根目录的 [LICENSE](LICENSE)（AGPL-3.0）统一约束。
+- 只有 `contentLicense` 会写进搜索引擎读的结构化数据；`codeLicense` 仅作页面展示。
+
+示例——一篇纯文字的文章：
 
 ```markdown
 ---
 title: '文章标题'
 contentLicense: 'CC-BY-4.0'
+# 没有代码，就不写 codeLicense
+---
+```
+
+一篇带代码示例的技术文章：
+
+```markdown
+---
+title: '文章标题'
+contentLicense: 'CC-BY-SA-4.0'
 codeLicense: 'MIT'
 ---
 ```

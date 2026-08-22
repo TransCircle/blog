@@ -37,8 +37,8 @@ export async function GET({ props }: APIContext) {
 # Date: ${post.data.pubDate.toISOString().split('T')[0]}
 # Category: ${post.data.category}
 # Tags: ${post.data.tags.join(', ') || 'none'}
-# Content License: ${post.data.contentLicense || 'CC-BY-SA-4.0'}
-# Code License: ${post.data.codeLicense || 'AGPL-3.0'}
+# Content License: ${post.data.contentLicense}${post.data.codeLicense ? `
+# Code License: ${post.data.codeLicense}` : ''}
 ---
 
 `;

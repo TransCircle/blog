@@ -65,13 +65,11 @@ const postsCollection = defineCollection({
       'CC0-1.0',
       'Proprietary',
     ]).default('CC-BY-SA-4.0'),
-    codeLicense: z.enum([
-      'AGPL-3.0',
-      'MIT',
-      'Apache-2.0',
-      'BSD-3-Clause',
-      'Proprietary',
-    ]).default('AGPL-3.0'),
+    // 代码协议只约束正文里的代码片段——不给默认值：没写就是「这篇文章没有代码要授权」，
+    // 给零代码文章挂徽章是空转，还会让读者误以为整站源码受它约束（那归仓库根的 LICENSE 管）
+    codeLicense: z
+      .enum(['AGPL-3.0', 'MIT', 'Apache-2.0', 'BSD-3-Clause', 'Proprietary'])
+      .optional(),
   }),
 });
 

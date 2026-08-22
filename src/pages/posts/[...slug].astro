@@ -178,10 +178,13 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
               <span class="license-type">内容</span>
               <LicenseBadge type="content" license={contentLicense} />
             </div>
-            <div class="license-group">
-              <span class="license-type">代码</span>
-              <LicenseBadge type="code" license={codeLicense} />
-            </div>
+            {/* 不写 codeLicense 就是没有代码要授权（见 src/content/config.ts） */}
+            {codeLicense && (
+              <div class="license-group">
+                <span class="license-type">代码</span>
+                <LicenseBadge type="code" license={codeLicense} />
+              </div>
+            )}
           </div>
         </div>
       </footer>

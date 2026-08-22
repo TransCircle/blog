@@ -5,6 +5,7 @@ pubDate: 2026-05-21
 author: 'TransCircle 前端开发组'
 category: '技术分享'
 tags: ['前端', 'a11y', '设计规范']
+codeLicense: 'AGPL-3.0'
 ---
 
 ## 组件设计原则
