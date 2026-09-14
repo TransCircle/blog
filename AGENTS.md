@@ -78,7 +78,7 @@
 **分支生命周期：**
 - 一个分支只对应一个功能/问题/任务
 - 合并后应及时删除
-- 不在 `main`/`master` 上直接开发
+- 2026-08 起团队直接推 GitHub `main`（Discourse 插件 `develop`+`main` 双推）；分支仅用于临时实验，用完即删
 - 不在 `hotfix` 分支混入非紧急修改
 
 ### 3.2 Commit Message 规范
@@ -146,7 +146,7 @@
 }
 ```
 
-**CI 要求：** PR 至少通过 `lint`、`typecheck`、`test`、`build` 才能合并。
+**CI 要求：** PR 至少通过 `lint`、`typecheck`、`test`、`build` 才能合并。（PR 流程仅适用外部贡献者；团队内部 2026-08 起直接推 `main`，见 §3.1）
 
 ### 4.2 tsconfig 基线
 
@@ -224,7 +224,9 @@
     "data": [],
     "pagination": {
       "limit": 20,
-      "nextCursor": "cursor_xxx",
+      "page": 1,
+      "total": 57,
+      "totalPages": 3,
       "hasMore": true
     },
     "requestId": "req_xxx"
@@ -234,7 +236,7 @@
 ### 5.2 安全要求
 
 - `client_secret` **绝不暴露给前端**
-- Access token 有效期 2 小时，Refresh token 有效期 7 天
+- Access token 有效期 15 分钟，Refresh token 有效期 7 天
 - 所有 Markdown 内容展示前必须经过 HTML 清洗（sanitize）
 - 禁止 script、iframe、onerror、onclick、javascript: URL
 - 所有外链必须加 `rel="nofollow noopener noreferrer"`
@@ -271,7 +273,7 @@ audit:read                查看审计日志
 
 ### 6.1 核心原则
 
-- **可及性优先**：默认提供高对比度模式
+- **可及性优先**：对比度由 `light` / `dark` 两套主题令牌的色值本身保证（独立高对比度模式已废止，详见 `DESIGN.md` §2.3）
 - **键盘可访问**：所有交互支持完整键盘导航
 - **屏幕阅读器友好**：语义化标签、ARIA 属性
 - **尊重用户偏好**：适配 `prefers-reduced-motion`
@@ -310,13 +312,13 @@ audit:read                查看审计日志
 
 ## 7. 国际化规范 (i18n)
 
-> **项目主要在中文社群运营，国际化指简体中文和繁体中文支持**。
+> **项目主要在中文社群运营；Web 前端仅 `zh-CN`，Discourse 插件保持 `en`/`zh_CN`/`zh_TW` 三语**。
 
 ### 7.1 核心原则
 
 - **严禁字符串硬编码**：即使当前只有一种语言，也必须使用 i18n 包装函数（如 `t('key')`）
 - 所有用户可见文本必须通过国际化系统管理
-- 支持语言：`zh-CN`（简体中文）、`zh-TW`（繁体中文）
+- Web 前端仅 `zh-CN`；Discourse 插件保持 `en` / `zh_CN` / `zh_TW` 三语同步
 
 ### 7.2 实现要求
 
@@ -333,23 +335,24 @@ audit:read                查看审计日志
 
 ### 8.1 主题模式
 
-- 支持三种主题：`light`、`dark`、`contrast`
-- 通过 `data-theme` 属性切换
+- 支持两种主题：`light`、`dark`（独立高对比度模式已废止，对比度由令牌色值保证）
+- 通过 `data-theme` 属性切换；切换瞬时生效，禁止圆形揭示、遮罩、翻转等切换动画（详见 `DESIGN.md` §2.4）
 - 自动检测 `prefers-color-scheme`
 - 用户偏好存储于 `localStorage`（键名：`transcircle-theme`）
 
 ### 8.2 核心 Token
 
-- 颜色使用 CSS 变量（如 `var(--primary-pink)`），严禁硬编码
-- 高对比度模式使用橙色（`#ffaa00`）替代粉色，避免红绿色盲识别困难
+- 颜色 / 圆角 / 阴影 / 布局一律使用 CSS 变量（如 `var(--primary-pink)`、`var(--radius-lg)`、`var(--shadow-card)`），严禁硬编码（含 `rgba(0,0,0,…)` 阴影）
+- 不以颜色单独承载语义：状态恒为「圆点 / 图标 + 文字」（WCAG 1.4.1），色盲用户不依赖色相即可区分
 - `color-mix()` 实现悬停态，同时提供硬编码回退
-- 圆角：`sm(6px)`、`md(7-8px)`、`lg(10px)`、`xl(16px)`、`full(50px)`
+- 圆角（五档）：`--radius-xs(6px)` 内联 chip/标签/徽标、`--radius-sm(10px)` 输入/下拉、`--radius-md(12px)` 行/弹层、`--radius-lg(14px)` 卡片、`--radius-pill(999px)` 按钮/徽章
+- 优先复用 `@/components/ui` 现成原语，不要重造原生 `<select>` / checkbox / `confirm`
 
 ### 8.3 排版
 
 - 字体栈：`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`
 - 基础单位：`rem`（基于 16px）
-- 响应式断点：`768px`、`1024px`、`1200px`、`1280px`
+- 响应式断点（宽度，桌面优先递减，完整定义见 `DESIGN.md` §22.1）：`1100px`（访客导航 AppNav 转抽屉）、`1024px`（后台主内容回收内边距）、`768px`（后台侧栏转分段工具栏、双栏塌陷单列）、`640px`（列表 sticky 头关闭）、`480px`（弹层页脚按钮满宽堆叠）；`1280px` 为内容轨上限 `--width-content`，非断点
 
 ---
 

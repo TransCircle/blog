@@ -48,7 +48,7 @@ codeLicense: 'AGPL-3.0'
 
 ## 主题切换组件
 
-主题切换是一个 `radiogroup` 组件，支持三种模式：
+主题切换是一个 `radiogroup` 组件，支持 `light` / `dark` 两种模式（独立高对比度模式已按全局设计规范废止，对比度由两套主题令牌色值本身保证）：
 
 ```astro
 <div class="theme-toggle" role="radiogroup" aria-label="主题切换">
@@ -57,9 +57,6 @@ codeLicense: 'AGPL-3.0'
   </button>
   <button role="radio" aria-checked="false" data-theme="dark">
     <!-- Moon icon -->
-  </button>
-  <button role="radio" aria-checked="false" data-theme="contrast">
-    <!-- Contrast icon -->
   </button>
 </div>
 ```
