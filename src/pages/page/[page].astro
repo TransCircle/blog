@@ -50,13 +50,13 @@ const description = `跨环博客文章列表第 ${currentPage} 页，共 ${tota
 <Layout title={title} description={description}>
   <Header />
 
-  <main id="main-content" tabindex="-1" class="container">
+  <main id="main-content" tabindex="-1" class="container is-wide">
     <div class="page">
       <HomeHero />
 
       <section aria-label="文章列表">
         <SectionLabel as="h2">第 {currentPage} 页 / 共 {totalPages} 页</SectionLabel>
-        <div class="posts-list">
+        <div class="posts-grid">
           {pagePosts.map((post: CollectionEntry<'posts'>) => <PostCard post={post} />)}
         </div>
       </section>
@@ -67,11 +67,3 @@ const description = `跨环博客文章列表第 ${currentPage} 页，共 ${tota
 
   <Footer />
 </Layout>
-
-<style>
-  .posts-list {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-</style>

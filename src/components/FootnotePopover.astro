@@ -16,7 +16,7 @@
 <div id="fn-pop" class="fn-pop" hidden aria-hidden="true">
   <div class="fn-pop-head">
     <span class="fn-pop-index">注释 <b class="fn-pop-num"></b></span>
-    <button type="button" class="fn-pop-close" tabindex="-1" aria-label="关闭注释预览">
+    <button type="button" class="fn-pop-close" aria-label="关闭注释预览">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false">
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -128,6 +128,7 @@
         current = ref;
         ref.classList.add('is-active');
         card.hidden = false;
+        card.setAttribute('aria-hidden', 'false');
         // 先让浏览器算出卡片尺寸，再定位，避免第一帧闪在错误位置
         requestAnimationFrame(() => {
           place();
@@ -141,6 +142,7 @@
         current?.classList.remove('is-active');
         current = null;
         card.classList.remove('is-open');
+        card.setAttribute('aria-hidden', 'true');
         card.hidden = true;
       }
 
@@ -275,55 +277,57 @@
   }
 
   .article-content a[data-footnote-ref] {
-    color: var(--accent-pink);
-    font-weight: 600;
+    color: var(--blue-600);
+    font-weight: var(--fw-semibold);
     text-decoration: none;
     padding: 0 0.15em;
-    border-radius: var(--radius-xs);
+    border-radius: var(--r-xs);
     cursor: pointer;
     transition:
-      background-color var(--dur-fast) var(--ease-standard),
-      color var(--dur-fast) var(--ease-standard);
+      background-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
   }
 
   /* 标记有底色作为反馈，就不再叠下划线 */
   .article-content a[data-footnote-ref]:hover,
   .article-content a[data-footnote-ref]:focus-visible,
   .article-content a[data-footnote-ref].is-active {
-    background-color: var(--hover-bg);
-    color: var(--cta-hover);
+    background-color: var(--pink-100);
+    color: var(--pink-700);
     text-decoration: none;
   }
 
-  @supports (background-color: color-mix(in srgb, red, red)) {
-    .article-content a[data-footnote-ref]:hover,
-    .article-content a[data-footnote-ref]:focus-visible,
-    .article-content a[data-footnote-ref].is-active {
-      background-color: var(--hover-bg-mix);
-    }
-  }
-
   /* ── 预览卡片 ────────────────────────────────────────────────────────── */
+  /* 悬浮卡是浮动层，按 §1.4 / §5.7 走玻璃 + --r-lg + --shadow-3，
+   * 入场 opacity 0→1 + scale(.96→1)。 */
   .fn-pop {
     position: fixed;
-    z-index: 50; /* 浮层档：压过正文，低于对话框 */
+    z-index: var(--z-overlay); /* 压过顶栏与正文，低于对话框（--z-modal） */
     width: min(380px, calc(100vw - 24px));
     padding: 0.85rem 1rem 0.9rem;
-    background-color: var(--surface-card);
-    border: 1px solid var(--divider-color);
-    border-radius: var(--radius-pop);
-    /* 浅色主题的 --shadow-pop 几乎不可见，叠一层品牌粉光晕才浮得起来 */
-    box-shadow:
-      var(--shadow-pop),
-      var(--shadow-card-hover);
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-3);
     font-size: var(--fs-sm);
-    line-height: 1.65;
+    line-height: var(--lh-caption);
     color: var(--text-body);
     opacity: 0;
-    transform: translateY(4px);
+    transform: scale(0.96);
+    transform-origin: center bottom;
     transition:
-      opacity var(--dur-fast) var(--ease-standard),
-      transform var(--dur-base) var(--ease-emphasized);
+      opacity var(--dur-1) var(--ease-standard),
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  /* §2.5 强制要求的玻璃回退 */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .fn-pop {
+      background-color: var(--surface);
+      border-color: var(--line);
+    }
   }
 
   .fn-pop[hidden] {
@@ -339,22 +343,24 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem;
+    gap: var(--s-3);
     margin-bottom: 0.55rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--divider-color);
+    padding-bottom: var(--s-2);
+    border-bottom: 1px solid var(--line);
   }
 
+  /* 「注释 n」是编号信息：--font-tech + --fs-xs（§5.5） */
   .fn-pop-index {
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-family: var(--font-tech);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
     letter-spacing: 0.06em;
     color: var(--text-muted);
     white-space: nowrap;
   }
 
   .fn-pop-num {
-    color: var(--accent-pink);
+    color: var(--pink-700);
   }
 
   .fn-pop-close {
@@ -367,19 +373,19 @@
     margin: -4px -4px -4px 0;
     padding: 0;
     border: none;
-    border-radius: var(--radius-xs);
+    border-radius: var(--r-xs);
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
     flex-shrink: 0;
     transition:
-      background-color var(--dur-fast) var(--ease-standard),
-      color var(--dur-fast) var(--ease-standard);
+      background-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
   }
 
   .fn-pop-close:hover {
-    background-color: var(--hover-bg);
-    color: var(--text-main);
+    background-color: var(--pink-100);
+    color: var(--pink-700);
   }
 
   /* 触屏命中区放大到 44px，但按钮视觉尺寸不变 */
@@ -402,18 +408,18 @@
   .fn-pop-footer {
     display: none; /* 桌面端隐藏，触屏端通过 @media 显示 */
     justify-content: flex-end;
-    padding-top: 0.5rem;
-    margin-top: 0.5rem;
-    border-top: 1px solid var(--divider-color);
+    padding-top: var(--s-2);
+    margin-top: var(--s-2);
+    border-top: 1px solid var(--line);
   }
 
   .fn-pop-jump {
     display: inline-flex;
     align-items: center;
     gap: 0.25em;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--accent-pink);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    color: var(--blue-600);
     text-decoration: none;
   }
 
@@ -444,15 +450,17 @@
   }
 
   .fn-pop-body a {
-    color: var(--accent-pink);
+    color: var(--blue-600);
     text-decoration: none;
+    text-underline-offset: 3px;
   }
 
   .fn-pop-body a:hover {
     text-decoration: underline;
-    text-underline-offset: 0.2em;
   }
 
+  /* 箭头不参与 backdrop-filter（旋转盒的模糊在各引擎表现不一），
+   * 直接用玻璃底色的实体近似色：--surface + 玻璃描边。 */
   .fn-pop-arrow {
     position: absolute;
     left: var(--fn-arrow-x, 50%);
@@ -460,9 +468,9 @@
     width: 12px;
     height: 12px;
     margin-left: -6px;
-    background-color: var(--surface-card);
-    border-right: 1px solid var(--divider-color);
-    border-bottom: 1px solid var(--divider-color);
+    background-color: var(--surface);
+    border-right: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
     transform: rotate(45deg);
   }
 
@@ -470,15 +478,15 @@
     top: -7px;
     bottom: auto;
     border: none;
-    border-left: 1px solid var(--divider-color);
-    border-top: 1px solid var(--divider-color);
+    border-left: 1px solid var(--glass-border);
+    border-top: 1px solid var(--glass-border);
   }
 
   /* ── 底部脚注区 ──────────────────────────────────────────────────────── */
   .article-content section.footnotes {
-    margin-top: 2.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--divider-color);
+    margin-top: var(--s-7);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--line);
     font-size: var(--fs-sm);
     line-height: var(--lh-body);
     color: var(--text-secondary);
@@ -497,9 +505,10 @@
     content: '注释';
     display: block;
     margin-bottom: 1rem;
-    font-size: var(--fs-sm);
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    font-family: var(--font-tech);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.06em;
     color: var(--text-muted);
   }
 
@@ -510,12 +519,12 @@
   .article-content section.footnotes li {
     margin-bottom: 0.6rem;
     /* 吸顶导航会盖住跳转目标，锚点落位时留出让位 */
-    scroll-margin-top: calc(var(--app-nav-height, 57px) + 1.5rem);
+    scroll-margin-top: calc(var(--app-nav-height, var(--nav-h)) + var(--s-5));
   }
 
   .article-content section.footnotes li::marker {
-    color: var(--accent-pink);
-    font-weight: 600;
+    color: var(--pink-700);
+    font-weight: var(--fw-semibold);
   }
 
   .article-content section.footnotes a {
@@ -524,9 +533,9 @@
 
   /* 跳转落点高亮：告诉用户「你要找的是这条」 */
   .article-content section.footnotes li:target {
-    background-color: var(--hover-bg);
-    border-radius: var(--radius-sm);
-    box-shadow: 0 0 0 8px var(--hover-bg);
+    background-color: var(--pink-100);
+    border-radius: var(--r-xs);
+    box-shadow: 0 0 0 8px var(--pink-100);
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -536,34 +545,35 @@
 
     @keyframes fn-flash {
       from {
-        background-color: var(--soft-pink);
-        box-shadow: 0 0 0 8px var(--soft-pink);
+        background-color: var(--pink-200);
+        box-shadow: 0 0 0 8px var(--pink-200);
       }
     }
   }
 
   /* 跳转后按需注入的唯一返回链接（正文里的引用标记同样留出让位） */
   .article-content [id^='user-content-fnref'] {
-    scroll-margin-top: calc(var(--app-nav-height, 57px) + 1.5rem);
+    scroll-margin-top: calc(var(--app-nav-height, var(--nav-h)) + var(--s-5));
   }
 
+  /* 返回链接走 chip 规格（§5.6）：--r-xs + --pink-100 底 + --pink-700 字 */
   .article-content .fn-back {
     display: inline-flex;
     align-items: center;
     margin-left: 0.4rem;
     padding: 0.05rem 0.55rem;
-    border-radius: var(--radius-pill);
-    background-color: var(--hover-bg);
-    color: var(--accent-pink);
-    font-size: 0.72rem;
-    font-weight: 500;
+    border-radius: var(--r-xs);
+    background-color: var(--pink-100);
+    color: var(--pink-700);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
     text-decoration: none;
     white-space: nowrap;
-    transition: background-color var(--dur-fast) var(--ease-standard);
+    transition: background-color var(--dur-1) var(--ease-standard);
   }
 
   .article-content .fn-back:hover {
-    background-color: var(--soft-pink);
+    background-color: var(--pink-200);
     text-decoration: none;
   }
 </style>

@@ -1,41 +1,81 @@
 ---
-// 首页标题区。列表的第 1 页（index.astro）与第 2 页及之后（page/[page].astro）
-// 共用同一份，避免翻页时标题区从居中突变成左对齐。
-import PageHeader from './ui/PageHeader.astro';
+// 首页标题区。列表第 1 页（index.astro）与第 2 页及之后共用，避免翻页时轴线突变。
+//
+// 「跨环博客」是中文内容品牌而非海报字：不用硬朗的系统 700 + hero 尺度，
+// 采用 Nunito Brand + Microsoft YaHei 的圆润混排栈、600 字重和 display 尺度。
+// Latin 字符由 Nunito Brand 呈现，CJK 由圆润的微软雅黑回退。
 ---
 
-<PageHeader
-  class="hero"
-  align="center"
-  eyebrow="TransCircle Blog"
-  title="跨环博客"
-  description="记录项目进展、社群知识与跨性别议题"
->
-  <p class="hero-beats">项目 · 知识 · 社群</p>
-</PageHeader>
+<header class="hero" data-reveal>
+  <p class="hero-eyebrow">TransCircle Blog</p>
+  <h1 class="hero-title">跨环博客</h1>
+  <p class="hero-lede">记录项目进展、社群知识与跨性别议题</p>
+  <p class="hero-beats"><span>项目 · 知识 · 社群</span></p>
+</header>
 
 <style>
-  /* 全站唯一一处居中：给首页一个落地页式的收口，列表仍走左轴 */
   .hero {
-    padding: 1.5rem 0 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    padding: var(--s-5) 0 var(--s-4);
+    min-width: 0;
   }
 
-  /* 三段式标语：两侧细线收束 */
+  /* 品牌名使用官方字标推导出的 Nunito 系品牌字体。 */
+  .hero-eyebrow {
+    margin: 0;
+    font-family: var(--font-brand);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.04em;
+    color: var(--pink-700);
+  }
+
+  /* 内容品牌标题降低一档，不把博客首页做成宣传页；CJK 保持系统栈。 */
+  .hero-title {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-display);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh-heading);
+    letter-spacing: 0;
+    color: var(--ink);
+  }
+
+  .hero-lede {
+    margin: 0;
+    max-width: 34em;
+    font-size: var(--fs-lg);
+    line-height: var(--lh-caption);
+    color: var(--text-secondary);
+  }
+
+  /* 三段式副标语：右侧一条细线收束，不做居中对称的「装饰件」 */
   .hero-beats {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    margin: 0.6rem 0 0;
-    color: var(--text-muted);
+    gap: var(--s-3);
+    margin: var(--s-1) 0 0;
     font-size: var(--fs-sm);
+    color: var(--text-muted);
   }
 
-  .hero-beats::before,
+  .hero-beats > span {
+    flex: none;
+  }
+
   .hero-beats::after {
     content: '';
-    width: 2.5rem;
+    flex: 1 1 auto;
+    max-width: 8rem;
     height: 1px;
-    background-color: var(--divider-color);
+    background-color: var(--line);
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      padding: var(--s-3) 0 var(--s-2);
+    }
   }
 </style>

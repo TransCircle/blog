@@ -14,12 +14,17 @@ const friendLinks = [
 ---
 
 <footer class="site-footer" role="contentinfo">
+  {/* 页脚顶部通栏旗帜条纹（§3.1）：全站唯一的通栏条纹，顶栏那条是 24px 迷你指示条 */}
+  <div class="flag-stripe" aria-hidden="true">
+    <span></span><span></span><span></span>
+  </div>
+
   <div class="footer-container">
     <div class="footer-main">
       <div class="footer-brand">
         <a href="/" class="footer-logo" aria-label="TransCircle Blog">
-          <img class="footer-logo-mark" src="/logo-mark.svg" width="22" height="22" alt="" aria-hidden="true" />
-          <span>TransCircle Blog</span>
+          <img class="footer-logo-image footer-logo-light" src="/brand/transcircle-horizontal-on-light.svg" width="400" height="120" alt="" aria-hidden="true" />
+          <img class="footer-logo-image footer-logo-dark" src="/brand/transcircle-horizontal-on-dark.svg" width="400" height="120" alt="" aria-hidden="true" />
         </a>
         <p class="footer-description">记录项目进展、社群知识与跨性别议题</p>
       </div>
@@ -61,50 +66,43 @@ const friendLinks = [
       <p class="footer-copyright">
         © {currentYear} TransCircle. AGPL-3.0 License.
       </p>
+      {/* 给 AI 抓取器的结构化上下文入口。不放 emoji 装饰（§1.6），标签用 --font-tech */}
       <p class="footer-ai-agent">
-        <span aria-hidden="true">🤖</span> AI Agent? See <a href="/llms.txt" rel="nofollow">/llms.txt</a> for structured context about this site.
+        <span class="footer-ai-tag">AI AGENT</span>
+        See <a href="/llms.txt" rel="nofollow">/llms.txt</a> for structured context about this site.
       </p>
     </div>
   </div>
 </footer>
 
 <style>
-  /* 页脚由 body 的 flex column + .container{flex:1} 推到底部，不需要 margin-top */
+  /* 页脚由 body 的 flex column + .container{flex:1} 推到底部，不需要 margin-top。
+   * 顶部的分隔靠旗帜条纹本身，不再叠一条 border-top。 */
   .site-footer {
-    padding: 2rem 0 1.5rem;
-    border-top: 1px solid var(--divider-color);
-    background-color: var(--bg-color);
+    padding-bottom: var(--s-5);
+    background-color: var(--bg);
   }
 
-  /* 内栏与 Header 共用轨道（--width-content = 1280px）。
-   * 左右内边距必须与 Header 逐字一致（1.5rem，≤1100px 时 0.85rem）：
-   * 之前这里用的是 clamp，宽屏下算出 3rem，页脚 logo 比页眉 logo 右移 24px，
-   * 两条本该重合的轴线肉眼可见地错开。 */
+  /* 内栏与 Header 共用轨道和 --page-x，保证页脚与页眉左缘一致。 */
   .footer-container {
     width: 100%;
-    max-width: var(--width-content);
+    max-width: var(--w-content);
     margin-inline: auto;
-    padding: 0 1.5rem;
-  }
-
-  @media (max-width: 1100px) {
-    .footer-container {
-      padding: 0 0.85rem;
-    }
+    padding: var(--s-6) var(--page-x) 0;
   }
 
   .footer-main {
     display: grid;
     /* minmax(0, …) 而非裸 1fr：否则长内容会撑破轨道导致横向滚动 */
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
-    gap: 2rem;
-    margin-bottom: 2rem;
+    gap: var(--s-6);
+    margin-bottom: var(--s-6);
   }
 
   .footer-brand {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--s-2);
     min-width: 0;
   }
 
@@ -115,25 +113,37 @@ const friendLinks = [
   .footer-logo {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    width: fit-content;
+    width: 108px;
     max-width: 100%;
-    color: var(--text-main);
-    font-weight: 600;
-    font-size: var(--fs-subtitle);
     text-decoration: none;
-    transition: color var(--dur-fast) var(--ease-standard);
   }
 
-  .footer-logo:hover {
-    color: var(--accent-pink);
-  }
-
-  .footer-logo-mark {
+  .footer-logo-image {
     display: block;
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
+    width: 108px;
+    height: auto;
+  }
+
+  .footer-logo-dark {
+    display: none;
+  }
+
+  :global(:root[data-theme='dark']) .footer-logo-light {
+    display: none;
+  }
+
+  :global(:root[data-theme='dark']) .footer-logo-dark {
+    display: block;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme])) .footer-logo-light {
+      display: none;
+    }
+
+    :global(:root:not([data-theme])) .footer-logo-dark {
+      display: block;
+    }
   }
 
   .footer-description {
@@ -150,72 +160,91 @@ const friendLinks = [
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--s-2);
     min-width: 0;
   }
 
   .footer-links a {
     display: inline-block;
     max-width: 100%;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     font-size: var(--fs-sm);
     text-decoration: none;
     overflow-wrap: break-word;
-    transition: color var(--dur-fast) var(--ease-standard);
+    transition: color var(--dur-1) var(--ease-standard);
   }
 
-  .footer-links a:hover {
-    color: var(--accent-pink);
+  .footer-links a:hover,
+  .footer-links a:focus-visible {
+    color: var(--pink-700);
     text-decoration: underline;
-    text-underline-offset: 0.2em;
+    text-underline-offset: 3px;
   }
 
   .footer-bottom {
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--divider-color);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--line);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--s-2);
     min-width: 0;
   }
 
-  /* 0.78rem 是法律/元信息文字的可读性下限，不得再缩小 */
+  /* 法律 / 元信息行：--fs-xs 是设计系统允许的下限（仅时间戳与 eyebrow 档） */
   .footer-copyright {
     margin: 0;
     color: var(--text-muted);
-    font-size: 0.78rem;
+    font-family: var(--font-tech);
+    font-size: var(--fs-xs);
     text-align: center;
     white-space: nowrap;
     flex-shrink: 0;
   }
 
   .footer-ai-agent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0 var(--s-2);
     margin: 0;
     min-width: 0;
     color: var(--text-muted);
-    font-size: 0.78rem;
+    font-size: var(--fs-xs);
     text-align: center;
     overflow-wrap: break-word;
   }
 
+  .footer-ai-tag {
+    padding: 0 6px;
+    border-radius: var(--r-xs);
+    background-color: var(--surface-2);
+    color: var(--text-secondary);
+    font-family: var(--font-tech);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
   .footer-ai-agent a {
-    color: var(--accent-pink);
+    color: var(--blue-600);
     text-decoration: none;
     overflow-wrap: anywhere;
   }
 
   .footer-ai-agent a:hover,
   .footer-ai-agent a:focus-visible {
-    color: var(--cta-hover);
+    color: var(--pink-700);
     text-decoration: underline;
-    text-underline-offset: 0.2em;
+    text-underline-offset: 3px;
   }
 
   @media (max-width: 768px) {
     .footer-main {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1.5rem;
+      gap: var(--s-5);
     }
 
     .footer-brand {
@@ -235,13 +264,6 @@ const friendLinks = [
       display: inline-flex;
       align-items: center;
       min-height: var(--tap-min);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .footer-logo,
-    .footer-links a {
-      transition: none;
     }
   }
 </style>

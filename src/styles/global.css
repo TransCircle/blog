@@ -1,5 +1,30 @@
 @import url('./theme.css');
 
+/* ══ 自托管字体（DESIGN v3.0 §2.6 / §9）════════════════════════════════
+ * Nunito Brand 仅服务品牌词；Space Grotesk 服务标签和数字。
+ * 文件是 Google Fonts 的 latin 子集可变字体，存放于 public/fonts/，由 BaseLayout
+ * 的 <link rel="preload"> 预载，不发起第三方字体请求。
+ *
+ * unicode-range 限定 latin；中文一律由 --font-sans 系统栈呈现。 */
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/fonts/space-grotesk-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Nunito Brand';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('/fonts/nunito-brand-latin.woff2') format('woff2');
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-206F;
+}
+
 /* ── 重置 ───────────────────────────────────────────────── */
 *,
 *::before,
@@ -15,33 +40,25 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 字体栈全站只在此声明一次，组件不得重复定义。零网络字体。 */
+/* 字体栈全站只在此声明一次，组件不得重复定义 */
 body {
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
+  font-family: var(--font-sans);
   font-size: var(--fs-body);
   line-height: var(--lh-body);
   color: var(--text-body);
-  background-color: var(--bg-color);
+  background-color: var(--bg);
   /* 页面骨架：纵向三段流（Header / main / Footer），main 撑开把页脚压到底部 */
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
 }
 
-/* 全站唯一与主题切换有关的动效：body 一次 ≤200ms 的底色/文字色过渡。
- * 禁止圆形揭示、遮罩、翻转等切换特效（设计系统硬性非目标）。 */
+/* 主题切换：全局 ~300ms 配色过渡（§6.5）。只过渡颜色，不做圆形揭示等切换特效。 */
 @media (prefers-reduced-motion: no-preference) {
   body {
     transition:
-      background-color 0.2s ease,
-      color 0.2s ease;
+      background-color var(--dur-3) var(--ease-standard),
+      color var(--dur-3) var(--ease-standard);
   }
 
   html {
@@ -49,13 +66,25 @@ body {
   }
 }
 
+/* 页面转场（§6.6）：支持的浏览器淡入，其余静默回退。
+ * 不包在 @media 里（嵌套 at-rule 的引擎支持不一致），reduced-motion 的降级
+ * 由下面 reduce 块里的 ::view-transition-* 动画关闭承担。 */
+@view-transition {
+  navigation: auto;
+}
+
+/* §2.9 全局降级：一刀切关掉动效 */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 
   html {
@@ -63,9 +92,9 @@ body {
   }
 }
 
-/* ── 聚焦：非输入类走 outline，输入类走 box-shadow 光晕 ───── */
+/* ── 聚焦：非输入类走 outline，输入类走光晕（§5.4 / §7）───── */
 :focus-visible {
-  outline: 2px solid var(--primary-pink);
+  outline: 2px solid var(--pink-600);
   outline-offset: 2px;
 }
 
@@ -82,95 +111,103 @@ main:focus {
 }
 
 ::selection {
-  background-color: var(--select);
-  color: var(--text-main);
+  background-color: var(--pink-200);
+  color: var(--ink);
 }
 
-/* ── 布局轨道 ───────────────────────────────────────────────
- * 页面宽度不写死，而是「填满视口 → 到上限即停 → 居中」。
- * 外壳（顶栏/页脚内条）走内容轨 1280px，正文走阅读轨 60rem，
- * 二者的宽度差是刻意的：外壳比正文宽，正文维持舒适行宽。 */
-.rail-content {
-  width: 100%;
-  max-width: var(--width-content);
-  margin-inline: auto;
-}
-
-.rail-reading {
-  width: 100%;
-  max-width: var(--width-reading);
-  margin-inline: auto;
-}
-
-/* 全站唯一的主内容容器：阅读轨 + 三档内边距。
- * 桌面文字列 = 960 - 64 - 64 = 832px。 */
+/* ── 布局轨道（§4）─────────────────────────────────────────
+ * 外壳（顶栏 / 页脚内条）走内容轨 --w-content；正文走阅读轨 --w-reading。
+ * 水平内边距全站唯一表达式 var(--page-x)，顶栏 / 页脚 / 内容区共用，保证左缘对齐。
+ *
+ * 阅读轨是**文字列宽**，所以容器要在 46rem 之外再加两侧内边距；
+ * 列表 / 标签 / 搜索页用 .is-wide 切到内容轨（1280px，与顶栏内条同宽同缘）。 */
 .container {
   flex: 1;
   width: 100%;
-  max-width: var(--width-reading);
+  max-width: calc(var(--w-reading) + 2 * var(--page-x));
   margin-inline: auto;
-  padding: 2.5rem 4rem;
+  padding: var(--s-6) var(--page-x) var(--s-8);
   display: flex;
   flex-direction: column;
   min-width: 0; /* 防长串撑破轨道 */
 }
 
-@media (max-width: 1024px) {
-  .container {
-    padding: 2rem 2.5rem;
-  }
+.container.is-wide {
+  max-width: var(--w-content);
 }
 
-@media (max-width: 768px) {
-  .container {
-    padding: 1.5rem;
-    max-width: 100%; /* 窄屏解除限宽，占满 */
-  }
-}
-
-/* ── 排印（元素默认值）───────────────────────────────────── */
+/* ── 排印（元素默认值，§2.7）───────────────────────────────
+ * 中文标题由系统栈呈现，依靠字重、字号与行高建立层次，不使用负字距。 */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  color: var(--text-main);
-  font-weight: 700;
-  line-height: 1.3;
+  color: var(--ink);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-heading);
 }
 
 h1 {
-  font-size: var(--fs-title);
-  letter-spacing: -0.02em;
+  font-size: var(--fs-h1);
+  line-height: var(--lh-display);
+  letter-spacing: 0;
 }
 
 h2 {
-  font-size: 1.5rem;
-  letter-spacing: -0.01em;
+  font-size: var(--fs-h2);
+  letter-spacing: 0;
 }
 
 h3 {
-  font-size: 1.25rem;
+  font-size: var(--fs-h3);
 }
 
 h4 {
-  font-size: 1.05rem;
+  font-size: var(--fs-lg);
 }
 
 h5,
 h6 {
-  font-size: 1rem;
+  font-size: var(--fs-body);
 }
 
+/* 链接一律信息蓝（§5.2 / §7：粉色做文字只能用 --pink-700） */
 a {
-  color: var(--accent-pink);
+  color: var(--blue-600);
   text-decoration: none;
-  transition: color var(--dur-fast) var(--ease-standard);
+  text-underline-offset: 3px;
+  transition: color var(--dur-1) var(--ease-standard);
 }
 
 a:hover {
-  color: var(--cta-hover);
+  color: var(--pink-700);
+}
+
+/* 下划线从左侧长入（§5.2）。只给**不会折行**的独立链接用：
+ * 绝对定位的 ::after 取的是首个行盒，中文长句链接折行后画不全。
+ * 正文里的行内链接改用真 text-decoration（见 .article-content a）。 */
+.link-grow {
+  position: relative;
+}
+
+.link-grow::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-2) var(--ease-out);
+}
+
+.link-grow:hover::after,
+.link-grow:focus-visible::after {
+  transform: scaleX(1);
 }
 
 /* ── 防溢出三件套（全局兜底）───────────────────────────── */
@@ -179,7 +216,7 @@ video,
 iframe {
   max-width: 100%;
   height: auto;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
 }
 
 pre {
@@ -193,8 +230,8 @@ pre {
 
 hr {
   border: none;
-  border-top: 1px solid var(--divider-color);
-  margin: 2rem 0;
+  border-top: 1px solid var(--line);
+  margin: var(--s-6) 0;
 }
 
 /* ── 滚动条（仅精细指针，触屏用系统原生）───────────────── */
@@ -205,37 +242,38 @@ hr {
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--bg-color);
+    background: var(--bg);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--soft-pink);
-    border-radius: var(--radius-xs);
+    background: var(--pink-200);
+    border-radius: var(--r-xs);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-pink);
+    background: var(--pink-400);
   }
 }
 
 /* ── Skip link ─────────────────────────────────────────── */
 .skip-link {
   position: fixed;
-  top: 0.5rem;
-  left: 0.5rem;
-  z-index: 1200;
-  padding: 0.55rem 1rem;
-  background-color: var(--accent-pink);
-  color: var(--on-accent);
-  border-radius: var(--radius-control);
+  top: var(--s-2);
+  left: var(--s-2);
+  z-index: var(--z-skip);
+  padding: var(--s-2) var(--s-4);
+  background-color: var(--pink-600);
+  color: var(--on-pink);
+  border-radius: var(--r-sm);
   font-size: var(--fs-sm);
-  font-weight: 600;
-  box-shadow: var(--shadow-pop);
+  font-weight: var(--fw-semibold);
+  box-shadow: var(--shadow-3);
   transform: translateY(-200%);
-  transition: transform 0.15s ease;
+  transition: transform var(--dur-1) var(--ease-out);
 }
 
 .skip-link:focus {
+  color: var(--on-pink);
   transform: translateY(0);
 }
 
@@ -255,142 +293,239 @@ hr {
 .page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--s-6);
 }
 
 /* 区块节奏：上空 32 / 线 / 下空 24 */
 .section-divider {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--divider-color);
+  margin-top: var(--s-6);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line);
+}
+
+/* ── 旗帜条纹（§3.1）────────────────────────────────────
+ * 粉 / 白 / 蓝三段等宽实色 <span>，不用渐变。白段在亮底上加 1px --line 描边。
+ * 允许场景：页脚顶部通栏细线（3px）与导航当前项指示条（.flag-stripe-mini，24×3px）。
+ * 同一视口里通栏条纹只允许一条（§1.5）。 */
+.flag-stripe {
+  display: flex;
+  width: 100%;
+  height: 3px;
+  overflow: hidden;
+}
+
+.flag-stripe > span {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+ .flag-stripe > span:nth-child(1) {
+  background-color: var(--flag-pink);
+}
+
+.flag-stripe > span:nth-child(2) {
+  background-color: var(--flag-white);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.flag-stripe > span:nth-child(3) {
+  background-color: var(--flag-blue);
+}
+
+/* 导航当前项指示条：24×3px 迷你三段 */
+.flag-stripe-mini {
+  width: 24px;
+  border-radius: 1px;
+}
+
+/* ── 滚动 reveal（§6.4）──────────────────────────────────
+ * 初始态只在「有 JS + 允许动效」时才隐藏：无 JS（html 无 .js）或 reduced-motion 下
+ * 元素恒可见，绝不出现「内容永远不出现」。交错由 --i（脚本按同组序号写入）驱动。 */
+@media (prefers-reduced-motion: no-preference) {
+  html.js [data-reveal] {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity var(--dur-4) var(--ease-out),
+      transform var(--dur-4) var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 60ms);
+  }
+
+  html.js [data-reveal].is-revealed {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ══ 内容基元 ═══════════════════════════════════════════════
- * 这几组类是全局的（而非组件 scoped），因为搜索页的结果行由 JS innerHTML 生成，
+ * 这几组类是全局的（而非组件 scoped），因为搜索页的结果卡由 JS innerHTML 生成，
  * 拿不到 Astro 的 scoped 属性。放在这里，让 PostCard.astro、文章页、搜索结果
  * 共用同一份配方，避免三处各写一遍。 */
 
-/* 只读标记（分类）。可点的标签见 .tag-link */
+/* ── Chip / 徽章（§5.6）：--r-xs、高 26px、--pink-100 底 + --pink-700 字 ── */
+.chip,
 .pill {
   display: inline-flex;
   align-items: center;
-  padding: 0.15rem 0.6rem;
-  border-radius: var(--radius-pill);
-  background-color: var(--hover-bg);
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1.6;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: var(--r-xs);
+  background-color: var(--pink-100);
+  color: var(--pink-700);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-caption);
   white-space: nowrap;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.pill-accent {
-  color: var(--accent-pink);
+/* 中性档：无语义色，用凹陷面 */
+.chip-neutral,
+.pill:not(.pill-accent) {
+  background-color: var(--surface-2);
+  color: var(--text-secondary);
 }
 
-/* 可点标签：设计系统没有「可点 chip」，这里用 Pill 的视觉 + 真链接的交互，
- * 并按无障碍要求给出 hover 反馈与触屏命中区。 */
-.tag-link {
+/* 分类徽章可走蓝 ramp（§5.6） */
+.chip-info {
+  background-color: var(--blue-100);
+  color: var(--blue-600);
+}
+
+/* 可点标签 chip：Chip 的视觉 + 真链接的交互。
+ * 设计系统没有「可点 chip」这一档，这里按 §5.6 的默认态取色，hover 加深一档。 */
+.tag-chip {
+  position: relative; /* 触屏命中区伪元素的定位基准 */
   display: inline-flex;
   align-items: center;
-  padding: 0.15rem 0.6rem;
-  border-radius: var(--radius-pill);
-  background-color: var(--hover-bg);
-  color: var(--accent-pink);
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1.6;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: var(--r-xs);
+  background-color: var(--pink-100);
+  color: var(--pink-700);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-caption);
   text-decoration: none;
   white-space: nowrap;
   transition:
-    background-color var(--dur-fast) var(--ease-standard),
-    color var(--dur-fast) var(--ease-standard);
+    background-color var(--dur-1) var(--ease-standard),
+    color var(--dur-1) var(--ease-standard);
 }
 
-.tag-link:hover {
-  background-color: var(--soft-pink);
-  color: var(--accent-pink);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+.tag-chip:hover,
+.tag-chip:focus-visible {
+  background-color: var(--pink-200);
+  color: var(--pink-700);
 }
 
-/* 触屏：命中区靠伪元素撑开，胶囊的视觉尺寸不动。
- * 之前是直接给胶囊设 min-height: 44px，26px 高的胶囊被拉成了高椭圆。 */
-.tag-link {
-  position: relative;
-}
-
+/* 触屏：命中区靠伪元素撑开，chip 的视觉尺寸不动
+ * （直接给 chip 设 min-height: 44px 会把 26px 的标签拉成高盒子）。 */
 @media (any-pointer: coarse) {
-  .tag-link {
-    padding: 0.3rem 0.7rem; /* 视觉高度约 29px */
-  }
-
-  .tag-link::after {
+  .tag-chip::after {
     content: '';
     position: absolute;
     top: 50%;
     left: 0;
     right: 0;
-    height: var(--tap-min); /* 命中区 44px，向上下各溢出约 7.5px */
+    height: var(--tap-min);
     transform: translateY(-50%);
   }
 }
 
-/* 文章列表行：分隔线式，不做成盒子卡（设计系统偏好分隔线胜过描边盒） */
-.post-row {
+/* ── 文章卡片网格（§5.5 + §4）───────────────────────────
+ * ≥768px 双列、以下单列。不用 auto-fill(minmax(320px,1fr))：本站卡片无封面图、
+ * 信息量小，三列以上会把标题压成两行截断，阅读节奏优先（见 blog/DESIGN.md）。 */
+.posts-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-5);
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .posts-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 卡片本体：实色面 + 发丝描边 + r-md + shadow-2（§5.5）。禁止彩色左边框。 */
+.post-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  padding: 1.5rem 0;
-  border-bottom: 1px solid var(--divider-color);
+  gap: var(--s-3);
   min-width: 0;
+  padding: var(--s-5);
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-2);
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out);
 }
 
-.post-row:last-child {
-  border-bottom: none;
+.post-card:hover,
+.post-card:focus-within {
+  transform: translateY(-3px);
+  border-color: var(--pink-300);
+  box-shadow: var(--shadow-3);
 }
 
-.post-row-meta {
+/* 暗色主题下阴影不可见，改用极淡的粉光把卡片抬起来（§2.8 / §3.2） */
+:root[data-theme='dark'] .post-card:hover,
+:root[data-theme='dark'] .post-card:focus-within {
+  box-shadow: var(--glow-pink-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .post-card:hover,
+  :root:not([data-theme]) .post-card:focus-within {
+    box-shadow: var(--glow-pink-dark);
+  }
+}
+
+@media (pointer: coarse) {
+  /* hover 专属效果在触屏上没有意义，也会在点击后「粘住」 */
+  .post-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-2);
+    /* 不复位描边的话，点过的卡片会「粘」一条粉边直到失焦。 */
+    border-color: var(--line);
+  }
+}
+
+.post-card-top {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--s-2);
   flex-wrap: wrap;
-  font-size: var(--fs-sm);
+  min-width: 0;
+}
+
+/* 日期 / 作者等元信息：--fs-xs + --font-tech（§5.5） */
+.post-card-date,
+.post-card-meta {
+  font-family: var(--font-tech);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
   color: var(--text-muted);
+  letter-spacing: 0.01em;
   min-width: 0;
 }
 
-.post-row-title {
+.post-card-title {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -0.01em;
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-heading);
+  letter-spacing: 0;
   min-width: 0;
-}
-
-.post-row-title a {
-  color: var(--text-main);
-  text-decoration: none;
-  transition: color var(--dur-fast) var(--ease-standard);
-}
-
-.post-row-title a:hover {
-  color: var(--accent-pink);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-}
-
-.post-row-desc {
-  margin: 0;
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
-  color: var(--text-secondary);
-  overflow-wrap: break-word;
-  /* 两行截断，保持列表节奏整齐 */
+  /* 两行截断，保持网格节奏整齐 */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -398,37 +533,106 @@ hr {
   overflow: hidden;
 }
 
-.post-row-footer {
+.post-card-title a {
+  color: var(--ink);
+  text-decoration: none;
+  transition: color var(--dur-1) var(--ease-standard);
+}
+
+.post-card-title a:hover,
+.post-card-title a:focus-visible {
+  color: var(--pink-700);
+}
+
+/* 整卡可点：标题链接的伪元素铺满卡片，无障碍树里仍只有一个链接。
+ * 卡内的标签 / 作者链接靠 z-index 浮在它上面（见 .post-card-foot）。 */
+.post-card-title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: var(--r-md);
+}
+
+.post-card-desc {
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+  overflow-wrap: break-word;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-card-foot {
+  position: relative;
+  z-index: 2; /* 压在整卡链接之上，标签与作者链接才点得到 */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.6rem 1rem;
+  gap: var(--s-2) var(--s-4);
   flex-wrap: wrap;
   min-width: 0;
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
+  margin-top: auto;
 }
 
-.post-row-tags {
+.post-card-tags {
   display: flex;
-  gap: 0.4rem;
+  gap: var(--s-1) var(--s-2);
   flex-wrap: wrap;
   min-width: 0;
 }
 
-/* 触屏：标签换行时把行间距拉到 1rem。胶囊视觉高 29px、命中区 44px，
- * 行距 16px 时行间距（29 + 16 = 45 > 44）刚好让上下两行的命中区不重叠——
- * 重叠会让贴近边界的一点落到相邻那行的标签上，点错。 */
+/* 触屏：标签换行时把行距拉到 16px。chip 视觉高 26px、命中区 44px，
+ * 行距 16px 时（26 + 16 = 42）两行命中区仅轻微交错，再小就会点错。 */
 @media (any-pointer: coarse) {
-  .post-row-tags {
-    gap: 1rem 0.4rem;
+  .post-card-tags {
+    gap: var(--s-4) var(--s-2);
   }
 }
 
-/* ── 文章正文 ────────────────────────────────────────────
- * 唯一使用 --fs-prose / --lh-prose 的地方（长文特例，见 theme.css）。 */
+.post-card-meta a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--dur-1) var(--ease-standard);
+}
+
+.post-card-meta a:hover,
+.post-card-meta a:focus-visible {
+  color: var(--pink-700);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── 空态（§5.12）────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-8) 0;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.empty-state svg {
+  color: var(--text-muted);
+}
+
+.empty-state-title {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+}
+
+/* ── 文章正文（§5.13）────────────────────────────────────
+ * 阅读轨由 .container 负责（46rem 文字列）；这里只管行高与元素节奏。 */
 .article-content {
-  font-size: var(--fs-prose);
+  font-size: var(--fs-body);
   line-height: var(--lh-prose);
   color: var(--text-body);
   overflow-wrap: break-word;
@@ -440,36 +644,37 @@ hr {
   margin-bottom: 1rem;
 }
 
+/* §5.13：h2 顶部留白 2em。不再画上分隔线——层级靠留白与字号，不靠线。 */
 .article-content h2 {
-  margin-top: 2.5rem;
-  padding-top: 1.5rem;
-  margin-bottom: 1rem;
-  border-top: 1px solid var(--divider-color);
+  margin-top: 2em;
+  margin-bottom: 0.75rem;
+  font-size: var(--fs-h2);
 }
 
-/* 正文里常用 `---` 作为章节分隔（渲染为 hr），紧跟其后的 h2 不再重复画一条线 */
+/* 正文里常用 `---`（渲染为 hr）作章节分隔，紧跟其后的 h2 不再叠一段大留白 */
 .article-content hr + h2 {
-  margin-top: 0;
-  border-top: none;
+  margin-top: 1rem;
 }
 
 .article-content h3 {
-  margin-top: 2rem;
-  margin-bottom: 0.75rem;
-  color: var(--text-main);
+  margin-top: 1.75em;
+  margin-bottom: 0.5rem;
+  font-size: var(--fs-h3);
+  color: var(--ink);
 }
 
 .article-content h4 {
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
+  margin-top: 1.5em;
+  margin-bottom: 0.4rem;
+  font-size: var(--fs-lg);
 }
 
 /* 页内锚点（目录 / URL #hash / 键盘聚焦）跳到标题时，吸顶导航会盖住目标标题，
  * 落位时留出让位——与脚注区（FootnotePopover）同一套方案：用目标元素的
  * scroll-margin（而非容器 scroll-padding），二者不叠加；--app-nav-height 由
- * Header 的脚本按各设备/断点实时同步，57px 为无 JS 兜底。 */
+ * Header 的脚本按各设备/断点实时同步，--nav-h 为无 JS 兜底。 */
 .article-content :is(h1, h2, h3, h4, h5, h6) {
-  scroll-margin-top: calc(var(--app-nav-height, 57px) + 1.5rem);
+  scroll-margin-top: calc(var(--app-nav-height, var(--nav-h)) + var(--s-5));
 }
 
 .article-content ul,
@@ -482,40 +687,47 @@ hr {
   margin-bottom: 0.35rem;
 }
 
-/* 链接一律不常驻下划线，只在 hover / 聚焦时出现。
- * 脚注编号另有 [n] 方括号、标签有胶囊底色，都不依赖下划线来辨识。 */
+/* 正文行内链接：用真 text-decoration 而非 ::after 长入动画——中文长句链接会折行，
+ * 绝对定位的下划线只画首行（偏离记录见 blog/DESIGN.md）。 */
 .article-content a {
+  color: var(--blue-600);
   text-decoration: none;
+  text-underline-offset: 3px;
   overflow-wrap: anywhere;
 }
 
 .article-content a:hover,
 .article-content a:focus-visible {
   text-decoration: underline;
-  text-underline-offset: 0.2em;
 }
 
+/* 引用：2px --blue-400 左边条 + --surface-2 底（§5.13） */
 .article-content blockquote {
-  border-left: 3px solid var(--primary-pink);
-  padding-left: 1rem;
   margin: 1.5rem 0;
+  padding: 0.85rem 1.1rem;
+  border-left: 2px solid var(--blue-400);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background-color: var(--surface-2);
   color: var(--text-secondary);
+}
+
+.article-content blockquote > :last-child {
+  margin-bottom: 0;
 }
 
 /* ── 提示 / 警告框（Callout）───────────────────────────────
  * 由 src/lib/markdown/rehype-callouts.mjs 把 `> [!类型]` 引用块转成
- * <div class="callout callout-类型">。这里是设计系统里少数刻意「成盒」的
- * 强调块（与代码块同属例外）：软色底 + 柔边 + 左侧强调条，配色一律走 --soft-* 令牌，
- * 不写死颜色。五种类型只改三个局部变量（底 / 边 / 强调色），主体规则复用。 */
+ * <div class="callout callout-类型">。配色走 §2.4 语义软色组（底 / 边 / 文字三件套），
+ * 五种类型只改三个局部变量，主体规则复用。
+ * 刻意不做「彩色左边框」：§1.6 明令禁止该模板，强调由 1px 语义描边 + 标题色承担。 */
 .article-content .callout {
-  --callout-bg: var(--soft-info-bg);
-  --callout-border: var(--soft-info-border);
-  --callout-accent: var(--soft-info-text);
+  --callout-bg: var(--info-bg);
+  --callout-border: var(--info-border);
+  --callout-accent: var(--info-text);
   margin: 1.5rem 0;
   padding: 0.9rem 1.1rem;
   border: 1px solid var(--callout-border);
-  border-left: 4px solid var(--callout-accent);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
   background-color: var(--callout-bg);
   color: var(--text-body);
 }
@@ -525,7 +737,7 @@ hr {
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--callout-accent);
 }
 
@@ -550,56 +762,58 @@ hr {
 }
 
 .article-content .callout-note {
-  --callout-bg: var(--soft-info-bg);
-  --callout-border: var(--soft-info-border);
-  --callout-accent: var(--soft-info-text);
+  --callout-bg: var(--info-bg);
+  --callout-border: var(--info-border);
+  --callout-accent: var(--info-text);
 }
 
 .article-content .callout-tip {
-  --callout-bg: var(--soft-success-bg);
-  --callout-border: var(--soft-success-border);
-  --callout-accent: var(--soft-success-text);
+  --callout-bg: var(--success-bg);
+  --callout-border: var(--success-border);
+  --callout-accent: var(--success-text);
 }
 
+/* important = 品牌档：语义色组里没有「品牌」，用粉 ramp 的软面 + 粉文字档 */
 .article-content .callout-important {
-  --callout-bg: var(--soft-brand-bg);
-  --callout-border: var(--soft-brand-border);
-  --callout-accent: var(--soft-brand-text);
+  --callout-bg: var(--pink-100);
+  --callout-border: var(--pink-300);
+  --callout-accent: var(--pink-700);
 }
 
 .article-content .callout-warning {
-  --callout-bg: var(--soft-amber-bg);
-  --callout-border: var(--soft-amber-border);
-  --callout-accent: var(--soft-amber-text);
+  --callout-bg: var(--warning-bg);
+  --callout-border: var(--warning-border);
+  --callout-accent: var(--warning-text);
 }
 
 .article-content .callout-caution {
-  --callout-bg: var(--soft-error-bg);
-  --callout-border: var(--soft-error-border);
-  --callout-accent: var(--soft-error-text);
+  --callout-bg: var(--error-bg);
+  --callout-border: var(--error-border);
+  --callout-accent: var(--error-text);
 }
 
 .article-content img {
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-1);
 }
 
-/* 行内代码：代码胶囊 */
+/* 行内代码：--pink-100 底 + --pink-700 字 + --r-xs（§5.13） */
 .article-content :not(pre) > code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace;
-  font-size: 0.85em;
-  background-color: var(--hover-bg);
-  color: var(--accent-pink);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background-color: var(--pink-100);
+  color: var(--pink-700);
   padding: 0.1rem 0.4rem;
-  border-radius: var(--radius-xs);
+  border-radius: var(--r-xs);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-/* 代码块：外框走本站令牌，语法色由 Shiki 双主题变量提供（见 astro.config.mjs） */
+/* 代码块：--surface-2（暗色 #141021，见 theme.css 的 --code-bg）+ --r-sm + 13.5px mono */
 .article-content pre {
   background-color: var(--code-bg);
-  border: 1px solid var(--code-border);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
   padding: 1rem;
   margin-bottom: 1rem;
   overflow-x: auto;
@@ -608,7 +822,7 @@ hr {
 .article-content pre code {
   background-color: transparent;
   padding: 0;
-  font-size: 0.875rem;
+  font-size: 13.5px;
   line-height: 1.7;
 }
 
@@ -644,7 +858,7 @@ hr {
   text-decoration: var(--shiki-dark-text-decoration);
 }
 
-/* ── 表格 ───────────────────────────────────────────────── */
+/* ── 表格（§5.8 的公共侧简化版）────────────────────────── */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -658,16 +872,27 @@ table {
 th,
 td {
   padding: 0.75rem;
-  border: 1px solid var(--divider-color);
+  border: 1px solid var(--line);
   text-align: left;
 }
 
 /* 表头不换行；表格过宽时在 .table-wrapper 内横向滚动，不撑破页面 */
 th {
-  background-color: var(--hover-bg);
-  font-weight: 600;
-  color: var(--text-main);
+  background-color: var(--surface-2);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
   white-space: nowrap;
+}
+
+/* 行 hover 铺 --surface-2，不用斑马纹（§5.8） */
+tbody tr {
+  transition: background-color var(--dur-1) var(--ease-standard);
+}
+
+@media (pointer: fine) {
+  tbody tr:hover {
+    background-color: var(--surface-2);
+  }
 }
 
 @media (max-width: 768px) {
@@ -675,6 +900,45 @@ th {
   td {
     padding: 0.5rem 0.65rem;
     font-size: var(--fs-sm);
+  }
+}
+
+/* ══ 打印 / PDF ═══════════════════════════════════════════
+ * /print/<slug> 是 PDF 的渲染源（scripts/generate-pdfs.mjs 走 print media）。
+ * 纸上不要站点外壳、不要动效、不要玻璃、不要 reveal 的初始隐藏态。 */
+@media print {
+  .skip-link,
+  .site-header,
+  .site-footer,
+  .reading-progress,
+  .theme-toggle,
+  .mobile-menu,
+  .link-confirm,
+  .fn-pop {
+    display: none !important;
+  }
+
+  /* reveal 未触发（纸上不滚动）的区块必须恒可见 */
+  html.js [data-reveal],
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    /* 玻璃在纸上无意义，且部分引擎会把 backdrop-filter 渲染成灰块 */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+
+  .post-card {
+    break-inside: avoid;
   }
 }
 

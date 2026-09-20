@@ -1,238 +1,286 @@
-/* 设计令牌 —— 全站唯一真值源，取自 TransCircle 全局设计系统（docs/DESIGN.md 三、四章）。
+/* 设计令牌 —— 全站唯一真值源，逐字取自 TransCircle 设计系统 v3.0「Spectrum / 光谱」
+ * （docs/DESIGN.md §2 全部 + §4 布局轨道）。
  *
  * 三块结构：
- *   1. :root            —— 浅色基线（无条件）+ 与主题无关的尺度令牌（圆角/字阶/间距/动效/轨道）
- *   2. 系统偏好深色     —— 未显式设 data-theme 时的 JS-less 回退
+ *   1. :root             —— 亮色基线（无条件）+ 与主题无关的尺度令牌（字体/字阶/间距/圆角/阴影/动效/层级/轨道）
+ *   2. 系统偏好深色      —— 未显式设 data-theme 时的 JS-less 回退
  *   3. [data-theme=dark] —— JS 显式锁定深色
  *
  * 纪律：
- *   - 组件层只允许 var(--token)，不得写死色值 / 圆角 / 时长（OG 卡片渲染除外，satori 不支持 CSS 变量）。
- *   - 两个深色块的取值必须逐条一致，仅 --cta-color 存在历史遗留的末档差异；改深色令牌必须同时改两处。
+ *   - 组件层只允许 var(--token)，不得写死色值 / 圆角 / 时长（OG 卡片与 PDF 渲染脚本除外：
+ *     satori / puppeteer 不解析 CSS 变量，二者配色独立维护）。
+ *   - 两个深色块的取值必须**逐条一致**：改任何一条深色令牌都要同时改两处。
  *   - 主题维度只有 light / dark 两个取值。高对比度主题是设计系统的硬性非目标，不得重新引入
- *     （不写 prefers-contrast / forced-colors 分支，不加 --*-hc 令牌）。
+ *     （不写 prefers-contrast / forced-colors 分支，不加 --*-hc 令牌）。对比度由令牌色值本身保证。
+ *   - 粉色做文字只能用 --pink-700，信息/链接文字用 --blue-600（v3.0 §7）。
  */
 
 :root {
-  /* ── 基础色：底色与四档文字灰阶 ─────────────────────────── */
-  --bg-color: #fff9fb;
-  --text-main: #000000;
-  --text-body: #333333;
-  --text-secondary: #666666;
-  --text-muted: #888888;
+  /* ══ §2.1 颜色 — 粉（主色）══════════════════════════════════════ */
+  --pink-100: #ffe9f1; /* 浅表面：chip 底、hover 面 */
+  --pink-200: #ffd3e2; /* 柔和面 */
+  --pink-300: #ffb3cb;
+  --pink-400: #ec9eb0; /* 装饰面、非关键填充 */
+  --pink-500: #f0aac1;
+  --pink-600: #efa8c0; /* 主行动色：主按钮、激活态、强调 */
+  --pink-700: #c22e68; /* 粉文字专用（亮色下 ≥4.5:1），禁止用 600 及以下档做文字 */
 
-  /* ── 品牌粉三档：soft < primary < accent ─────────────────── */
-  --primary-pink: #ec9eb0;
-  --soft-pink: #ffccd5;
-  --accent-pink: #e67690;
+  /* ══ §2.2 颜色 — 旗蓝（辅色 / 信息）════════════════════════════ */
+  --blue-100: #e3f4fe;
+  --blue-400: #5bcefa; /* 旗帜原蓝：装饰面、图标、进度 */
+  --blue-500: #2fb5f0;
+  --blue-600: #0a6e9e; /* 链接与信息文字专用（≥4.5:1） */
 
-  /* ── 表面与分隔 ─────────────────────────────────────────── */
-  --surface-card: #ffffff;
-  --divider-color: #ffccd5;
-  --nav-bg: rgba(255, 251, 252, 0.85);
-  --hover-bg: #ffedf1;
-  --hover-bg-mix: color-mix(in srgb, var(--primary-pink) 15%, white);
+  /* ══ §2.3 颜色 — 中性 / 表面 / 线 ══════════════════════════════ */
+  --bg: #fdf9fb; /* 页面底：微暖粉白 */
+  --surface: #ffffff; /* 卡片面 */
+  --surface-2: #faf0f4; /* 输入框、凹陷面、代码行底色 */
+  --ink: #1a1420; /* 主文字（深李紫墨，替代纯黑） */
+  --text-body: #3e3646;
+  --text-secondary: #6d6478;
+  --text-muted: #6f6678;
+  --line: #eedfe6; /* 发丝线：卡片描边、分隔线 */
+  --line-strong: #8c7b88; /* 表单描边（对 --bg ≥3:1） */
 
-  /* ── CTA 组 ─────────────────────────────────────────────── */
-  --cta-bg: #ffd8d8;
-  --cta-color: #412a2a;
-  --cta-hover: #f7bcbc;
-  --cta-hover-mix: color-mix(in srgb, var(--accent-pink) 85%, white);
+  /* ══ §2.4 颜色 — 语义（文字档均 ≥4.5:1）════════════════════════ */
+  --success-bg: #e2f4ea;
+  --success-border: #bee6cf;
+  --success-text: #1e7a4f;
+  --error-bg: #fcebea;
+  --error-border: #f2c6c2;
+  --error-text: #b3261e;
+  --warning-bg: #fff4dc;
+  --warning-border: #f2e0b0;
+  --warning-text: #8a5a00;
+  /* info 走蓝 ramp，深色块中 --blue-* 一变，这两条自动跟随（var 惰性解析） */
+  --info-bg: var(--blue-100);
+  --info-border: #b9e3f9;
+  --info-text: var(--blue-600);
 
-  /* ── 阴影色（几何在下方 --shadow-* 中，颜色随主题惰性解析）── */
-  --shadow-color: rgba(255, 255, 255, 0.06);
-  --shadow-color-hover: rgba(240, 98, 146, 0.15);
+  /* ══ §2.5 玻璃与发光 ═══════════════════════════════════════════ */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(26, 18, 32, 0.09);
+  --glass-blur: 16px;
+  --overlay: rgba(12, 10, 19, 0.5);
+  --glow-pink: 0 0 0 1px rgba(239, 168, 192, 0.09), 0 8px 28px -8px rgba(239, 168, 192, 0.16);
+  --glow-pink-dark: 0 0 18px rgba(245, 182, 201, 0.20);
+  --glow-blue: 0 0 0 1px rgba(91, 206, 250, 0.18), 0 8px 32px -6px rgba(91, 206, 250, 0.32);
 
-  /* ── 遮罩与选中 ─────────────────────────────────────────── */
-  --overlay-bg: rgba(0, 0, 0, 0.3);
-  --select: #ffe2e8;
-  --on-accent: #412a2a; /* 落在 accent 实底上的前景色，主题无关 */
-
-  /* ── 聚焦环（输入类控件用 box-shadow，非输入类走 outline）── */
-  --focus-ring: rgba(236, 158, 176, 0.28);
-  --focus-ring-error: rgba(211, 47, 47, 0.16);
-
-  /* ── 状态语义（表单错误边框 / 内联成功失败文字）─────────── */
-  --error-color: #d32f2f;
-  --error-border: #f0c2c2;
-  --success-color: #2e7d32;
-
-  /* ── 语义软色组：浅底 + 柔边 + 深文字 ───────────────────── */
-  --soft-success-bg: #e7f6ec;
-  --soft-success-border: #a9d8b6;
-  --soft-success-text: #1e7d34;
-  --soft-error-bg: #fff0ee;
-  --soft-error-border: #f0c2c2;
-  --soft-error-text: #c62828;
-  --soft-info-bg: #e9f1ff;
-  --soft-info-border: #b6cdff;
-  --soft-info-text: #1a56c4;
-  --soft-amber-bg: #fff3e0;
-  --soft-amber-border: #f0d9b0;
-  --soft-amber-text: #b26a00;
-  /* 品牌粉软色组：软色组里没有的第五档，供「重要」提示框（callout-important）使用 */
-  --soft-brand-bg: #ffeef2;
-  --soft-brand-border: #f3b0c0;
-  --soft-brand-text: #c02c56;
-
-  /* ── 博客扩展令牌 ───────────────────────────────────────
+  /* ══ 博客扩展令牌（主题相关档）══════════════════════════════════
    * 设计系统面向应用，没有「代码块面」这一语义；博客必须有。
-   * 用极淡的粉白 / 近黑作为代码面，语法色由 Shiki 双主题提供。 */
-  --code-bg: #fdf2f5;
-  --code-border: var(--divider-color);
+   * §5.13 规定代码块用 --surface-2（暗色 #141021），语法色由 Shiki 双主题提供。 */
+  --code-bg: var(--surface-2);
+  /* 输入框聚焦光晕的回退档；支持 color-mix 时在文件末尾升级为令牌混合。 */
+  --focus-ring: rgba(239, 168, 192, 0.25);
+  /* 主按钮 hover 的加深档；组件统一引用它，避免散落在各处。 */
+  --pink-600-hover: #e38faa;
 
-  /* ══ 以下为与主题无关的尺度令牌，深色块中不得重复声明 ══ */
+  /* ══ 以下为与主题无关的尺度令牌，深色块中不得重复声明 ══════════ */
 
-  /* ── 圆角五档 + 语义别名（同类同圆角）───────────────────── */
-  --radius-xs: 6px; /* 内联小件：徽章、chip */
-  --radius-sm: 10px; /* 控件：按钮、输入框、行 */
-  --radius-md: 12px; /* 浮层：下拉、抽屉 */
-  --radius-lg: 14px; /* 卡片：内容卡、对话框面板 */
-  --radius-pill: 999px; /* 胶囊：CTA、标签 */
-  --radius-control: var(--radius-sm);
-  --radius-pop: var(--radius-md);
+  /* ── §2.6 字体 ─────────────────────────────────────────────────
+   * 自托管 latin 子集 woff2（public/fonts/，@font-face 见 global.css）。
+   * 中文一律由系统栈兜底；Nunito Brand 仅用于 TransCircle 品牌词。 */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  --font-brand: 'Nunito Brand', Nunito, 'Avenir Next Rounded', var(--font-sans); /* TransCircle 品牌文本 */
+  --font-tech: 'Space Grotesk', var(--font-sans); /* eyebrow 标签、数字、徽章 */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* ── 阴影三档（引用上面的阴影色，惰性解析）──────────────── */
-  --shadow-card: 0 1px 2px var(--shadow-color);
-  --shadow-card-hover: 0 4px 14px var(--shadow-color-hover);
-  --shadow-pop: 0 8px 24px var(--shadow-color);
+  /* ── §2.7 字阶（流体，基准 16px）───────────────────────────────
+   * 正文最小 16px；辅助信息最小 12px（仅 eyebrow / 时间戳，配 --font-tech 或加粗）。 */
+  --fs-hero: clamp(2.4rem, 1.8rem + 3vw, 4rem); /* 仅博客首页 hero */
+  --fs-display: clamp(1.8rem, 1.45rem + 1.6vw, 2.6rem);
+  --fs-h1: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --fs-h2: 1.5rem;
+  --fs-h3: 1.25rem;
+  --fs-lg: 1.125rem;
+  --fs-body: 1rem;
+  --fs-sm: 0.875rem;
+  --fs-xs: 0.75rem;
 
-  /* ── 字阶（流体 clamp）─────────────────────────────────── */
-  --fs-title: clamp(1.5rem, 1.15rem + 1.55vw, 2rem); /* 24 → 32px */
-  --fs-subtitle: clamp(0.9rem, 0.85rem + 0.25vw, 1rem);
-  --fs-body: clamp(0.9rem, 0.88rem + 0.1vw, 0.95rem);
-  --fs-sm: clamp(0.82rem, 0.8rem + 0.1vw, 0.875rem);
-  --lh-body: 1.65;
+  --lh-display: 1.15;
+  --lh-heading: 1.3;
+  --lh-body: 1.75;
+  --lh-prose: 1.85;
+  --lh-caption: 1.5;
 
-  /* 博客扩展：长文正文。设计系统的 --fs-body 上限 15.2px 是 UI 行的尺度，
-   * 三千字以上的中文长文需要更大字号与更松行距，仅 .article-content 使用。 */
-  --fs-prose: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem); /* 16 → 17px */
-  --lh-prose: 1.8;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
 
-  /* ── 控件节奏 ───────────────────────────────────────────── */
-  --control-h: 34px;
-  --tap-min: 44px;
+  /* ── §2.8 间距 / 圆角 / 阴影 / 层级 ────────────────────────────
+   * 同类同圆角是铁律：卡片一律 r-md，控件一律 r-sm，禁止 pill 按钮。 */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
 
-  /* ── 布局轨道 ───────────────────────────────────────────── */
-  --width-content: 1280px; /* 外壳：顶栏内条、页脚内条 */
-  --width-reading: 60rem; /* 正文：全部博客页面（960px） */
-  --width-form: 26rem;
-  --app-nav-height: 57px;
+  --r-xs: 4px; /* chip、标签、inline code */
+  --r-sm: 8px; /* 按钮、输入框、小图 */
+  --r-md: 12px; /* 卡片 */
+  --r-lg: 16px; /* 浮动层：弹窗、抽屉、玻璃面板 */
+  --r-pill: 999px; /* 仅头像、进度条轨道 */
 
-  /* ── 动效 ───────────────────────────────────────────────── */
-  --ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-1: 0 1px 2px rgba(26, 18, 32, 0.05);
+  --shadow-2: 0 1px 2px rgba(26, 18, 32, 0.04), 0 8px 24px -12px rgba(26, 18, 32, 0.12);
+  --shadow-3: 0 2px 6px rgba(26, 18, 32, 0.06), 0 16px 40px -16px rgba(26, 18, 32, 0.2);
+  /* 暗色主题阴影基本不可见，靠 --line 与 glow 分层（§2.8） */
+
+  --z-sticky: 10;
+  --z-nav: 50;
+  --z-overlay: 80;
+  --z-drawer: 90;
+  --z-modal: 100;
+  --z-toast: 120;
+  --z-skip: 200;
+
+  /* ── §2.9 动效 ─────────────────────────────────────────────── */
+  --dur-1: 150ms; /* 悬停、按压 */
+  --dur-2: 250ms; /* 常规过渡、抽屉 */
+  --dur-3: 400ms; /* 卡片入场、主题切换 */
+  --dur-4: 600ms; /* 滚动 reveal */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur-fast: 130ms;
-  --dur-base: 200ms;
+  --ease-spring: cubic-bezier(0.34, 1.3, 0.64, 1); /* 仅微交互，位移 ≤4px */
+
+  /* ── §4 布局与响应式 ──────────────────────────────────────── */
+  --w-content: 1280px; /* 内容轨：顶栏内条、页脚内条 */
+  --w-reading: 46rem; /* 阅读轨：正文 */
+  --w-form: 26rem; /* 表单轨 */
+  --nav-h: 64px; /* 顶栏高，移动端 56px（见 global.css 断点） */
+  --tap-min: 44px; /* 触控目标下限 */
+  --btn-h: 40px; /* 按钮高（移动端 44，见各 coarse 分支） */
+  --control-h: 44px; /* 表单控件高 */
+  --page-x: clamp(16px, 4vw, 48px); /* 页面水平内边距统一令牌（§4），与另两仓同名 */
+  --flag-pink: #f5a9b8; /* 旗帜原粉（§3.1） */
+  --flag-blue: #5bcefa; /* 旗帜原蓝（§3.1） */
+
+  /* 博客扩展：顶栏真实高度，由 Header 脚本按各设备/断点实时写入，供 scroll-margin 消费。
+   * --nav-h 是设计值，本条是运行时测量值；无 JS 时回退到 --nav-h。 */
+  --app-nav-height: var(--nav-h);
+
+  /* 落在粉色实底上的前景墨字（§5.1 Primary / §5.6 选中 chip 均为 #210A16） */
+  --on-pink: #210a16;
+
+  /* 旗帜条纹（§3.1）的白段。跨性别旗的白是品牌常量，两个主题同值——
+   * --surface / --ink 都会随主题翻转，拿它们当「白」会让暗色下的旗子失真。
+   * 亮底上白段需 1px --line 描边（§3.1），见 global.css 的 .flag-stripe。 */
+  --flag-white: #ffffff;
 }
 
-/* ── 深色：系统偏好 + 未显式设主题（JS-less 回退）──────────── */
+/* ── 深色：系统偏好 + 未显式设主题（JS-less 回退）────────────────
+ * 取值必须与下方 [data-theme='dark'] 块逐条一致。 */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --bg-color: #12121a;
-    --text-main: #f0f0f5;
-    --text-body: #c0c0d0;
-    --text-secondary: #a0a0b0;
-    --text-muted: #808090;
+    /* §2.1 粉（同名映射） */
+    --pink-100: #3a1e2e;
+    --pink-200: #54263c;
+    --pink-300: #a63d68;
+    --pink-400: #f49bbe;
+    --pink-500: #f7bfce;
+    --pink-600: #f5b6c9; /* 暗色主行动色，配 --glow-pink-dark */
+    --pink-700: #ff8fbb; /* 暗色粉文字（深底上 ≥4.5:1） */
 
-    --primary-pink: #ff85a2;
-    --soft-pink: #3a2a35;
-    --accent-pink: #ff6b9d;
+    /* §2.2 旗蓝 */
+    --blue-100: #122b3a;
+    --blue-400: #5bcefa; /* 暗色霓虹蓝，可配 --glow-blue */
+    --blue-500: #37bdf5;
+    --blue-600: #7cd4fa; /* 暗色链接文字 */
 
-    --surface-card: #1e1e2e;
-    --divider-color: #2a2a3a;
-    --nav-bg: rgba(24, 24, 35, 0.85);
-    --hover-bg: #2a1f25;
-    --hover-bg-mix: color-mix(in srgb, var(--primary-pink) 15%, #12121a);
+    /* §2.3 中性 / 表面 / 线 */
+    --bg: #0c0a13; /* 深靛黑 */
+    --surface: #17131f;
+    --surface-2: #1e1929;
+    --ink: #f5f2f8;
+    --text-body: #cfc9da;
+    --text-secondary: #9c94ac;
+    --text-muted: #8f86a4;
+    --line: #2b2438;
+    --line-strong: #7a7090;
 
-    --cta-bg: #ff85a2;
-    --cta-color: #f5d6dd; /* 系统深色取值（与 JS 深色的唯一差异） */
-    --cta-hover: #cc537c;
-    --cta-hover-mix: color-mix(in srgb, var(--accent-pink) 85%, black);
+    /* §2.4 语义（info-bg / info-text 经 var 自动跟随暗色蓝 ramp） */
+    --success-bg: #12281c;
+    --success-border: #1e4630;
+    --success-text: #6fcf97;
+    --error-bg: #2e1518;
+    --error-border: #57262a;
+    --error-text: #ff8a80;
+    --warning-bg: #2a2113;
+    --warning-border: #4a3a1c;
+    --warning-text: #f2c572;
+    --info-border: #1c4257;
 
-    --shadow-color: rgba(255, 107, 156, 0.04);
-    --shadow-color-hover: rgba(255, 107, 157, 0.15);
+    /* §2.5 玻璃与遮罩 */
+    --glass-bg: rgba(23, 19, 31, 0.62);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --overlay: rgba(12, 10, 19, 0.62);
 
-    --overlay-bg: rgba(0, 0, 0, 0.5);
-    --select: #664e5e;
-
-    --focus-ring: rgba(255, 133, 162, 0.28);
-    --focus-ring-error: rgba(239, 83, 80, 0.28);
-
-    --error-color: #ef5350;
-    --error-border: rgba(239, 83, 80, 0.35);
-    --success-color: #66bb6a;
-
-    --soft-success-bg: rgba(46, 160, 75, 0.12);
-    --soft-success-border: rgba(46, 160, 75, 0.3);
-    --soft-success-text: #66bb6a;
-    --soft-error-bg: rgba(229, 83, 75, 0.12);
-    --soft-error-border: rgba(229, 83, 75, 0.32);
-    --soft-error-text: #f28b82;
-    --soft-info-bg: rgba(102, 140, 224, 0.14);
-    --soft-info-border: rgba(102, 140, 224, 0.35);
-    --soft-info-text: #8ab4f8;
-    --soft-amber-bg: rgba(240, 160, 50, 0.14);
-    --soft-amber-border: rgba(240, 160, 50, 0.32);
-    --soft-amber-text: #ffb74d;
-    --soft-brand-bg: rgba(255, 107, 157, 0.12);
-    --soft-brand-border: rgba(255, 107, 157, 0.34);
-    --soft-brand-text: #ff9db5;
-
-    --code-bg: #16161f;
+    /* 博客扩展 */
+    --code-bg: #141021;
+    --focus-ring: rgba(245, 182, 201, 0.25);
+    --pink-600-hover: #eea4bc;
   }
 }
 
-/* ── 深色：JS 显式锁定（取值与上一块逐条一致，仅 --cta-color 不同）── */
+/* ── 深色：JS 显式锁定（取值与上一块逐条一致）──────────────────── */
 :root[data-theme='dark'] {
-  --bg-color: #12121a;
-  --text-main: #f0f0f5;
-  --text-body: #c0c0d0;
-  --text-secondary: #a0a0b0;
-  --text-muted: #808090;
+  /* §2.1 粉（同名映射） */
+  --pink-100: #3a1e2e;
+  --pink-200: #54263c;
+  --pink-300: #a63d68;
+  --pink-400: #f49bbe;
+  --pink-500: #f7bfce;
+  --pink-600: #f5b6c9; /* 暗色主行动色，配 --glow-pink-dark */
+  --pink-700: #ff8fbb; /* 暗色粉文字（深底上 ≥4.5:1） */
 
-  --primary-pink: #ff85a2;
-  --soft-pink: #3a2a35;
-  --accent-pink: #ff6b9d;
+  /* §2.2 旗蓝 */
+  --blue-100: #122b3a;
+  --blue-400: #5bcefa; /* 暗色霓虹蓝，可配 --glow-blue */
+  --blue-500: #37bdf5;
+  --blue-600: #7cd4fa; /* 暗色链接文字 */
 
-  --surface-card: #1e1e2e;
-  --divider-color: #2a2a3a;
-  --nav-bg: rgba(24, 24, 35, 0.85);
-  --hover-bg: #2a1f25;
-  --hover-bg-mix: color-mix(in srgb, var(--primary-pink) 15%, #12121a);
+  /* §2.3 中性 / 表面 / 线 */
+  --bg: #0c0a13; /* 深靛黑 */
+  --surface: #17131f;
+  --surface-2: #1e1929;
+  --ink: #f5f2f8;
+  --text-body: #cfc9da;
+  --text-secondary: #9c94ac;
+  --text-muted: #8f86a4;
+  --line: #2b2438;
+  --line-strong: #7a7090;
 
-  --cta-bg: #ff85a2;
-  --cta-color: #f4e7ea; /* JS 深色取值 */
-  --cta-hover: #cc537c;
-  --cta-hover-mix: color-mix(in srgb, var(--accent-pink) 85%, black);
+  /* §2.4 语义（info-bg / info-text 经 var 自动跟随暗色蓝 ramp） */
+  --success-bg: #12281c;
+  --success-border: #1e4630;
+  --success-text: #6fcf97;
+  --error-bg: #2e1518;
+  --error-border: #57262a;
+  --error-text: #ff8a80;
+  --warning-bg: #2a2113;
+  --warning-border: #4a3a1c;
+  --warning-text: #f2c572;
+  --info-border: #1c4257;
 
-  --shadow-color: rgba(255, 107, 156, 0.04);
-  --shadow-color-hover: rgba(255, 107, 157, 0.15);
+  /* §2.5 玻璃与遮罩 */
+  --glass-bg: rgba(23, 19, 31, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --overlay: rgba(12, 10, 19, 0.62);
 
-  --overlay-bg: rgba(0, 0, 0, 0.5);
-  --select: #664e5e;
+  /* 博客扩展 */
+  --code-bg: #141021;
+  --focus-ring: rgba(245, 182, 201, 0.25);
+  --pink-600-hover: #eea4bc;
+}
 
-  --focus-ring: rgba(255, 133, 162, 0.28);
-  --focus-ring-error: rgba(239, 83, 80, 0.28);
-
-  --error-color: #ef5350;
-  --error-border: rgba(239, 83, 80, 0.35);
-  --success-color: #66bb6a;
-
-  --soft-success-bg: rgba(46, 160, 75, 0.12);
-  --soft-success-border: rgba(46, 160, 75, 0.3);
-  --soft-success-text: #66bb6a;
-  --soft-error-bg: rgba(229, 83, 75, 0.12);
-  --soft-error-border: rgba(229, 83, 75, 0.32);
-  --soft-error-text: #f28b82;
-  --soft-info-bg: rgba(102, 140, 224, 0.14);
-  --soft-info-border: rgba(102, 140, 224, 0.35);
-  --soft-info-text: #8ab4f8;
-  --soft-amber-bg: rgba(240, 160, 50, 0.14);
-  --soft-amber-border: rgba(240, 160, 50, 0.32);
-  --soft-amber-text: #ffb74d;
-  --soft-brand-bg: rgba(255, 107, 157, 0.12);
-  --soft-brand-border: rgba(255, 107, 157, 0.34);
-  --soft-brand-text: #ff9db5;
-
-  --code-bg: #16161f;
+@supports (color: color-mix(in srgb, red 25%, transparent)) {
+  :root {
+    --focus-ring: color-mix(in srgb, var(--pink-600) 25%, transparent);
+  }
 }

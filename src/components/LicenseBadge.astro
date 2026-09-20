@@ -106,38 +106,36 @@ const label = type === 'content' ? '内容' : '代码';
 </a>
 
 <style>
-  /* 徽章沿用全站 pill 视觉；焦点环由全局 :focus-visible 提供，此处不再本地声明 */
+  /* 徽章走 §5.6 Chip 规格：--r-xs、高 26px、padding 0 10px。
+   * 默认态用中性凹陷面（协议不是强调信息），hover 才转粉档。
+   * 焦点环由全局 :focus-visible 提供，此处不再本地声明。 */
   .license-badge {
     position: relative; /* 触屏命中区伪元素的定位基准 */
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.15rem 0.6rem;
-    background-color: var(--hover-bg);
-    border: 1px solid var(--divider-color);
-    border-radius: var(--radius-pill);
+    gap: var(--s-2);
+    min-height: 26px;
+    padding: 0 10px;
+    background-color: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xs);
     color: var(--text-secondary);
-    font-size: 0.75rem;
-    font-weight: 500;
-    line-height: 1.6;
+    font-family: var(--font-tech);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-caption);
     text-decoration: none;
     transition:
-      background-color var(--dur-fast) var(--ease-standard),
-      border-color var(--dur-fast) var(--ease-standard),
-      color var(--dur-fast) var(--ease-standard);
+      background-color var(--dur-1) var(--ease-standard),
+      border-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
   }
 
-  .license-badge:hover {
-    background-color: var(--soft-pink);
-    border-color: var(--primary-pink);
-    color: var(--accent-pink);
-  }
-
-  /* color-mix 可用时用更贴合主题的混色，不可用时回落到上面的 --soft-pink */
-  @supports (background-color: color-mix(in srgb, red 15%, white)) {
-    .license-badge:hover {
-      background-color: var(--hover-bg-mix);
-    }
+  .license-badge:hover,
+  .license-badge:focus-visible {
+    background-color: var(--pink-100);
+    border-color: var(--pink-300);
+    color: var(--pink-700);
   }
 
   .license-icon {
@@ -149,7 +147,7 @@ const label = type === 'content' ? '内容' : '代码';
   }
 
   /* 触屏：命中区靠伪元素撑开，徽章的视觉尺寸不动
-     （直接给它 min-height: 44px 会把 26px 的胶囊拉成高椭圆） */
+     （直接给它 min-height: 44px 会把 26px 的 chip 拉成高盒子） */
   @media (any-pointer: coarse) {
     .license-badge::after {
       content: '';
@@ -159,12 +157,6 @@ const label = type === 'content' ? '内容' : '代码';
       right: 0;
       height: var(--tap-min);
       transform: translateY(-50%);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .license-badge {
-      transition: none;
     }
   }
 </style>

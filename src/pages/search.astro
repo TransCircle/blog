@@ -12,9 +12,9 @@ import PageHeader from '@components/ui/PageHeader.astro';
 <Layout title="搜索文章" description="在跨环博客中全文搜索文章标题、描述、正文与标签。" noindex={true}>
   <Header />
 
-  <main id="main-content" tabindex="-1" class="container">
+  <main id="main-content" tabindex="-1" class="container is-wide">
     <div class="page search-page">
-      <PageHeader title="搜索文章" />
+      <PageHeader eyebrow="Search" title="搜索文章" />
 
       <div class="search-form" role="search">
         <label for="search-input" class="sr-only">搜索关键词</label>
@@ -45,10 +45,18 @@ import PageHeader from '@components/ui/PageHeader.astro';
       <!-- 结果条数只播报、不显示：结果本身是可见的，屏幕阅读器需要的是数量变化 -->
       <p id="search-status" class="sr-only" role="status" aria-live="polite"></p>
 
-      <div id="search-results" class="search-results"></div>
+      <!-- 结果卡片是 h3（与首页 PostCard 一致），这里补一个不可见的 h2 保证标题层级连续 -->
+      <h2 class="sr-only">搜索结果</h2>
+      <div id="search-results" class="posts-grid"></div>
 
-      <div id="search-empty" class="search-empty" hidden>
-        <p>未找到匹配的文章</p>
+      <div id="search-empty" class="empty-state" hidden>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <circle cx="11" cy="11" r="7"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          <line x1="8.5" y1="11" x2="13.5" y2="11"/>
+        </svg>
+        <h2 class="empty-state-title">未找到匹配的文章</h2>
+        <p>换个关键词，或者到标签页按主题浏览。</p>
       </div>
 
       <!-- 索引拉取失败时的可见出口：否则搜索框看着能用，输入却永远没有反应 -->
@@ -116,10 +124,11 @@ import PageHeader from '@components/ui/PageHeader.astro';
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'UTC',
     });
   }
 
-  // 结果行由 innerHTML 拼装，标题/描述/标签来自文章内容，先转义再插入
+  // 结果卡由 innerHTML 拼装，标题/描述/标签来自文章内容，先转义再插入
   function escapeHtml(value: string): string {
     return value
       .replace(/&/g, '&amp;')
@@ -138,9 +147,9 @@ import PageHeader from '@components/ui/PageHeader.astro';
   }
 
   /**
-   * 结果行使用 global.css 的 .post-row / .pill / .tag-link 等全局类：
+   * 结果卡使用 global.css 的 .post-card / .chip / .tag-chip 等全局类：
    * innerHTML 生成的节点拿不到 Astro 的 scoped 属性，scoped 样式对它们无效。
-   * 这样搜索结果与 PostCard 共用同一份行配方。
+   * 结构必须与 components/PostCard.astro 逐字对齐，两处才是同一种卡片。
    */
   function renderResults(results: FuseResult<SearchItem>[]): void {
     if (!searchResults) return;
@@ -160,21 +169,24 @@ import PageHeader from '@components/ui/PageHeader.astro';
         const tags = item.tags
           .map((tag: string) => {
             const safeTag = escapeHtml(tag);
-            return `<a href="/tags/${encodeURIComponent(tag)}/" class="tag-link">#${safeTag}</a>`;
+            return `<a href="/tags/${encodeURIComponent(tag)}/" class="tag-chip">#${safeTag}</a>`;
           })
           .join('');
 
         return `
-          <article class="post-row">
-            <div class="post-row-meta">
-              <span class="pill pill-accent">${escapeHtml(item.category)}</span>
-              <time datetime="${escapeHtml(item.pubDate)}">${formatDate(item.pubDate)}</time>
+          <article class="post-card">
+            <div class="post-card-top">
+              <span class="chip">${escapeHtml(item.category)}</span>
+              <time class="post-card-date" datetime="${escapeHtml(item.pubDate)}">${formatDate(item.pubDate)}</time>
             </div>
-            <h2 class="post-row-title">
+            <h3 class="post-card-title">
               <a href="/posts/${encodeURIComponent(item.slug)}/">${escapeHtml(item.title)}</a>
-            </h2>
-            ${item.description ? `<p class="post-row-desc">${escapeHtml(item.description)}</p>` : ''}
-            ${tags ? `<div class="post-row-footer"><div class="post-row-tags">${tags}</div></div>` : ''}
+            </h3>
+            ${item.description ? `<p class="post-card-desc">${escapeHtml(item.description)}</p>` : ''}
+            <div class="post-card-foot">
+              <span class="post-card-meta">${escapeHtml(item.author)}</span>
+              ${tags ? `<div class="post-card-tags">${tags}</div>` : ''}
+            </div>
           </article>
         `;
       })
@@ -276,13 +288,16 @@ import PageHeader from '@components/ui/PageHeader.astro';
 
 <style>
   .search-page {
-    padding: 2rem 0;
+    min-width: 0;
   }
 
+  /* 搜索是工具动作，不是正文：与搜索结果网格共用完整内容轨，不人为缩到阅读列。 */
   .search-form {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--s-2);
+    width: 100%;
+    max-width: none;
     min-width: 0;
   }
 
@@ -295,31 +310,34 @@ import PageHeader from '@components/ui/PageHeader.astro';
 
   .search-icon {
     position: absolute;
-    left: 0.7rem;
+    left: var(--s-3);
     color: var(--text-muted);
     pointer-events: none;
   }
 
+  /* 表单控件（§5.4）：高 44px、--r-sm、--surface-2 底、1.5px --line-strong 描边 */
   .search-input {
     width: 100%;
     min-width: 0;
-    min-height: 40px;
+    height: var(--tap-min);
     /* 左右各留出图标/清除键的位置 */
-    padding: 0.55rem 2.2rem;
-    border: 1.5px solid var(--divider-color);
-    border-radius: var(--radius-sm);
-    background-color: var(--surface-card);
-    color: var(--text-main);
+    padding: 0 2.75rem;
+    border: 1.5px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    background-color: var(--surface-2);
+    color: var(--ink);
     font-size: var(--fs-body);
     font-family: inherit;
     transition:
-      border-color var(--dur-fast) var(--ease-standard),
-      box-shadow var(--dur-fast) var(--ease-standard);
+      border-color var(--dur-1) var(--ease-standard),
+      box-shadow var(--dur-1) var(--ease-standard);
   }
 
-  /* 输入框走光晕而非 outline（与 global.css 的输入类聚焦一致）；聚焦时绝不位移 */
+  /* 输入框走光晕而非 outline（与 global.css 的输入类聚焦一致）；聚焦时绝不位移。
+   * --focus-ring 就是 §5.4 那条 color-mix 的硬编码回退档。 */
   .search-input:focus {
-    border-color: var(--primary-pink);
+    outline: none;
+    border-color: var(--pink-600);
     box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
@@ -338,26 +356,26 @@ import PageHeader from '@components/ui/PageHeader.astro';
 
   .search-clear {
     position: absolute;
-    right: 0.5rem;
+    right: var(--s-2);
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     padding: 0;
     border: none;
-    border-radius: var(--radius-pill);
+    border-radius: var(--r-xs);
     background-color: transparent;
     color: var(--text-muted);
     cursor: pointer;
     transition:
-      background-color var(--dur-fast) var(--ease-standard),
-      color var(--dur-fast) var(--ease-standard);
+      background-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
   }
 
   .search-clear:hover {
-    background-color: var(--hover-bg);
-    color: var(--text-main);
+    background-color: var(--pink-100);
+    color: var(--pink-700);
   }
 
   .search-clear[hidden] {
@@ -370,26 +388,14 @@ import PageHeader from '@components/ui/PageHeader.astro';
     font-size: var(--fs-sm);
   }
 
-  .search-results {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .search-empty {
-    padding: 3rem 0;
-    color: var(--text-muted);
-    text-align: center;
-  }
-
-  /* 索引加载失败的提示面：浅底 + 柔边 + 深文字三件套 */
+  /* 索引加载失败的提示面：语义软色三件套（§2.4） */
   .search-error {
-    margin-top: 1rem;
+    margin-top: var(--s-4);
     padding: 0.9rem 1.1rem;
-    background-color: var(--soft-error-bg);
-    border: 1px solid var(--soft-error-border);
-    border-radius: var(--radius-control);
-    color: var(--soft-error-text);
+    background-color: var(--error-bg);
+    border: 1px solid var(--error-border);
+    border-radius: var(--r-sm);
+    color: var(--error-text);
     font-size: var(--fs-sm);
   }
 
@@ -397,30 +403,16 @@ import PageHeader from '@components/ui/PageHeader.astro';
     margin: 0;
   }
 
-  /* 触屏：清除键放大到 44px，输入框同步加高并让出右侧内边距，避免命中区盖住文字 */
+  /* 触屏：清除键放大到 44px，输入框同步让出右侧内边距，避免命中区盖住文字 */
   @media (any-pointer: coarse) {
     .search-input {
-      min-height: var(--tap-min);
-      padding-right: 3rem;
+      padding-right: 3.25rem;
     }
 
     .search-clear {
-      right: 0.25rem;
+      right: var(--s-1);
       min-height: var(--tap-min);
       min-width: var(--tap-min);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .search-input,
-    .search-clear {
-      transition: none;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .search-page {
-      padding: 1rem 0;
     }
   }
 </style>

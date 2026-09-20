@@ -3,6 +3,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
+import ReadingProgress from '@components/ReadingProgress.astro';
 import LicenseBadge from '@components/LicenseBadge.astro';
 import PersonLinks from '@components/PersonLinks.astro';
 import FootnotePopover from '@components/FootnotePopover.astro';
@@ -93,9 +94,12 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
 >
   <Header />
 
+  {/* 阅读进度条（§5.10）：固定在顶栏下方，量程是 .article-content */}
+  <ReadingProgress />
+
   <main id="main-content" tabindex="-1" class="container">
     <article class="post-article">
-      <div class="post-header">
+      <div class="post-header" data-reveal>
         <div class="meta-row">
           <Pill tone="accent">{category}</Pill>
           <time datetime={pubDate.toISOString()}>{formattedDate}</time>
@@ -109,6 +113,8 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
               </>
             )
           }
+          <span class="meta-sep" aria-hidden="true">·</span>
+          <span>约 {totalWordCount} 字</span>
         </div>
 
         <PageHeader title={title} description={description}>
@@ -127,11 +133,12 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
         )
       }
 
+      {/* 正文本身不做 reveal：阅读中的段落不该等动画，只有前后的区块入场 */}
       <div class="article-content">
         <Content />
       </div>
 
-      <div class="post-export section-divider">
+      <div class="post-export section-divider" data-reveal>
         <a class="pdf-link" href={pdfHref} download={!import.meta.env.DEV}>
           <svg
             width="18"
@@ -155,12 +162,12 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
 
       {
         tags.length > 0 && (
-          <footer class="post-footer section-divider">
+          <footer class="post-footer section-divider" data-reveal>
             <div class="post-tags">
               <span class="tags-label">标签：</span>
               <div class="tags-list">
                 {tags.map((tag: string) => (
-                  <a href={`/tags/${tag}`} class="tag-link">
+                  <a href={`/tags/${tag}`} class="tag-chip">
                     #{tag}
                   </a>
                 ))}
@@ -170,7 +177,7 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
         )
       }
 
-      <footer class="post-license section-divider" aria-label="许可协议">
+      <footer class="post-license section-divider" aria-label="许可协议" data-reveal>
         <div class="license-content">
           <SectionLabel as="p">许可协议</SectionLabel>
           <div class="license-badges">
@@ -220,28 +227,29 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
 
 <style>
   .post-article {
-    padding: 2rem 0;
     min-width: 0;
   }
 
-  /* 头部与正文之间只留空白：不画盒子边框，也避免与正文首个 h2 的上分隔线撞成双线 */
+  /* 头部与正文之间只留空白：不画盒子边框，层级靠留白（§5.13） */
   .post-header {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 2.5rem;
+    gap: var(--s-4);
+    margin-bottom: var(--s-7);
     min-width: 0;
   }
 
   /* 分类是只读标记，用 Pill 呈现在元信息行里；它不是 PageHeader 的 eyebrow
-   * （eyebrow 表示「所处分区」，语义不同），许可协议标题同理不是标题元素，故 SectionLabel as="p"。 */
+   * （eyebrow 表示「所处分区」，语义不同），许可协议标题同理不是标题元素，故 SectionLabel as="p"。
+   * 日期 / 字数是数字信息，走 --font-tech + --fs-xs（§5.5）。 */
   .meta-row {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: var(--s-2);
     min-width: 0;
-    font-size: var(--fs-sm);
+    font-family: var(--font-tech);
+    font-size: var(--fs-xs);
     color: var(--text-muted);
   }
 
@@ -252,53 +260,56 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
   .post-byline {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-    margin-top: 0.6rem;
+    gap: var(--s-1);
+    margin-top: var(--s-2);
     min-width: 0;
   }
 
   .post-cover {
-    margin: 0 0 2rem;
-    border-radius: var(--radius-lg);
+    margin: 0 0 var(--s-6);
+    border-radius: var(--r-sm);
     overflow: hidden;
+    box-shadow: var(--shadow-1);
   }
 
   .post-cover img {
     display: block;
     width: 100%;
     height: auto;
-    border-radius: var(--radius-lg);
+    border-radius: var(--r-sm);
   }
 
-  /* 文末「导出为 PDF」：进入可打印的文档视图，再由浏览器另存为 PDF */
+  /* 文末「下载 PDF」：控件档，--r-sm + 1.5px 描边（与 Button secondary 同规格） */
   .post-export {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.5rem 1rem;
+    gap: var(--s-2) var(--s-4);
     min-width: 0;
   }
 
   .pdf-link {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--divider-color);
-    border-radius: var(--radius-pill);
-    background-color: var(--surface-card);
-    color: var(--accent-pink);
+    gap: var(--s-2);
+    height: 40px;
+    padding: 0 var(--s-4);
+    border: 1.5px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    background-color: transparent;
+    color: var(--ink);
     font-size: var(--fs-sm);
-    font-weight: 600;
+    font-weight: var(--fw-semibold);
     text-decoration: none;
     transition:
-      background-color var(--dur-fast) var(--ease-standard),
-      border-color var(--dur-fast) var(--ease-standard);
+      background-color var(--dur-1) var(--ease-standard),
+      border-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
   }
 
   .pdf-link:hover {
-    background-color: var(--hover-bg);
-    border-color: var(--primary-pink);
+    border-color: var(--pink-600);
+    color: var(--pink-700);
   }
 
   .pdf-link svg {
@@ -315,7 +326,7 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: var(--s-2);
     min-width: 0;
   }
 
@@ -323,7 +334,7 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
      否则上下两行的命中区会重叠、点错标签 */
   @media (any-pointer: coarse) {
     .post-tags {
-      gap: 1rem 0.5rem;
+      gap: var(--s-4) var(--s-2);
     }
   }
 
@@ -335,7 +346,7 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
   .tags-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: var(--s-2);
     min-width: 0;
   }
 
@@ -346,25 +357,19 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
   .license-badges {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem 1.5rem;
+    gap: var(--s-3) var(--s-5);
     min-width: 0;
   }
 
   .license-group {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--s-2);
     min-width: 0;
   }
 
   .license-type {
     font-size: var(--fs-sm);
     color: var(--text-secondary);
-  }
-
-  @media (max-width: 768px) {
-    .post-article {
-      padding: 1rem 0;
-    }
   }
 </style>

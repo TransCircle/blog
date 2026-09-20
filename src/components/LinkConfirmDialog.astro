@@ -145,19 +145,19 @@ import Button from './ui/Button.astro';
   .link-confirm {
     position: fixed;
     inset: 0;
-    /* 1100：模态层，压住 header(80) 与抽屉(70) */
-    z-index: 1100;
+    /* 模态层：压住顶栏（--z-nav）与抽屉（--z-drawer） */
+    z-index: var(--z-modal);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem;
+    padding: var(--s-5);
     /* 默认隐藏：visibility:hidden 同时移出无障碍树与 Tab 顺序，无需 JS 即安全 */
     visibility: hidden;
     opacity: 0;
     pointer-events: none;
     transition:
-      opacity var(--dur-base) var(--ease-standard),
-      visibility var(--dur-base) var(--ease-standard);
+      opacity var(--dur-2) var(--ease-standard),
+      visibility var(--dur-2) var(--ease-standard);
   }
 
   .link-confirm.is-open {
@@ -169,11 +169,13 @@ import Button from './ui/Button.astro';
   .link-confirm-overlay {
     position: absolute;
     inset: 0;
-    background-color: var(--overlay-bg);
+    background-color: var(--overlay);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
   }
 
+  /* 面板走实色 --surface（§5.7 允许 --surface 或玻璃；这里面板承载 URL 文本，
+   * 实色可读性更好），--r-lg + --shadow-3，入场 scale(.96→1)。 */
   .link-confirm-panel {
     position: relative;
     width: 100%;
@@ -182,13 +184,13 @@ import Button from './ui/Button.astro';
     max-height: calc(100dvh - 3rem);
     overflow-y: auto;
     min-width: 0;
-    padding: 1.4rem;
-    background-color: var(--surface-card);
-    border: 1px solid var(--divider-color);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-pop);
-    transform: translateY(8px) scale(0.985);
-    transition: transform var(--dur-base) var(--ease-emphasized);
+    padding: var(--s-5);
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-3);
+    transform: scale(0.96);
+    transition: transform var(--dur-2) var(--ease-out);
   }
 
   .link-confirm.is-open .link-confirm-panel {
@@ -196,27 +198,28 @@ import Button from './ui/Button.astro';
   }
 
   .link-confirm-title {
-    margin-bottom: 0.5rem;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--text-main);
+    margin-bottom: var(--s-2);
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-bold);
+    color: var(--ink);
   }
 
   .link-confirm-desc {
-    margin-bottom: 0.75rem;
+    margin-bottom: var(--s-3);
     font-size: var(--fs-body);
     color: var(--text-secondary);
   }
 
-  /* URL 展示为 code-pill：任意长度都必须能断行，弹窗不得横向溢出 */
+  /* URL 展示为代码块：任意长度都必须能断行，弹窗不得横向溢出。
+   * 用凹陷面而非粉底——这里是待确认的外部地址，不该被读成品牌强调。 */
   .link-confirm-url {
-    margin-bottom: 1.25rem;
+    margin-bottom: var(--s-5);
     padding: 0.55rem 0.75rem;
     min-width: 0;
-    background-color: var(--hover-bg);
-    border-radius: var(--radius-xs);
+    background-color: var(--surface-2);
+    border-radius: var(--r-xs);
     color: var(--text-secondary);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
     font-size: var(--fs-sm);
     overflow-wrap: anywhere;
     word-break: break-word;
@@ -225,7 +228,7 @@ import Button from './ui/Button.astro';
   .link-confirm-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.6rem;
+    gap: var(--s-2);
     flex-wrap: wrap;
   }
 

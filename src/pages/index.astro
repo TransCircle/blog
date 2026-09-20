@@ -7,6 +7,7 @@ import PostCard from '@components/PostCard.astro';
 import Pagination from '@components/Pagination.astro';
 import HomeHero from '@components/HomeHero.astro';
 import SectionLabel from '@components/ui/SectionLabel.astro';
+import Button from '@components/ui/Button.astro';
 import { POSTS_PER_PAGE, type Person } from '@utils/posts';
 
 // 首页是静态路由，只渲染第 1 页；第 2 页及之后由 src/pages/page/[page].astro 负责
@@ -55,7 +56,8 @@ const blogSchema = {
 <Layout title={homeTitle} description={homeDescription} isHome={true} additionalSchemas={[blogSchema]}>
   <Header />
 
-  <main id="main-content" tabindex="-1" class="container">
+  {/* 列表页走内容轨（is-wide）：卡片网格与顶栏 / 页脚内条同宽同左缘 */}
+  <main id="main-content" tabindex="-1" class="container is-wide">
     <div class="page">
       <HomeHero />
 
@@ -63,14 +65,22 @@ const blogSchema = {
         <SectionLabel as="h2">最新文章</SectionLabel>
 
         {paginatedPosts.length > 0 ? (
-          <div class="posts-list">
+          <div class="posts-grid">
             {paginatedPosts.map((post: CollectionEntry<'posts'>) => (
               <PostCard post={post} />
             ))}
           </div>
         ) : (
           <div class="empty-state">
-            <p>暂无文章</p>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/>
+              <path d="M15 4v5h5"/>
+              <line x1="8" y1="13" x2="14" y2="13"/>
+              <line x1="8" y1="17" x2="12" y2="17"/>
+            </svg>
+            <h2 class="empty-state-title">暂无文章</h2>
+            <p>新的记录正在写。先去标签页看看已有的主题吧。</p>
+            <Button variant="primary" href="/tags">浏览标签</Button>
           </div>
         )}
 
@@ -81,20 +91,3 @@ const blogSchema = {
 
   <Footer />
 </Layout>
-
-<style>
-  /* 标题区见 components/HomeHero.astro（与分页页共用） */
-
-  /* 列表本身不留间距：每行由 PostCard 自带分隔线 */
-  .posts-list {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .empty-state {
-    padding: 3rem 0;
-    text-align: center;
-    color: var(--text-muted);
-  }
-</style>

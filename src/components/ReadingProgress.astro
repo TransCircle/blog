@@ -1,0 +1,83 @@
+---
+// 阅读进度条（DESIGN v3.0 §5.10）：固定于顶栏下方，2px 高 --pink-600，scaleX 随滚动。
+// 只用在文章页。纸面（print media / PDF）不渲染，见 global.css 的 @media print。
+---
+
+<div class="reading-progress" aria-hidden="true">
+  <span class="reading-progress-bar"></span>
+</div>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('.reading-progress-bar');
+  const track = document.querySelector<HTMLElement>('.reading-progress');
+  // 进度以「正文区」为量程而不是整页：页脚、协议区、脚注不该算进阅读进度里
+  const article = document.querySelector<HTMLElement>('.article-content');
+
+  if (bar && track && article) {
+    let rafId = 0;
+
+    const update = (): void => {
+      rafId = 0;
+      const rect = article.getBoundingClientRect();
+      const viewport = window.innerHeight;
+      // 正文顶端进入视口上沿算 0，正文底端划过视口下沿算 1
+      const total = rect.height - viewport;
+      // 短文（不足一屏）进度条只有 0/1 两档，表现为「突然满格」——直接拆掉轨道更诚实。
+      if (total <= 0) {
+        track?.remove();
+        window.removeEventListener('scroll', schedule);
+        window.removeEventListener('resize', schedule);
+        return;
+      }
+      const ratio = -rect.top / total;
+      const clamped = Math.min(1, Math.max(0, ratio));
+      bar.style.transform = `scaleX(${clamped})`;
+    };
+
+    // rAF 节流：scroll 每帧最多算一次
+    const schedule = (): void => {
+      if (rafId === 0) rafId = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+  } else {
+    // 没有正文（理论上不会发生）就别在顶栏下留一条空轨
+    track?.remove();
+  }
+</script>
+
+<style>
+  /* 轨道本身不画底色：§5.10 的「轨道」给的是投票/进度组件，阅读进度只要那一条填充 */
+  .reading-progress {
+    position: fixed;
+    top: var(--app-nav-height, var(--nav-h));
+    left: 0;
+    right: 0;
+    z-index: var(--z-sticky);
+    height: 2px;
+    pointer-events: none;
+  }
+
+  .reading-progress-bar {
+    display: block;
+    height: 100%;
+    background-color: var(--pink-600);
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+
+  /* 每帧重设 transform，过渡只做极短的平滑，避免落后于手指 */
+  @media (prefers-reduced-motion: no-preference) {
+    .reading-progress-bar {
+      transition: transform 90ms linear;
+    }
+  }
+
+  @media print {
+    .reading-progress {
+      display: none !important;
+    }
+  }
+</style>

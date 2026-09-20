@@ -1,8 +1,9 @@
 ---
-// 按钮（设计系统 七、Button）。有 href 时渲染为 <a>，语义按用途选择。
-// 圆角一律 --radius-pill，尺寸两档，hover 抬升只给 primary。
+// 按钮（DESIGN v3.0 §5.1）。有 href 时渲染为 <a>，语义按用途选择。
+// 高 40px（触屏 44px）、padding 0 20px、--r-sm、--fw-semibold --fs-sm。
+// 禁止 pill 按钮：圆角一律 --r-sm（§2.8 同类同圆角铁律）。
 export interface Props {
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'sm' | 'md';
   href?: string;
   type?: 'button' | 'submit';
@@ -32,58 +33,109 @@ const tagProps = href ? { href } : { type };
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
+    gap: var(--s-2);
     border: 1.5px solid transparent;
-    border-radius: var(--radius-pill);
+    border-radius: var(--r-sm);
     font-family: inherit;
-    font-weight: 500;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
     text-decoration: none;
     cursor: pointer;
     white-space: nowrap;
     transition:
-      background-color var(--dur-base) var(--ease-standard),
-      color var(--dur-base) var(--ease-standard),
-      border-color var(--dur-base) var(--ease-standard),
-      box-shadow var(--dur-base) var(--ease-standard),
-      transform var(--dur-base) var(--ease-standard);
+      background-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard),
+      border-color var(--dur-1) var(--ease-standard),
+      box-shadow var(--dur-1) var(--ease-standard),
+      transform var(--dur-1) var(--ease-spring);
   }
 
   .is-md {
-    min-height: 40px;
-    padding: 0.55rem 1.25rem;
-    font-size: 0.88rem;
+    height: var(--btn-h);
+    padding: 0 var(--s-5);
   }
 
   .is-sm {
-    min-height: 34px;
-    padding: 0.4rem 0.9rem;
-    font-size: 0.82rem;
+    height: 32px;
+    padding: 0 var(--s-3);
   }
 
-  /* primary：CTA，唯一允许 hover 抬升的一档 */
+  /* 禁用态：视觉上明确「点不动」。 */
+  .btn:disabled,
+  .btn[aria-disabled='true'] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .btn:disabled:active,
+  .btn[aria-disabled='true']:active {
+    transform: none;
+  }
+
+  /* loading（§5.1）：aria-busy + 内联 spinner 槽，由调用方传 .is-loading 与 --btn-spinner 内容。 */
+  .btn.is-loading {
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  .btn.is-loading::after {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: var(--r-pill);
+    animation: btn-spin 600ms linear infinite;
+  }
+
+  @keyframes btn-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* 按压回弹：位移 ≤4px 的微交互，用 --ease-spring（§2.9） */
+  .btn:active {
+    transform: scale(0.97);
+  }
+
+  /* primary：唯一允许 hover 抬升 + 发光的一档（§3.2） */
   .is-primary {
-    background-color: var(--cta-bg);
-    color: var(--cta-color);
-    box-shadow: var(--shadow-card);
+    background-color: var(--pink-600);
+    color: var(--on-pink);
   }
 
   .is-primary:hover {
-    background-color: var(--cta-hover);
-    color: var(--cta-color);
+    background-color: var(--pink-600-hover);
+    color: var(--on-pink);
     transform: translateY(-1px);
-    box-shadow: var(--shadow-card-hover);
+  }
+
+  .is-primary:active {
+    transform: scale(0.97);
+  }
+
+  /* 暗色主题：主按钮 hover 带霓虹粉光（§3.2）。
+   * :global 是必需的——主题选择器挂在 :root 上，拿不到本组件的 scope 标记。 */
+  :global(:root[data-theme='dark']) .is-primary:hover {
+    box-shadow: var(--glow-pink-dark);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme])) .is-primary:hover {
+      box-shadow: var(--glow-pink-dark);
+    }
   }
 
   .is-secondary {
     background-color: transparent;
-    border-color: var(--primary-pink);
-    color: var(--accent-pink);
+    border-color: var(--line-strong);
+    color: var(--ink);
   }
 
   .is-secondary:hover {
-    background-color: var(--hover-bg);
-    border-color: var(--accent-pink);
-    color: var(--accent-pink);
+    border-color: var(--pink-600);
+    color: var(--pink-700);
   }
 
   .is-ghost {
@@ -92,18 +144,22 @@ const tagProps = href ? { href } : { type };
   }
 
   .is-ghost:hover {
-    background-color: var(--hover-bg);
-    color: var(--text-main);
+    background-color: var(--pink-100);
+    color: var(--ink);
   }
 
-  @supports (background-color: color-mix(in srgb, red, red)) {
-    .is-secondary:hover,
-    .is-ghost:hover {
-      background-color: var(--hover-bg-mix);
-    }
+  .is-danger {
+    background-color: transparent;
+    border-color: var(--error-text);
+    color: var(--error-text);
   }
 
-  /* 触屏：命中区抬到 44px */
+  .is-danger:hover {
+    background-color: var(--error-bg);
+    color: var(--error-text);
+  }
+
+  /* 触屏：命中区抬到 44px（§4） */
   @media (any-pointer: coarse) {
     .btn {
       min-height: var(--tap-min);
@@ -111,10 +167,7 @@ const tagProps = href ? { href } : { type };
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .btn {
-      transition: none;
-    }
-
+    .btn:active,
     .is-primary:hover {
       transform: none;
     }

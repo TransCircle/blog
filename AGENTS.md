@@ -273,7 +273,7 @@ audit:read                查看审计日志
 
 ### 6.1 核心原则
 
-- **可及性优先**：对比度由 `light` / `dark` 两套主题令牌的色值本身保证（独立高对比度模式已废止，详见 `DESIGN.md` §2.3）
+- **可及性优先**：对比度由 `light` / `dark` 两套主题令牌的色值本身保证（独立高对比度模式已废止，见 `docs/DESIGN.md` §7、`blog/DESIGN.md` §4）
 - **键盘可访问**：所有交互支持完整键盘导航
 - **屏幕阅读器友好**：语义化标签、ARIA 属性
 - **尊重用户偏好**：适配 `prefers-reduced-motion`
@@ -288,10 +288,11 @@ audit:read                查看审计日志
 - 焦点指示器统一使用：
   ```css
   :focus-visible {
-    outline: 2px solid var(--primary-pink);
+    outline: 2px solid var(--pink-600);
     outline-offset: 2px;
   }
   ```
+  （输入类控件例外：改用 `box-shadow: 0 0 0 3px var(--focus-ring)`，聚焦时绝不位移）
 - 装饰性图标必须加 `aria-hidden="true" focusable="false"`
 - 信息性图标必须包含 `<title>` 标签或关联 `aria-label`
 - 移动菜单打开时，`main` 元素应设置 `inert`
@@ -331,28 +332,36 @@ audit:read                查看审计日志
 
 ## 8. 设计系统
 
-> 完整的设计系统定义见 `DESIGN.md`。以下为关键提醒：
+> **唯一规范源是 `docs/DESIGN.md`（v3.0「Spectrum / 光谱」）**，取值以该文档为准、改值先改该文档。
+> 博客仓库相对规范的偏离与补充（无封面图、打印/PDF 约束、可点 chip、reveal 范围等）记在 `blog/DESIGN.md`。
+> 令牌落地在 `src/styles/theme.css`，全局排版在 `src/styles/global.css`，组件视觉走 Astro scoped `<style>`。
+> 以下为关键提醒：
 
 ### 8.1 主题模式
 
-- 支持两种主题：`light`、`dark`（独立高对比度模式已废止，对比度由令牌色值保证）
-- 通过 `data-theme` 属性切换；切换瞬时生效，禁止圆形揭示、遮罩、翻转等切换动画（详见 `DESIGN.md` §2.4）
+- 支持两种主题：`light`、`dark`（独立高对比度模式已废止，对比度由令牌色值保证；**不得**重新引入 `prefers-contrast` / `forced-colors` 分支或 `--*-hc` 令牌）
+- 通过 `data-theme` 属性切换；暗色须**双通道**声明（`:root[data-theme='dark']` 与 `@media (prefers-color-scheme: dark) :root:not([data-theme])`），两块取值逐条一致
 - 自动检测 `prefers-color-scheme`
-- 用户偏好存储于 `localStorage`（键名：`transcircle-theme`）
+- 用户偏好存储于 `localStorage`（键名：`transcircle-theme`，白名单只认 `light` / `dark`）
 
 ### 8.2 核心 Token
 
-- 颜色 / 圆角 / 阴影 / 布局一律使用 CSS 变量（如 `var(--primary-pink)`、`var(--radius-lg)`、`var(--shadow-card)`），严禁硬编码（含 `rgba(0,0,0,…)` 阴影）
-- 不以颜色单独承载语义：状态恒为「圆点 / 图标 + 文字」（WCAG 1.4.1），色盲用户不依赖色相即可区分
-- `color-mix()` 实现悬停态，同时提供硬编码回退
-- 圆角（五档）：`--radius-xs(6px)` 内联 chip/标签/徽标、`--radius-sm(10px)` 输入/下拉、`--radius-md(12px)` 行/弹层、`--radius-lg(14px)` 卡片、`--radius-pill(999px)` 按钮/徽章
-- 优先复用 `@/components/ui` 现成原语，不要重造原生 `<select>` / checkbox / `confirm`
+- 颜色 / 圆角 / 阴影 / 间距 / 时长一律使用 CSS 变量（如 `var(--pink-600)`、`var(--r-md)`、`var(--shadow-2)`、`var(--s-4)`、`var(--dur-2)`），严禁硬编码（透明遮罩类色值除外；satori / puppeteer 渲染管线因不解析 CSS 变量另行豁免，见 `blog/DESIGN.md` §6）
+- 粉色做**文字**只能用 `--pink-700`，链接与信息文字用 `--blue-600`（WCAG ≥4.5:1）
+- 不以颜色单独承载语义：状态恒为「圆点 / 图标 + 文字」
+- `color-mix()` 实现悬停态时，必须同时提供硬编码回退
+- 圆角（五档）：`--r-xs(4px)` chip/标签/行内代码、`--r-sm(8px)` 按钮/输入框、`--r-md(12px)` 卡片、`--r-lg(16px)` 浮动层、`--r-pill(999px)` 仅头像/进度轨道；**禁止 pill 按钮**
+- 禁止渐变填充、emoji 装饰、彩色左边框卡片；玻璃只用于浮动层（顶栏 / 弹窗 / 抽屉 / 悬浮卡），且必须带 `@supports not (backdrop-filter: …)` 实色回退
+- 优先复用 `src/components/ui` 现成原语（Button / PageHeader / Pill / SectionLabel），不要重造
 
 ### 8.3 排版
 
-- 字体栈：`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`
-- 基础单位：`rem`（基于 16px）
-- 响应式断点（宽度，桌面优先递减，完整定义见 `DESIGN.md` §22.1）：`1100px`（访客导航 AppNav 转抽屉）、`1024px`（后台主内容回收内边距）、`768px`（后台侧栏转分段工具栏、双栏塌陷单列）、`640px`（列表 sticky 头关闭）、`480px`（弹层页脚按钮满宽堆叠）；`1280px` 为内容轨上限 `--width-content`，非断点
+- 中文字体栈 `--font-sans`：`-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif`
+- Nunito Brand（仅 TransCircle 品牌词）与标签/数字字体 Space Grotesk（`--font-tech`）为自托管 latin 子集 woff2（`public/fonts/`），**零第三方字体请求**；中文不做 webfont，一律系统栈兜底。大型标签或数字展示每页 ≤2（`docs/DESIGN.md` §3.4）
+- 页面水平内边距统一引用 `var(--page-x)`，不得散写 `clamp(...)`
+- 字阶走令牌（`--fs-hero` / `--fs-display` / `--fs-h1…--fs-xs`），基础单位 `rem`（基于 16px）；正文最小 16px，辅助信息最小 12px（仅 eyebrow / 时间戳）
+- 响应式断点（宽度递减）：`1200px`（导航折叠为抽屉）、`1024px`、`768px`（移动紧凑，顶栏 56px）、`480px`；`--w-content: 1280px` 是内容轨上限而非断点，正文走阅读轨 `--w-reading: 46rem`
+- 页面水平内边距全站唯一表达式 `clamp(16px, 4vw, 48px)`，顶栏 / 内容 / 页脚共用以保证左缘对齐
 
 ---
 
