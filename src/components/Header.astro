@@ -6,22 +6,33 @@ const navLinks = [
   { href: '/tags', label: '标签' },
   { href: '/search', label: '搜索' },
 ];
+
+const currentPath = Astro.url.pathname;
+const isCurrent = (href: string) => href === '/tags'
+  ? currentPath === href || currentPath.startsWith('/tags/')
+  : currentPath === href;
 ---
 
 <header class="site-header" role="banner">
   <div class="header-container">
     <a href="/" class="logo" aria-label="TransCircle Blog 首页">
-      <!-- 品牌图标：src/assets/brand/ → public/，由 scripts/generate-icons.mjs 生成 -->
-      <img class="logo-mark" src="/logo-mark.svg" width="28" height="28" alt="" aria-hidden="true" />
-      <span class="logo-text">TransCircle</span>
+      <img class="logo-image logo-image-light" src="/brand/transcircle-horizontal-on-light.svg" width="400" height="120" alt="" aria-hidden="true" />
+      <img class="logo-image logo-image-dark" src="/brand/transcircle-horizontal-on-dark.svg" width="400" height="120" alt="" aria-hidden="true" />
     </a>
 
     <nav class="main-nav" aria-label="主导航">
       <ul class="nav-list">
         {navLinks.map((link) => (
           <li>
-            <a href={link.href} class="nav-link" aria-current={Astro.url.pathname === link.href ? 'page' : undefined}>
+            <a href={link.href} class="nav-link" aria-current={isCurrent(link.href) ? 'page' : undefined}>
               {link.label}
+              {/* 当前项指示条：24×3px 迷你旗帜条纹（DESIGN §3.1 / §5.3），
+                  非当前项不渲染，导航里最多出现一条 */}
+              {isCurrent(link.href) && (
+                <span class="flag-stripe flag-stripe-mini nav-flag" aria-hidden="true">
+                  <span></span><span></span><span></span>
+                </span>
+              )}
             </a>
           </li>
         ))}
@@ -69,8 +80,11 @@ const navLinks = [
 <div id="mobile-menu" class="mobile-menu" role="dialog" aria-label="移动端导航菜单" aria-modal="true">
   <div class="mobile-menu-overlay"></div>
   <div class="mobile-menu-panel">
-    {/* 抽屉不需要「菜单」这种自我说明的标题，只留一个关闭按钮 */}
     <div class="mobile-menu-header">
+      <div class="mobile-menu-brand" aria-hidden="true">
+        <img class="logo-image logo-image-light" src="/brand/transcircle-horizontal-on-light.svg" width="400" height="120" alt="" />
+        <img class="logo-image logo-image-dark" src="/brand/transcircle-horizontal-on-dark.svg" width="400" height="120" alt="" />
+      </div>
       <button class="mobile-menu-close" aria-label="关闭导航菜单" type="button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
           <line x1="18" y1="6" x2="6" y2="18"/>
@@ -82,7 +96,7 @@ const navLinks = [
       <ul class="mobile-nav-list">
         {navLinks.map((link) => (
           <li>
-            <a href={link.href} class="mobile-nav-link" aria-current={Astro.url.pathname === link.href ? 'page' : undefined}>
+            <a href={link.href} class="mobile-nav-link" aria-current={currentPath === link.href ? 'page' : undefined}>
               {link.label}
             </a>
           </li>
@@ -108,12 +122,16 @@ const navLinks = [
         </li>
       </ul>
     </nav>
+    {/* 抽屉内补主题开关：抽屉打开时顶栏（含主题按钮）被遮罩盖住，没有它移动端无法在菜单打开时切换主题。 */}
+    <div class="mobile-menu-theme">
+      <ThemeToggle />
+    </div>
   </div>
 </div>
 
 <script>
-  // 移动端断点：必须与本文件 CSS 中的 1100px 保持一致（唯一的导航断点）
-  const MOBILE_BREAKPOINT = 1100;
+  // 导航折叠断点：必须与本文件 CSS 中的 1200px 保持一致（DESIGN §4：1200 导航折叠）
+  const MOBILE_BREAKPOINT = 1200;
 
   const siteHeader = document.querySelector('.site-header');
   const menuToggle = document.querySelector('.mobile-menu-toggle');
@@ -138,23 +156,56 @@ const navLinks = [
     mobileMenu?.classList.add('is-open');
     menuToggle?.classList.add('is-active');
     menuToggle?.setAttribute('aria-expanded', 'true');
-    inertTargets().forEach((el) => el?.setAttribute('inert', ''));
+    menuToggle?.setAttribute('aria-label', '关闭导航菜单');
+    // 只冻结 header 容器内的「非汉堡」部分：汉堡留在 inert 之外，
+    // 抽屉打开时仍是「再点一次关闭」的可见出口（X 态不是死状态）。
+    inertTargets().forEach((el) => {
+      if (el?.classList.contains('header-container')) {
+        Array.from(el.children).forEach((child) => {
+          if (child.classList.contains('header-actions')) {
+            Array.from(child.children).forEach((action) => {
+              if (!action.classList.contains('mobile-menu-toggle')) action.setAttribute('inert', '');
+            });
+          } else {
+            child.setAttribute('inert', '');
+          }
+        });
+      } else {
+        el?.setAttribute('inert', '');
+      }
+    });
     document.body.style.overflow = 'hidden';
-    // 等面板滑入视口后再移焦，避免焦点落在屏幕外
-    setTimeout(() => {
+    // 等面板滑入视口后再移焦，避免焦点落在屏幕外；reduced-motion 下立即移焦。
+    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 200;
+    focusTimer = window.setTimeout(() => {
       const firstLink = mobileMenu?.querySelector('.mobile-nav-link');
-      if (firstLink instanceof HTMLElement) firstLink.focus();
-    }, 200);
+      if (isOpen() && firstLink instanceof HTMLElement) firstLink.focus();
+    }, delay);
   }
+
+  // 移焦定时器：closeMenu 必须清掉——否则 200ms 内关抽屉会把焦点
+  // 塞回一个已 visibility:hidden 的链接（焦点掉到 body）。
+  let focusTimer: number | null = null;
 
   function closeMenu() {
     if (!isOpen()) return;
+    if (focusTimer !== null) {
+      window.clearTimeout(focusTimer);
+      focusTimer = null;
+    }
     mobileMenu?.classList.remove('is-open');
     menuToggle?.classList.remove('is-active');
     menuToggle?.setAttribute('aria-expanded', 'false');
+    menuToggle?.setAttribute('aria-label', '打开导航菜单');
     // 必须先解除 inert 再归还焦点：汉堡按钮就在 .header-container 里，
     // 仍处于 inert 时 focus() 是无效的。
-    inertTargets().forEach((el) => el?.removeAttribute('inert'));
+    inertTargets().forEach((el) => {
+      if (el?.classList.contains('header-container')) {
+        el.querySelectorAll('[inert]').forEach((child) => child.removeAttribute('inert'));
+      } else {
+        el?.removeAttribute('inert');
+      }
+    });
     document.body.style.overflow = '';
     // 若因视口变宽而关闭，按钮已 display:none，则不抢焦点
     if (menuToggle instanceof HTMLElement && menuToggle.offsetParent !== null) {
@@ -162,7 +213,11 @@ const navLinks = [
     }
   }
 
-  menuToggle?.addEventListener('click', openMenu);
+  // 汉堡改为 toggle 语义：抽屉开着时再点一次即关闭。
+  menuToggle?.addEventListener('click', () => {
+    if (isOpen()) closeMenu();
+    else openMenu();
+  });
   menuClose?.addEventListener('click', closeMenu);
   menuOverlay?.addEventListener('click', closeMenu);
 
@@ -207,7 +262,7 @@ const navLinks = [
     if (window.innerWidth > MOBILE_BREAKPOINT) closeMenu();
   });
 
-  // 把顶栏真实高度写进 --app-nav-height，供 scroll-margin / 粘性定位消费
+  // 把顶栏真实高度写进 --app-nav-height，供 scroll-margin / 阅读进度条消费
   if (siteHeader) {
     const syncNavHeight = () => {
       const height = Math.ceil(siteHeader.getBoundingClientRect().height);
@@ -219,54 +274,76 @@ const navLinks = [
 </script>
 
 <style>
-  /* 顶栏是外壳而非卡片：只有一条分隔线，不投影 */
+  /* 顶栏是浮动层，按 §1.4 / §5.3 走玻璃：--glass-bg + blur(--glass-blur) + 底部 1px --line。
+   * 不投影——分层靠那条线与玻璃本身。 */
   .site-header {
     position: sticky;
     top: 0;
-    z-index: 80;
-    background-color: var(--nav-bg);
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border-bottom: 1px solid var(--divider-color);
+    z-index: var(--z-nav);
+    display: flex;
+    align-items: center;
+    min-height: var(--nav-h);
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    border-bottom: 1px solid var(--line);
   }
 
-  /* 外壳轨道 1280px，与页脚内条对齐；正文轨道（960px）更窄是刻意的 */
+  /* §2.5 强制要求的玻璃回退：不支持 backdrop-filter 时退成实色面，
+   * 否则半透明底叠在滚动内容上会糊成一团。 */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .site-header {
+      background-color: var(--surface);
+    }
+  }
+
+  /* 外壳轨道 --w-content，与页脚内条共用同一条水平内边距表达式（§4） */
   .header-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    max-width: var(--width-content);
+    gap: var(--s-4);
+    width: 100%;
+    max-width: var(--w-content);
     margin-inline: auto;
-    padding: 0.6rem 1.5rem;
+    padding: var(--s-2) var(--page-x);
+    min-height: var(--nav-h);
   }
 
   .logo {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    min-width: 0;
-    color: var(--text-main);
-    font-weight: 600;
-    font-size: 1.1rem;
-    text-decoration: none;
-    transition: color var(--dur-fast) var(--ease-standard);
-  }
-
-  .logo:hover {
-    color: var(--accent-pink);
-  }
-
-  /* 固定尺寸，避免 SVG 加载前的布局抖动 */
-  .logo-mark {
-    display: block;
-    width: 28px;
-    height: 28px;
     flex-shrink: 0;
+    height: 40px;
+    text-decoration: none;
   }
 
-  .logo-text {
-    letter-spacing: -0.01em;
+  .logo-image {
+    display: block;
+    width: 132px;
+    height: auto;
+  }
+
+  .logo-image-dark {
+    display: none;
+  }
+
+  :global([data-theme='dark']) .logo-image-light {
+    display: none;
+  }
+
+  :global([data-theme='dark']) .logo-image-dark {
+    display: block;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme])) .logo-image-light {
+      display: none;
+    }
+
+    :global(:root:not([data-theme])) .logo-image-dark {
+      display: block;
+    }
   }
 
   .main-nav {
@@ -278,7 +355,7 @@ const navLinks = [
     display: flex;
     align-items: center;
     list-style: none;
-    gap: 0.75rem;
+    gap: var(--s-1);
     margin: 0;
     padding: 0;
   }
@@ -287,8 +364,8 @@ const navLinks = [
   .nav-sep {
     width: 1px;
     height: 18px;
-    margin: 0 0.15rem;
-    background-color: var(--divider-color);
+    margin: 0 var(--s-2);
+    background-color: var(--line);
     flex-shrink: 0;
   }
 
@@ -297,7 +374,7 @@ const navLinks = [
   .nav-link-external {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: var(--s-1);
   }
 
   .ext-icon {
@@ -310,38 +387,40 @@ const navLinks = [
     color: inherit;
   }
 
+  /* 导航链接不设下划线，当前态用迷你旗帜条纹（§5.2 / §5.3）。
+   * position: relative 是条纹的定位基准；底部内边距给条纹让位。 */
   .nav-link {
-    display: block;
-    padding: 0.4rem 0.75rem;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: var(--s-2) var(--s-3) calc(var(--s-2) + 3px);
     color: var(--text-secondary);
-    font-size: var(--fs-body);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
     text-decoration: none;
-    border-radius: var(--radius-control);
-    transition:
-      background-color var(--dur-fast) var(--ease-standard),
-      color var(--dur-fast) var(--ease-standard);
+    border-radius: var(--r-sm);
+    transition: color var(--dur-1) var(--ease-standard);
   }
 
   .nav-link:hover {
-    background-color: var(--hover-bg);
-    color: var(--text-main);
-  }
-
-  @supports (background-color: color-mix(in srgb, red, red)) {
-    .nav-link:hover {
-      background-color: var(--hover-bg-mix);
-    }
+    color: var(--pink-700);
   }
 
   .nav-link[aria-current='page'] {
-    color: var(--accent-pink);
-    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .nav-flag {
+    position: absolute;
+    left: 50%;
+    bottom: 2px;
+    transform: translateX(-50%);
   }
 
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--s-2);
     flex-shrink: 0;
   }
 
@@ -351,19 +430,19 @@ const navLinks = [
     display: none;
     align-items: center;
     justify-content: center;
-    width: var(--control-h);
-    height: var(--control-h);
+    width: 40px;
+    height: 40px;
     padding: 8px;
     background: none;
     border: none;
-    border-radius: var(--radius-control);
+    border-radius: var(--r-sm);
     cursor: pointer;
-    color: var(--text-main);
-    transition: background-color var(--dur-fast) var(--ease-standard);
+    color: var(--ink);
+    transition: background-color var(--dur-1) var(--ease-standard);
   }
 
   .mobile-menu-toggle:hover {
-    background-color: var(--hover-bg);
+    background-color: var(--pink-100);
   }
 
   .hamburger {
@@ -371,9 +450,9 @@ const navLinks = [
     position: relative;
     width: 20px;
     height: 2px;
-    background-color: var(--text-main);
-    border-radius: var(--radius-xs);
-    transition: opacity 0.2s ease;
+    background-color: currentColor;
+    border-radius: var(--r-xs);
+    transition: background-color var(--dur-1) var(--ease-standard);
   }
 
   .hamburger::before,
@@ -383,9 +462,9 @@ const navLinks = [
     left: 0;
     width: 100%;
     height: 2px;
-    background-color: var(--text-main);
-    border-radius: var(--radius-xs);
-    transition: transform 0.25s ease;
+    background-color: currentColor;
+    border-radius: var(--r-xs);
+    transition: transform var(--dur-2) var(--ease-out);
   }
 
   .hamburger::before {
@@ -416,7 +495,7 @@ const navLinks = [
    * 且 visibility: hidden 会使内部链接退出焦点序列（display 切换做不到动画） */
   .mobile-menu {
     visibility: hidden;
-    transition: visibility 0s linear 0.3s;
+    transition: visibility 0s linear var(--dur-2);
   }
 
   .mobile-menu.is-open {
@@ -427,13 +506,13 @@ const navLinks = [
   .mobile-menu-overlay {
     position: fixed;
     inset: 0;
-    z-index: 85; /* 抽屉已移出 header，必须压过顶栏的 80 */
-    background-color: var(--overlay-bg);
+    z-index: var(--z-overlay); /* 抽屉已移出 header，必须压过顶栏的 --z-nav */
+    background-color: var(--overlay);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity var(--dur-2) var(--ease-out);
   }
 
   .mobile-menu.is-open .mobile-menu-overlay {
@@ -441,58 +520,82 @@ const navLinks = [
     pointer-events: auto;
   }
 
+  /* §5.3：抽屉自**右侧**滑入，玻璃面板 + --r-lg（贴边的两角保持直角） */
   .mobile-menu-panel {
     position: fixed;
     top: 0;
-    left: 0;
+    right: 0;
     bottom: 0;
-    z-index: 90; /* 面板在遮罩之上 */
+    z-index: var(--z-drawer); /* 面板在遮罩之上 */
     width: 280px;
     max-width: 84vw;
-    padding: 1.5rem;
-    background-color: var(--surface-card);
-    border-right: 1px solid var(--divider-color);
-    box-shadow: var(--shadow-pop);
+    padding: var(--s-5);
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    border-left: 1px solid var(--glass-border);
+    border-radius: var(--r-lg) 0 0 var(--r-lg);
+    box-shadow: var(--shadow-3);
     overflow-y: auto;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
+    transform: translateX(100%);
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .mobile-menu-panel {
+      background-color: var(--surface);
+    }
   }
 
   .mobile-menu.is-open .mobile-menu-panel {
     transform: translateX(0);
   }
 
-  /* 只剩一个关闭按钮，靠右 */
   .mobile-menu-header {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--divider-color);
+    margin-bottom: var(--s-4);
+    padding-bottom: var(--s-3);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .mobile-menu-brand {
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+  }
+
+  .mobile-menu-theme {
+    margin-top: var(--s-4);
+    padding-top: var(--s-3);
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: flex-end;
   }
 
   .mobile-menu-close {
     position: relative;
-    z-index: 75;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    padding: 0.25rem;
+    width: 40px;
+    height: 40px;
+    padding: 0;
     background: none;
     border: none;
-    border-radius: var(--radius-control);
+    border-radius: var(--r-sm);
     cursor: pointer;
     color: var(--text-secondary);
     transition:
-      background-color var(--dur-fast) var(--ease-standard),
-      color var(--dur-fast) var(--ease-standard);
+      background-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
   }
 
   .mobile-menu-close:hover {
-    background-color: var(--hover-bg);
-    color: var(--text-main);
+    background-color: var(--pink-100);
+    color: var(--ink);
   }
 
   .mobile-nav-list {
@@ -501,55 +604,88 @@ const navLinks = [
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: var(--s-1);
+  }
+
+  /* 链接逐个 40ms 交错上浮入场（§5.3）。关闭态即初始态，
+   * reduced-motion 下过渡被全局关掉，只剩终态跳变，不会卡在 opacity: 0。 */
+  .mobile-nav-list li {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  .mobile-menu.is-open .mobile-nav-list li {
+    opacity: 1;
+    transform: none;
+  }
+
+  .mobile-menu.is-open .mobile-nav-list li:nth-child(1) {
+    transition-delay: 40ms;
+  }
+
+  .mobile-menu.is-open .mobile-nav-list li:nth-child(2) {
+    transition-delay: 80ms;
+  }
+
+  .mobile-menu.is-open .mobile-nav-list li:nth-child(3) {
+    transition-delay: 120ms;
+  }
+
+  .mobile-menu.is-open .mobile-nav-list li:nth-child(4) {
+    transition-delay: 160ms;
+  }
+
+  .mobile-menu.is-open .mobile-nav-list li:nth-child(5) {
+    transition-delay: 200ms;
   }
 
   .mobile-nav-link {
     display: block;
-    padding: 0.75rem 1rem;
+    padding: var(--s-3) var(--s-4);
     color: var(--text-body);
-    font-size: var(--fs-subtitle);
+    font-size: var(--fs-body);
+    font-weight: var(--fw-medium);
     text-decoration: none;
-    border-radius: var(--radius-control);
+    border-radius: var(--r-sm);
     transition:
-      background-color var(--dur-fast) var(--ease-standard),
-      color var(--dur-fast) var(--ease-standard);
+      background-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
   }
 
   .mobile-nav-link:hover {
-    background-color: var(--hover-bg);
-    color: var(--accent-pink);
+    background-color: var(--pink-100);
+    color: var(--pink-700);
   }
 
-  @supports (background-color: color-mix(in srgb, red, red)) {
-    .mobile-nav-link:hover {
-      background-color: var(--hover-bg-mix);
-    }
+  /* 抽屉里的当前项：不放旗帜条纹（同屏只允许一条，页脚那条是通栏的），
+   * 用实色粉底 + 墨字表达激活态（§5.6 选中 chip 同配方） */
+  .mobile-nav-link[aria-current='page'] {
+    background-color: var(--pink-600);
+    color: var(--on-pink);
+    font-weight: var(--fw-semibold);
   }
 
   /* 站内功能 ↔ 外站入口的分隔：纵向堆叠的抽屉里只有横线能起到分隔作用 */
   .mobile-nav-divider {
     height: 1px;
-    background-color: var(--divider-color);
-    margin: 0.75rem 0;
+    background-color: var(--line);
+    margin: var(--s-3) 0;
     list-style: none;
   }
 
   .mobile-nav-link-external {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: var(--s-2);
   }
 
-  /* 唯一的导航断点；JS 中的 MOBILE_BREAKPOINT 必须同步 */
-  @media (max-width: 1100px) {
+  /* 唯一的导航断点；JS 中的 MOBILE_BREAKPOINT 必须同步（§4：1200 导航折叠） */
+  @media (max-width: 1200px) {
     .header-container {
-      padding: 0.4rem 0.85rem;
       flex-wrap: wrap;
-    }
-
-    .logo {
-      font-size: 1.05rem;
     }
 
     /* 抽屉靠 JS 打开，所以「隐藏桌面导航 + 显示汉堡」这套只在有 JS 时成立。
@@ -570,12 +706,19 @@ const navLinks = [
 
     .nav-list {
       justify-content: center;
-      padding-bottom: 0.25rem;
+      padding-bottom: var(--s-1);
+    }
+  }
+
+  /* 移动紧凑：顶栏 56px（§4） */
+  @media (max-width: 768px) {
+    .site-header,
+    .header-container {
+      min-height: 56px;
     }
 
-    /* 主题开关与汉堡按钮贴在一起 */
     .header-actions {
-      gap: 0.15rem;
+      gap: var(--s-1);
     }
   }
 
@@ -597,27 +740,6 @@ const navLinks = [
       width: var(--tap-min);
       height: var(--tap-min);
       transform: translate(-50%, -50%);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .logo,
-    .nav-link,
-    .main-site-link,
-    .mobile-menu-toggle,
-    .mobile-menu-close,
-    .mobile-nav-link,
-    .mobile-menu,
-    .mobile-menu-overlay,
-    .mobile-menu-panel,
-    .hamburger,
-    .hamburger::before,
-    .hamburger::after {
-      transition: none;
-    }
-
-    .main-site-link:hover {
-      transform: none;
     }
   }
 </style>

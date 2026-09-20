@@ -247,11 +247,31 @@ const jsonLdScript = JSON.stringify(
       </>
     )}
 
-    <!-- Theme：theme-color 取页面底色（--bg-color），不是品牌强调色 -->
-    <meta name="theme-color" content="#fff9fb" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#12121a" media="(prefers-color-scheme: dark)" />
+    <!-- Theme：theme-color 取页面底色（--bg），不是品牌强调色。
+         取值必须与 src/styles/theme.css 的 --bg 逐字一致（浏览器不解析 CSS 变量）。 -->
+    <meta name="theme-color" content="#fdf9fb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0c0a13" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="msapplication-TileColor" content="#ff85a2" />
+    <!-- 磁贴用主行动色 --pink-600 -->
+    <meta name="msapplication-TileColor" content="#efa8c0" />
+
+    <!-- 自托管字体（DESIGN §2.6 / §9）：latin 子集 woff2，@font-face 见 global.css。
+         两款字体在首屏就会用到（顶栏字标 / eyebrow / 元信息），故都预载；
+         中文不做 webfont，零第三方字体请求。 -->
+    <link
+      rel="preload"
+      href="/fonts/space-grotesk-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/nunito-brand-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
 
     <!-- Canonical & Alternate -->
     <link rel="canonical" href={canonicalURL} />
@@ -360,17 +380,56 @@ const jsonLdScript = JSON.stringify(
           left: 0;
           right: 0;
           padding: 0.75rem;
-          background: var(--surface-card);
-          border-top: 1px solid var(--divider-color);
+          background: var(--surface);
+          border-top: 1px solid var(--line);
           text-align: center;
           font-size: var(--fs-sm);
           color: var(--text-secondary);
-          z-index: 1200;
+          z-index: var(--z-toast);
         }
       </style>
       <div class="noscript-notice">
         您已禁用 JavaScript。本站核心内容可正常访问，但主题切换和搜索功能需要启用 JavaScript。
       </div>
     </noscript>
+
+    <script>
+      // 滚动 reveal（DESIGN v3.0 §6.4）：首屏以下的区块 opacity + translateY(16px) 入场，
+      // IntersectionObserver 触发、每个元素只触发一次，同组内按 60ms 交错。
+      //
+      // 初始隐藏态写在 CSS 里，且只在 html.js + prefers-reduced-motion: no-preference 下生效
+      // （见 global.css）：没有 JS 或用户要求减少动效时，内容恒可见，绝不会「永远不出现」。
+      const revealItems = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
+
+      if (revealItems.length > 0) {
+        // 交错序号按「同一父元素」计数：卡片网格里逐张错开，跨区块不互相累加延迟
+        const seen = new Map<Element, number>();
+        // 交错上限 8 档（8 × 60ms ≈ 0.5s）：标签墙有十几枚 chip，不封顶的话
+        // 最后一枚要等近一秒才出现，会被读成「卡住了」。
+        const MAX_STAGGER = 8;
+        for (const el of revealItems) {
+          const parent = el.parentElement ?? document.body;
+          const index = seen.get(parent) ?? 0;
+          el.style.setProperty('--i', String(Math.min(index, MAX_STAGGER)));
+          seen.set(parent, index + 1);
+        }
+
+        if (!('IntersectionObserver' in window)) {
+          revealItems.forEach((el) => el.classList.add('is-revealed'));
+        } else {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                if (!entry.isIntersecting) continue;
+                entry.target.classList.add('is-revealed');
+                observer.unobserve(entry.target); // 只触发一次
+              }
+            },
+            { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
+          );
+          revealItems.forEach((el) => observer.observe(el));
+        }
+      }
+    </script>
   </body>
 </html>

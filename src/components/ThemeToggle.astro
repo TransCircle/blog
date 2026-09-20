@@ -2,9 +2,11 @@
 // 单按钮双态主题切换（浅色 ↔ 深色）。
 // 关键约束：本按钮绝不能带 data-theme 属性——theme.css 的选择器会匹配到它，
 // 导致按钮自身重新声明整套主题变量（历史 bug TH-1）。状态一律走 .icon-wrap 上的 data-dark。
+//
+// 形态过渡按 DESIGN v3.0 §5.11：两枚图标用 clip-path: circle() 做圆形遮罩互换，--dur-3。
 ---
 
-<button type="button" class="theme-toggle" aria-label="切换到深色模式">
+<button type="button" class="theme-toggle" aria-label="切换到深色模式" hidden>
   <span class="icon-wrap" aria-hidden="true">
     <span class="icon icon-moon">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
@@ -31,46 +33,50 @@
   const VALID = ['light', 'dark'] as const;
   type Theme = (typeof VALID)[number];
 
-  const btn = document.querySelector<HTMLButtonElement>('.theme-toggle');
-  const iconWrap = btn?.querySelector<HTMLElement>('.icon-wrap');
+  // 页面上可能有多枚开关（顶栏 + 移动抽屉各一），全部接线、状态同步。
+  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('.theme-toggle'));
   const html = document.documentElement;
 
-  if (btn && iconWrap) {
-    const button = btn;
-    const wrap = iconWrap;
+  const isTheme = (t: string | null): t is Theme =>
+    t !== null && (VALID as readonly string[]).includes(t);
+  const validate = (t: string | null): Theme => (isTheme(t) ? t : 'light');
 
-    const isTheme = (t: string | null): t is Theme =>
-      t !== null && (VALID as readonly string[]).includes(t);
-    const validate = (t: string | null): Theme => (isTheme(t) ? t : 'light');
-
-    // aria-label 描述“点击后会发生什么”，而不是当前状态
-    function syncButton(theme: Theme) {
-      const isDark = theme === 'dark';
+  // aria-label 描述“点击后会发生什么”，而不是当前状态
+  function syncButtons(theme: Theme) {
+    const isDark = theme === 'dark';
+    buttons.forEach((button) => {
+      const wrap = button.querySelector<HTMLElement>('.icon-wrap');
       if (isDark) {
-        wrap.setAttribute('data-dark', '');
+        wrap?.setAttribute('data-dark', '');
       } else {
-        wrap.removeAttribute('data-dark');
+        wrap?.removeAttribute('data-dark');
       }
       button.setAttribute('aria-label', isDark ? '切换到浅色模式' : '切换到深色模式');
-    }
+    });
+  }
 
-    function setTheme(next: string | null) {
-      const theme = validate(next);
-      // 存储可能被禁用（隐私模式 / 沙箱 iframe），抛异常也不能影响本次切换生效
-      try {
-        localStorage.setItem('transcircle-theme', theme);
-      } catch {
-        /* 存不下就只在本次会话内生效 */
-      }
-      html.setAttribute('data-theme', theme); // 唯一的 DOM 副作用
-      syncButton(theme);
+  function setTheme(next: string | null) {
+    const theme = validate(next);
+    // 存储可能被禁用（隐私模式 / 沙箱 iframe），抛异常也不能影响本次切换生效
+    try {
+      localStorage.setItem('transcircle-theme', theme);
+    } catch {
+      /* 存不下就只在本次会话内生效 */
     }
+    html.setAttribute('data-theme', theme); // 唯一的 DOM 副作用
+    syncButtons(theme);
+  }
 
+  if (buttons.length > 0) {
     // 启动时只读不写：Layout 的 boot 脚本已按 localStorage / 系统偏好写好 data-theme
-    syncButton(validate(html.getAttribute('data-theme')));
+    syncButtons(validate(html.getAttribute('data-theme')));
+    // 无 JS 时按钮保持 hidden（死控件不进可聚焦序列）；JS 到位再显示。
+    buttons.forEach((button) => button.removeAttribute('hidden'));
 
-    btn.addEventListener('click', () => {
-      setTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        setTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+      });
     });
   }
 </script>
@@ -81,30 +87,30 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    width: var(--control-h);
-    height: var(--control-h);
+    width: 40px;
+    height: 40px;
     padding: 0;
     border: none;
-    border-radius: var(--radius-control);
+    border-radius: var(--r-sm);
     background: transparent;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     cursor: pointer;
     transition:
-      background-color var(--dur-fast) var(--ease-standard),
-      color var(--dur-fast) var(--ease-standard),
-      transform var(--dur-fast) var(--ease-standard);
+      background-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard),
+      transform var(--dur-1) var(--ease-spring);
   }
 
   .theme-toggle:hover {
-    background-color: var(--hover-bg);
-    color: var(--primary-pink);
+    background-color: var(--pink-100);
+    color: var(--pink-700);
   }
 
   .theme-toggle:active {
-    transform: scale(0.9);
+    transform: scale(0.97);
   }
 
-  /* 粗指针下把按钮本体保持 34px，靠伪元素撑出 44px 命中区，避免顶栏变高 */
+  /* 粗指针下按钮本体保持 40px，靠伪元素撑出 44px 命中区，避免顶栏变高 */
   @media (any-pointer: coarse) {
     .theme-toggle::after {
       content: '';
@@ -125,6 +131,8 @@
     flex-shrink: 0;
   }
 
+  /* 圆形遮罩过渡（§5.11）：两枚图标叠放，用 clip-path: circle() 互相揭示 / 收起。
+   * 半径 0 的圆完全裁掉图标，75% 覆盖整个 20px 方框。 */
   .icon {
     position: absolute;
     inset: 0;
@@ -132,38 +140,51 @@
     align-items: center;
     justify-content: center;
     transition:
-      opacity var(--dur-base) var(--ease-standard),
-      transform 340ms var(--ease-emphasized);
+      clip-path var(--dur-3) var(--ease-out),
+      opacity var(--dur-2) var(--ease-standard);
   }
 
   .icon-moon {
     opacity: 1;
-    transform: rotate(0deg) scale(1);
+    clip-path: circle(75% at 50% 50%);
   }
 
   .icon-sun {
     opacity: 0;
-    transform: rotate(-90deg) scale(0.6);
+    clip-path: circle(0% at 50% 50%);
   }
 
   .icon-wrap[data-dark] .icon-moon {
     opacity: 0;
-    transform: rotate(90deg) scale(0.6);
+    clip-path: circle(0% at 50% 50%);
   }
 
   .icon-wrap[data-dark] .icon-sun {
     opacity: 1;
-    transform: rotate(0deg) scale(1);
+    clip-path: circle(75% at 50% 50%);
   }
 
+  /* 关掉动效时圆形遮罩不能留在中间态：直接用 opacity 决定谁可见 */
   @media (prefers-reduced-motion: reduce) {
-    .theme-toggle,
-    .icon {
-      transition: none;
-    }
-
     .theme-toggle:active {
       transform: none;
+    }
+
+    .icon-moon,
+    .icon-sun,
+    .icon-wrap[data-dark] .icon-moon,
+    .icon-wrap[data-dark] .icon-sun {
+      clip-path: none;
+    }
+
+    .icon-sun,
+    .icon-wrap[data-dark] .icon-moon {
+      opacity: 0;
+    }
+
+    .icon-moon,
+    .icon-wrap[data-dark] .icon-sun {
+      opacity: 1;
     }
   }
 </style>

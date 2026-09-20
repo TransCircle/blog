@@ -28,17 +28,19 @@ const breadcrumbs = [
 <Layout title="全部标签" description={tagsDescription} breadcrumbs={breadcrumbs}>
   <Header />
 
-  <main id="main-content" tabindex="-1" class="container">
+  <main id="main-content" tabindex="-1" class="container is-wide">
     <section class="tags-page">
       <PageHeader
+        eyebrow="Tags"
         title="标签"
         description={`共 ${tags.length} 个标签，${publishedPosts.length} 篇文章`}
       />
 
+      {/* chip 墙（§5.6）：每个标签一枚 --r-xs chip，数量用 --font-tech */}
       {tags.length > 0 ? (
-        <div class="tags-cloud">
+        <div class="chip-wall">
           {tags.map((tag: string) => (
-            <a href={`/tags/${tag}`} class="tag-item">
+            <a href={`/tags/${tag}`} class="tag-item" data-reveal>
               <span class="tag-name">{tag}</span>
               <span class="tag-count">{tagCounts.get(tag)}</span>
             </a>
@@ -46,7 +48,12 @@ const breadcrumbs = [
         </div>
       ) : (
         <div class="empty-state">
-          <p>暂无标签</p>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L3 13V4a1 1 0 0 1 1-1h9l7.59 7.59a2 2 0 0 1 0 2.82z"/>
+            <line x1="7.5" y1="7.5" x2="7.51" y2="7.5"/>
+          </svg>
+          <h2 class="empty-state-title">暂无标签</h2>
+          <p>文章发布后，标签会自动出现在这里。</p>
         </div>
       )}
     </section>
@@ -57,78 +64,78 @@ const breadcrumbs = [
 
 <style>
   .tags-page {
-    padding: 2rem 0;
+    min-width: 0;
   }
 
-  .tags-cloud {
+  .chip-wall {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 2rem;
+    gap: var(--s-3);
+    margin-top: var(--s-6);
+    min-width: 0;
   }
 
-  /* 可点标签（带计数）：Pill 视觉 + 真链接交互。
-   * 不做 translateY 抬起——1px 抬起只留给 CTA 级元素，标签用颜色变化作为 hover 信号。 */
+  /* 可点标签 chip（§5.6）：--pink-100 底 + --pink-700 字 + --r-xs。
+   * 不做 translateY 抬起——位移只留给卡片与 CTA，chip 用配色变化作 hover 信号。 */
   .tag-item {
     position: relative; /* 触屏命中区伪元素的定位基准 */
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--s-2);
     max-width: 100%;
     min-width: 0;
-    padding: 0.5rem 1rem;
-    background-color: var(--hover-bg);
-    color: var(--text-secondary);
-    border-radius: var(--radius-pill);
+    min-height: 32px;
+    padding: 0 10px;
+    background-color: var(--pink-100);
+    color: var(--pink-700);
+    border: 1px solid transparent;
+    border-radius: var(--r-xs);
     text-decoration: none;
-    font-size: var(--fs-body);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
     transition:
-      background-color var(--dur-fast) var(--ease-standard),
-      color var(--dur-fast) var(--ease-standard);
+      background-color var(--dur-1) var(--ease-standard),
+      border-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
   }
 
-  .tag-item:hover {
-    background-color: var(--soft-pink);
-    color: var(--accent-pink);
-  }
-
-  @supports (background-color: color-mix(in srgb, red 15%, white)) {
-    .tag-item:hover {
-      background-color: var(--hover-bg-mix);
-    }
+  .tag-item:hover,
+  .tag-item:focus-visible {
+    background-color: var(--pink-200);
+    border-color: var(--pink-300);
+    color: var(--pink-700);
   }
 
   .tag-name {
     min-width: 0;
-    font-weight: 500;
     overflow-wrap: anywhere;
     word-break: break-word;
   }
 
+  /* 数量是数字信息：--font-tech（§5.5 / §3.4） */
   .tag-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 0.35rem;
-    background-color: var(--soft-pink);
-    color: var(--text-main);
-    border-radius: var(--radius-pill);
-    font-size: var(--fs-sm);
-    font-weight: 600;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 4rem 0;
-    color: var(--text-muted);
+    min-width: 18px;
+    padding: 0 var(--s-1);
+    border-radius: var(--r-xs);
+    background-color: var(--surface);
+    color: var(--text-secondary);
+    font-family: var(--font-tech);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    font-variant-numeric: tabular-nums;
   }
 
   /* 触屏：标签是主要导航入口，命中区必须够大——但要靠伪元素撑，
-     直接给 min-height 会把胶囊拉成高椭圆（云里的间距已够，不会互相盖住） */
+     直接给 min-height 会把 chip 拉成高盒子（chip 墙的间距已够，不会互相盖住） */
   @media (any-pointer: coarse) {
+    .chip-wall {
+      gap: var(--s-4) var(--s-3);
+    }
+
     .tag-item::after {
       content: '';
       position: absolute;
@@ -137,18 +144,6 @@ const breadcrumbs = [
       right: 0;
       height: var(--tap-min);
       transform: translateY(-50%);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .tag-item {
-      transition: none;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .tags-page {
-      padding: 1rem 0;
     }
   }
 </style>

@@ -194,8 +194,8 @@ async function main() {
     `<image x="0" y="4" width="256" height="77" href="data:image/png;base64,${logoB64}" ` +
     `xlink:href="data:image/png;base64,${logoB64}"/>` +
     `<text x="1840" y="52" text-anchor="end" font-family="Noto Sans SC" font-weight="400" ` +
-    `font-size="31" fill="#9a858f">blog.transcircle.org</text>` +
-    `<line x1="0" y1="86" x2="1840" y2="86" stroke="#e6ccd6" stroke-width="2"/>` +
+    `font-size="31" fill="#6f6678">blog.transcircle.org</text>` +
+    `<line x1="0" y1="86" x2="1840" y2="86" stroke="#eedfe6" stroke-width="2"/>` +
     `</svg>`;
   const headerB64 = new Resvg(headerSvg, {
     fitTo: { mode: 'width', value: 1840 },
@@ -222,7 +222,7 @@ async function main() {
     `<style>@font-face{font-family:'TCPDFNum';src:url(data:font/woff;base64,${numFontB64}) ` +
     `format('woff')}</style>` +
     `<div style="width:100%;text-align:center;font-family:'TCPDFNum',sans-serif;font-size:8.5pt;` +
-    `color:#9a9a9a;-webkit-print-color-adjust:exact;print-color-adjust:exact;">` +
+    `color:#6f6678;-webkit-print-color-adjust:exact;print-color-adjust:exact;">` +
     `- <span class="pageNumber"></span> / <span class="totalPages"></span> -</div>`;
 
   const server = await startServer();

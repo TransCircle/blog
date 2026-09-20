@@ -64,31 +64,26 @@ const { label, people } = Astro.props;
   }
 
   .person-link {
-    color: var(--accent-pink);
-    font-weight: 500;
+    /* 链接一律信息蓝（§5.2 / §7），hover 才转粉文字档 */
+    color: var(--blue-600);
+    font-weight: var(--fw-medium);
     /* 署名是独立成行的链接（前面有「作者：」标签），不必常驻下划线；
        hover / 聚焦时再给线索 */
     text-decoration: none;
+    text-underline-offset: 3px;
     /* 署名可能是较长的外站 ID，必须允许换行以免横向溢出 */
     overflow-wrap: anywhere;
     word-break: break-word;
-    transition: color var(--dur-fast) var(--ease-standard);
+    transition: color var(--dur-1) var(--ease-standard);
   }
 
   .person-link:hover,
   .person-link:focus-visible {
-    color: var(--cta-hover);
+    color: var(--pink-700);
     text-decoration: underline;
-    text-underline-offset: 0.2em;
   }
 
   .person-links-sep {
     color: var(--text-muted);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .person-link {
-      transition: none;
-    }
   }
 </style>

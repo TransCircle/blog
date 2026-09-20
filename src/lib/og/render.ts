@@ -59,39 +59,31 @@ const MARK_SIZE = 88;
 const WORDMARK_H = 26;
 const WORDMARK_W = Math.round((WORDMARK_H * 1221) / 179); // 177
 
-// 跨性别旗：蓝 / 粉 / 白 / 粉 / 蓝五等分（用作强调条纹）
-const FLAG_GRADIENT =
-  'linear-gradient(180deg, #55cdfc 0%, #55cdfc 22%, #f7a8b8 22%, #f7a8b8 40%,' +
-  ' #ffffff 40%, #ffffff 60%, #f7a8b8 60%, #f7a8b8 78%, #55cdfc 78%, #55cdfc 100%)';
-
-// 两种卡片共用的画布底：浅粉渐变 + 细描边框
+// OG 是独立渲染管线，但不再保留旧版渐变画布/旗帜渐变。
+// 主题以当前界面的扁平底色、发丝线、正式品牌横幅为准。
 const CANVAS: Style = {
   width: OG_WIDTH,
   height: OG_HEIGHT,
   position: 'relative',
   fontFamily: 'Noto Sans SC',
-  backgroundColor: '#fff9fb',
-  backgroundImage:
-    // 两团品牌粉的柔光：取自 --primary-pink / --accent-pink
-    'radial-gradient(1100px 520px at 88% -8%, rgba(236,158,176,0.24), rgba(236,158,176,0) 60%),' +
-    'radial-gradient(820px 480px at 0% 112%, rgba(230,118,144,0.16), rgba(230,118,144,0) 60%),' +
-    'linear-gradient(160deg, #fffafc 0%, #fff3f7 100%)',
+  backgroundColor: '#fdf9fb',
 };
 
-// 浅色主题令牌的字面量副本，取值与 src/styles/theme.css 的 :root 保持一致。
-// satori 不解析 CSS 变量，所以这里只能写死；改令牌时两处必须同步。
+// 浅色主题令牌的字面量副本，取值与 src/styles/theme.css 的 :root 保持一致
+// （DESIGN v3.0 §2 的亮色档）。satori 不解析 CSS 变量，所以这里只能写死；
+// 改令牌时两处必须同步。OG 卡片的版式与画布底色属于独立维护的渲染管线（§8「blog」）。
 const C = {
-  textMain: '#000000', // --text-main
-  textSecondary: '#666666', // --text-secondary
-  textMuted: '#888888', // --text-muted
-  primary: '#ec9eb0', // --primary-pink
-  soft: '#ffccd5', // --soft-pink
-  accent: '#e67690', // --accent-pink
-  accentDeep: '#cc537c', // --cta-hover
-  divider: '#ffccd5', // --divider-color
-  pillBg: '#ffedf1', // --hover-bg
-  panel: '#ffffff', // --surface-card
-  onAccent: '#412a2a', // --on-accent（落在 accent 实底上的前景色）
+  textMain: '#1a1420', // --ink
+  textSecondary: '#6d6478', // --text-secondary
+  textMuted: '#6f6678', // --text-muted（当前可读性档）
+  primary: '#ec9eb0', // --pink-400（装饰面）
+  soft: '#ffd3e2', // --pink-200
+  accent: '#efa8c0', // --pink-600（当前主行动色）
+  accentDeep: '#c22e68', // --pink-700（粉文字专用档）
+  divider: '#eedfe6', // --line
+  pillBg: '#ffe9f1', // --pink-100
+  panel: '#ffffff', // --surface
+  onAccent: '#210a16', // --on-pink（落在粉实底上的前景墨字）
 };
 
 // ── 资源加载（字体 + Logo + 子集覆盖表），按进程缓存，避免逐张卡片重复读盘 ──
@@ -187,7 +179,7 @@ const frame = (): Node =>
     right: 22,
     bottom: 22,
     border: `1px solid ${C.divider}`,
-    borderRadius: 28,
+    borderRadius: 12,
   });
 
 // ── 描边图标 → data URI（颜色烘焙进 SVG，satori 以 <img> 渲染）──────────────
@@ -405,12 +397,12 @@ function buildCard(data: OgCardData, mark: string, wordmark: string): Node {
               {
                 fontSize: 22,
                 fontWeight: 700,
-                // 粉底上的前景色走 --on-accent（深褐），白字在品牌粉上对比度不达标
+                // 粉底上的前景色走 --on-pink（深墨），白字在品牌粉上对比度不达标
                 color: C.onAccent,
-                backgroundImage: `linear-gradient(135deg, ${C.primary}, ${C.accent})`,
+                backgroundColor: C.soft,
                 padding: '10px 24px',
-                borderRadius: 999,
-                boxShadow: '0 4px 12px rgba(230,118,144,0.30)',
+                borderRadius: 4,
+                border: `1px solid ${C.divider}`,
               },
               clampVisual(data.category!, 12)
             )
@@ -424,10 +416,9 @@ function buildCard(data: OgCardData, mark: string, wordmark: string): Node {
           width: 8,
           alignSelf: 'stretch',
           marginRight: 28,
-          borderRadius: 8,
+          borderRadius: 4,
           maxHeight: 232,
-          backgroundImage: FLAG_GRADIENT,
-          boxShadow: '0 4px 16px rgba(85,205,252,0.25)',
+          backgroundColor: C.primary,
         }),
         col({ flexGrow: 1, gap: 22 }, [
           text(

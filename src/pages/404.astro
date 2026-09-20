@@ -40,23 +40,24 @@ import Button from '@components/ui/Button.astro';
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 4rem 0;
+    padding: var(--s-8) 0;
     min-width: 0;
   }
 
-  /* 视觉性的大号 404：随视口收缩，不再需要断点覆盖 */
+  /* 错误码是 eyebrow，不把无信息的大数字做成页面主角。 */
   .nf-code {
-    font-size: clamp(3rem, 2rem + 5vw, 5rem);
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: -0.02em;
-    color: var(--accent-pink);
-    margin: 0 0 0.5rem;
+    margin: 0 0 var(--s-2);
+    font-family: var(--font-tech);
+    font-size: var(--fs-display);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh-display);
+    letter-spacing: 0.04em;
+    color: var(--pink-700);
   }
 
   @media (max-width: 768px) {
     .not-found {
-      padding: 3rem 0;
+      padding: var(--s-7) 0;
     }
   }
 </style>

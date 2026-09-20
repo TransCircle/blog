@@ -86,15 +86,15 @@ const canonical = new URL(`/posts/${post.slug}/`, siteURL).toString();
       html {
         scroll-behavior: auto;
       }
-      /* 用 html body 提高特异性，稳赢 global.css 的 body{background-color:var(--bg-color)}
-       * ——否则打印时 body 会保留浅粉底（--bg-color=#fff9fb），最后一页正文不满页处
+      /* 用 html body 提高特异性，稳赢 global.css 的 body{background-color:var(--bg)}
+       * ——否则打印时 body 会保留浅粉底（--bg=#FDF9FB），最后一页正文不满页处
        * 会露出一块粉色。 */
       html body {
         display: block;
         min-height: 100vh;
         margin: 0;
-        background: #e9ebef;
-        color: #1a1a1a;
+        background: #fdf9fb;
+        color: #1a1420;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -124,51 +124,51 @@ const canonical = new URL(`/posts/${post.slug}/`, siteURL).toString();
       .print-head {
         margin-bottom: 1.4rem;
         padding-bottom: 1rem;
-        border-bottom: 2px solid #f0c2ce;
+        border-bottom: 2px solid #ffd3e2;
       }
       .print-title {
         margin: 0 0 0.45rem;
         font-size: 1.7rem;
         font-weight: 700;
         line-height: 1.25;
-        color: #111;
+        color: #1a1420;
       }
       .print-desc {
         margin: 0 0 0.6rem;
         font-size: 0.98rem;
         line-height: 1.55;
-        color: #444;
+        color: #3e3646;
       }
       .print-meta {
         margin: 0;
         font-size: 0.82rem;
         line-height: 1.55;
-        color: #666;
+        color: #6f6678;
       }
       .print-meta span + span::before {
         content: '·';
         margin: 0 0.5em;
-        color: #bbb;
+        color: #eedfe6;
       }
 
       .print-sheet .article-content {
-        color: #1a1a1a;
+        color: #1a1420;
       }
 
       /* ── 文末：标签 / 协议 / 原文链接 ─────────────────────────── */
       .print-foot {
         margin-top: 1.8rem;
         padding-top: 0.9rem;
-        border-top: 1px solid #e6d3da;
+        border-top: 1px solid #eedfe6;
         font-size: 0.8rem;
         line-height: 1.6;
-        color: #555;
+        color: #3e3646;
       }
       .print-foot p {
         margin: 0.15rem 0;
       }
       .print-foot a {
-        color: #b83e5e;
+        color: #c22e68;
         text-decoration: none;
         word-break: break-all;
       }
@@ -229,7 +229,7 @@ const canonical = new URL(`/posts/${post.slug}/`, siteURL).toString();
          * break-before: avoid 让它尽量跟着上文留在页尾，而不是孤零零出现在下一页页首 */
         .article-content hr {
           margin: 7pt 0;
-          border-top-color: #e6d3da;
+          border-top-color: #eedfe6;
           break-before: avoid;
         }
         .article-content h3 {

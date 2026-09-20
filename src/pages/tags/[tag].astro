@@ -69,11 +69,11 @@ const collectionSchema = {
 >
   <Header />
 
-  <main id="main-content" tabindex="-1" class="container">
+  <main id="main-content" tabindex="-1" class="container is-wide">
     <div class="page">
       <div class="tag-head">
         <nav class="tag-breadcrumb" aria-label="面包屑导航">
-          <a href="/tags">标签</a>
+          <a href="/tags" class="link-grow">标签</a>
           <span aria-hidden="true">/</span>
           <span aria-current="page">#{tag}</span>
         </nav>
@@ -81,15 +81,22 @@ const collectionSchema = {
         <PageHeader title={`#${tag}`} description={`共 ${taggedPosts.length} 篇文章`} />
       </div>
 
-      {taggedPosts.length > 0 ? (
-        <div class="posts-list">
-          {taggedPosts.map((post: CollectionEntry<'posts'>) => (
-            <PostCard post={post} />
-          ))}
-        </div>
-      ) : (
-        <p class="empty-state">该标签下暂无文章</p>
-      )}
+      <section aria-label="文章列表">
+        <h2 class="sr-only">标签 {tag} 下的文章</h2>
+
+        {taggedPosts.length > 0 ? (
+          <div class="posts-grid">
+            {taggedPosts.map((post: CollectionEntry<'posts'>) => (
+              <PostCard post={post} />
+            ))}
+          </div>
+        ) : (
+          <div class="empty-state">
+            <h2 class="empty-state-title">该标签下暂无文章</h2>
+            <p>换一个标签，或回到首页看最新的记录。</p>
+          </div>
+        )}
+      </section>
     </div>
   </main>
 
@@ -97,18 +104,18 @@ const collectionSchema = {
 </Layout>
 
 <style>
-  /* 面包屑与标题属于同一块，间距要比 .page 的 1.5rem 更紧 */
+  /* 面包屑与标题属于同一块，间距要比 .page 的 --s-6 更紧 */
   .tag-head {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--s-3);
     min-width: 0;
   }
 
   .tag-breadcrumb {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--s-2);
     flex-wrap: wrap;
     min-width: 0;
     font-size: var(--fs-sm);
@@ -122,25 +129,13 @@ const collectionSchema = {
     word-break: break-word;
   }
 
+  /* 面包屑的链接是短拉丁/中文词、不会折行，可以用「下划线从左侧长入」（§5.2） */
   .tag-breadcrumb a {
-    color: var(--accent-pink);
+    color: var(--blue-600);
     text-decoration: none;
   }
 
   .tag-breadcrumb a:hover {
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
-  }
-
-  .posts-list {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .empty-state {
-    padding: 3rem 0;
-    text-align: center;
-    color: var(--text-muted);
+    color: var(--pink-700);
   }
 </style>

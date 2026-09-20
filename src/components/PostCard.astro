@@ -1,7 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import type { Person } from '@utils/posts';
-import Pill from '@components/ui/Pill.astro';
 
 export interface Props {
   post: CollectionEntry<'posts'>;
@@ -14,30 +13,33 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
   year: 'numeric',
   month: 'long',
   day: 'numeric',
+  timeZone: 'UTC',
 });
 ---
 
-<article class="post-row">
-  <div class="post-row-meta">
-    <Pill tone="accent">{category}</Pill>
-    <time datetime={pubDate.toISOString()}>{formattedDate}</time>
+{/* 卡片视觉全部来自 global.css 的 .post-card-*：搜索页的结果卡由 JS innerHTML 生成，
+    拿不到 Astro 的 scoped 属性，两处必须共用同一份全局配方。
+    本站文章没有封面图，卡片是纯文字卡（偏离记录见 blog/DESIGN.md）。 */}
+<article class="post-card" data-reveal>
+  <div class="post-card-top">
+    <span class="chip">{category}</span>
+    <time class="post-card-date" datetime={pubDate.toISOString()}>{formattedDate}</time>
   </div>
 
-  <h2 class="post-row-title">
+  <h3 class="post-card-title">
     <a href={`/posts/${post.slug}`}>{title}</a>
-  </h2>
+  </h3>
 
-  {description && <p class="post-row-desc">{description}</p>}
+  {description && <p class="post-card-desc">{description}</p>}
 
-  <div class="post-row-footer">
-    <span class="post-row-authors">
+  <div class="post-card-foot">
+    <span class="post-card-meta">
       {author.map((person: Person, index: number) => (
         <Fragment>
           {index > 0 && <span aria-hidden="true">、</span>}
           {/* 没写 link 的署名保持纯文本，不做跳转 */}
           {person.link ? (
             <a
-              class="post-row-author-link"
               href={person.link}
               target="_blank"
               rel="nofollow noopener noreferrer"
@@ -53,43 +55,11 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
     </span>
 
     {tags.length > 0 && (
-      <div class="post-row-tags">
+      <div class="post-card-tags">
         {tags.map((tag: string) => (
-          <a href={`/tags/${tag}`} class="tag-link">#{tag}</a>
+          <a href={`/tags/${tag}`} class="tag-chip">#{tag}</a>
         ))}
       </div>
     )}
   </div>
 </article>
-
-<style>
-  /* 行的视觉全部来自 global.css 的 .post-row-*；这里只补作者链接：
-   * 它比标签低一级，用 --text-muted 而非全局 a 的 accent，避免与 .tag-link 抢注意力。 */
-  .post-row-authors {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-
-  /* 列表行里的作者名：不常驻下划线，hover / 聚焦时才给线索 */
-  .post-row-author-link {
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color var(--dur-fast) var(--ease-standard);
-  }
-
-  .post-row-author-link:hover,
-  .post-row-author-link:focus-visible {
-    color: var(--accent-pink);
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
-  }
-
-  /* 作者名是夹在文字里的行内链接：目标尺寸规则对行内链接本就有豁免，
-     强行撑到 44px 只会把整行拉高、把版式搞乱。保持行内尺寸即可。 */
-
-  @media (prefers-reduced-motion: reduce) {
-    .post-row-author-link {
-      transition: none;
-    }
-  }
-</style>
