@@ -1,0 +1,25 @@
+/* TEAM */
+Organization: 跨环 TransCircle Project
+Site: https://transcircle.org/
+Blog: https://blog.transcircle.org/
+Source: https://github.com/TransCircle/blog
+Contact: https://github.com/TransCircle/blog/issues
+Email: team@transcircle.org
+X: @TransCircleOrg
+Bluesky: TransCircle.org
+Location: 中文互联网 / Chinese-speaking internet
+
+/* AUTHORS */
+每篇文章的作者与编辑署名见文章页页首，以及 /llms-full.txt 中每篇的元数据。
+
+/* THANKS */
+Monica Helms — 跨性别骄傲旗帜（1999）
+每一位分享故事、参与写作与校对的社群成员
+
+/* SITE */
+Language: 中文（zh-CN）
+Content license: CC BY-SA 4.0
+Code license: AGPL-3.0
+Standards: HTML, CSS, WCAG 2.1, schema.org, llms.txt
+Components: Astro, Fuse.js, Satori, Puppeteer
+Hosting: Cloudflare Pages

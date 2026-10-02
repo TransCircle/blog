@@ -1,0 +1,7 @@
+# 跨环博客安全问题报告（RFC 9116）
+# 请通过 GitHub 私密漏洞报告提交，勿在公开 issue 中披露细节。
+Contact: https://github.com/TransCircle/TransCircle/security/advisories/new
+Contact: mailto:team@transcircle.org
+Expires: 2027-09-30T00:00:00.000Z
+Preferred-Languages: zh, en
+Canonical: https://blog.transcircle.org/.well-known/security.txt
