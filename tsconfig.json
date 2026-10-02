@@ -19,5 +19,5 @@
     "jsx": "preserve",
     "jsxImportSource": "astro"
   },
-  "include": ["src/**/*", "astro.config.mjs"]
+  "include": ["src/**/*", "astro.config.mjs", "vitest.config.ts"]
 }
