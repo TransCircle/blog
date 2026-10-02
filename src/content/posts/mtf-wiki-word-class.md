@@ -2,8 +2,8 @@
 title: 'MtF Wiki 在「通俗用语」的词性定义不准确？'
 description: '「Pass」是形容词吗？「深柜」是形容词吗？'
 pubDate: 2026-05-31
-author: { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
-editor: { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
+author: yangyanh5
+editor: yangyanh5
 category: '语言文字'
 tags: ['语言学', '词性']
 ---

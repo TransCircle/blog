@@ -45,7 +45,7 @@
 title: '文章标题'
 description: '文章简介，会显示在列表中'
 pubDate: 2026-05-21
-author: '作者名称'                # 想让署名可点，写成 { name: '...', link: 'https://...' }
+author: axzameyzed               # 作者 id，须先登记在 src/data/authors.json（见下文「作者与编辑署名」）
 category: '开发进度'
 tags: ['标签1', '标签2']
 ---
@@ -105,9 +105,11 @@ updatedDate: 2026-05-21  # 添加这行表示更新时间
 | `title` | ✅ | 文章标题 | `'项目启动报告'` |
 | `description` | 可选 | 文章简介，显示在列表中 | `'本周完成的工作内容'` |
 | `pubDate` | ✅ | 发布日期 | `2026-05-21` |
-| `updatedDate` | 可选 | 更新日期 | `2026-05-22` |
-| `author` | 可选 | 作者署名（默认：TransCircle 项目组），写法见下节 | `'张三'` |
-| `editor` | 可选 | 编辑署名，**不写就不显示**，写法见下节 | `'李四'` |
+| `updatedDate` | 可选 | 更新日期；一般不用写，正文修改后会从 git 记录自动得出（见 `docs/SEO.md` §4.1） | `2026-05-22` |
+| `author` | 可选 | 作者 id（默认：`transcircle-team`），写法见下节 | `axzameyzed` |
+| `editor` | 可选 | 编辑的作者 id，**不写就不显示**，写法见下节 | `[axzameyzed, yangyanh5]` |
+| `reviewedBy` | 可选 | 审阅者的作者 id（对内容做过专业 / 事实审阅的人，任何文章都可以写）；不写就不声称已审阅 | `[axzameyzed]` |
+| `lastReviewed` | 可选 | 最近一次审阅 / 证据复核日期（与正文修改日期无关） | `2026-09-30` |
 | `category` | 可选 | 分类（默认：general） | `'开发进度'` 或 `'团队报告'` |
 | `tags` | 可选 | 标签数组 | `['前端', 'astro']` |
 | `cover` | 可选 | 封面图路径 | `'/images/cover.png'` |
@@ -117,32 +119,49 @@ updatedDate: 2026-05-21  # 添加这行表示更新时间
 
 ### 作者与编辑署名（`author` / `editor`）
 
-两个字段的写法完全一样，支持三种形式，可以混着用：
+文章里**只写作者 id**。作者的名字、简介、X / GitHub / 个人网站等链接统一登记在
+[`src/data/authors.json`](src/data/authors.json)，全站（文章署名、作者页、结构化数据）都从这里取，改一处全站生效。
 
 ```markdown
 ---
-# 1. 只写名字：不带链接，署名显示为纯文本，点不了
-author: 'TransCircle 文案组'
+# 一位作者
+author: axzameyzed
 
-# 2. 名字 + 链接：署名可点，在新标签页打开
-author: { name: '翅膀', link: 'https://x.com/axzameyzed' }
-
-# 3. 多个人：写成列表，带不带链接可以混排
-author:
-  - { name: '羽莉', link: 'https://x.com/liwanmiaohy' }
-  - { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
-  - 'TransCircle 文案组'          # 这一位没有链接，就是纯文本
+# 多位作者 / 编辑：写成列表
+author: [epheiamoe, yangyanh5]
+editor: [axzameyzed, yangyanh5]
 ---
+```
+
+登记一位新作者（在 `authors.json` 的 `authors` 数组里加一项）：
+
+```json
+{
+  "id": "axzameyzed",
+  "name": "翅膀",
+  "type": "person",
+  "bio": "一句话简介，会显示在作者页，也写进结构化数据",
+  "links": {
+    "x": "https://x.com/xxx",
+    "github": "https://github.com/xxx",
+    "website": "https://example.com"
+  },
+  "aliases": ["曾用名"]
+}
 ```
 
 几条规则：
 
-- **不写 `link` 就是没有链接**，署名保持纯文本、不做跳转，也不会被"顺手"指向主站。
-- **不写 `editor` 就是没有编辑**，文章页、分享图、结构化数据里都不会出现「编辑」这一行；
-  不会自动署上团队名。
-- `author` 不写时才回退到 `TransCircle 项目组`。
-- `link` 只接受 `http(s)` 链接，其它协议（如 `javascript:`）会在构建时直接报错。
-- 多人署名用顿号（、）连接；点击带链接的署名会先弹出外链确认框。
+- **id**：小写字母、数字、`-`、`_`，个人一般用 X 账号名的小写形式；团队用 `transcircle-xxx`。
+  id 就是作者页地址 `/authors/<id>/`，**发布后不要改**。
+- **type**：`person`（个人）或 `team`（项目团队）。
+- **links**：可选 `website`、`x`、`github`、`bluesky`、`mastodon`、`blog`，只接受 `http(s)` 链接。
+  作者页会列出全部链接；文章里的署名一律链到站内作者页。个人的链接会写进结构化数据的 `sameAs`（表示“这些主页就是本人”）；
+  团队的链接通常是整个跨环组织的官网 / GitHub，只在作者页展示，不写进 `sameAs`。
+- **aliases**：曾用名 / 其他写法。按旧名字生成过的作者页地址会自动 301 到这位作者的页面。
+- 文章里写了**没有登记的 id**，构建会直接报错，并列出所有可用的 id，拼错不会悄悄生成错误的作者页。
+- **不写 `editor` 就是没有编辑**；`author` 不写时回退到 `transcircle-team`。
+- 每位作者的页面 `/authors/<id>/` 会自动生成，列出其撰写、编辑与审阅的全部文章。
 
 ### 常用分类
 
@@ -202,6 +221,10 @@ codeLicense: 'MIT'
 ```
 
 ### Markdown 基础语法
+
+> 正文可以写普通 HTML（如 `<img>`、`<a>`），但出于安全原因，`<script>`、`<iframe>`、`<svg>`、`<math>`、表单、事件属性（`onclick` 等）
+> 与 `javascript:` 链接会在构建时被自动删除。配图请用 Markdown 图片语法或 `<img>`。
+
 
 ```markdown
 # 一级标题
@@ -452,9 +475,13 @@ blog/
 │   │   ├── brand/         # 品牌 SVG（图标 / 横幅 Logo 的源文件）
 │   │   └── og/fonts/      # OG 卡片用的 Noto Sans SC 子集字体
 │   ├── lib/og/            # OG 卡片绘制
-│   ├── lib/markdown/      # Markdown 扩展（提示 / 警告框等 rehype 插件）
+│   ├── lib/markdown/      # Markdown 扩展（提示 / 警告框、图片尺寸等 rehype 插件）
+│   ├── lib/seo/           # SEO / GEO：站点常量、URL、结构化数据、重定向、响应头（附测试）
+│   ├── integrations/      # 构建集成（生成 _redirects / _headers）
+│   ├── data/              # 标签导语等站点数据
 │   └── styles/            # 样式文件
-├── scripts/               # 构建期工具（图标生成、字体子集、IndexNow）
+├── docs/SEO.md            # SEO / GEO 规范与上线操作手册
+├── scripts/               # 构建期工具（图标、字体子集、PDF、IndexNow、百度推送、SEO 校验）
 ├── public/                # 静态资源（图片、图标等，图标由脚本生成）
 ├── dist/                  # 构建输出（自动生成）
 ├── LICENSE                # 仓库代码的许可证（AGPL-3.0）
@@ -509,14 +536,20 @@ A: 分类是文章的大类（如"开发进度"），标签是更细粒度的关
 
 | 产物 | 路径 | 说明 |
 |------|------|------|
-| 站点地图 | `/sitemap-index.xml` | 含每篇文章真实的 `lastmod`、`changefreq`、`priority`；自动排除搜索页 |
-| 结构化数据 | 各页 `<head>` 内 JSON-LD | Organization / WebSite（含站内搜索框）/ Blog / BlogPosting / FAQPage / BreadcrumbList / CollectionPage |
-| AI 索引 | `/llms.txt` | 遵循 llmstxt.org 约定：实体消歧 + 自动文章清单 |
-| AI 全文快照 | `/llms-full.txt` | 内联**全部文章正文**，供 LLM / RAG 一次性摄取 |
-| 文章 Markdown 原文 | `/posts/<slug>.md` | 每篇文章的纯 Markdown 版本，便于 AI 抓取 |
-| 搜索索引 | `/search-index.json` | 客户端全文搜索数据 |
-| RSS | `/rss.xml` | 文章订阅源 |
-| 爬虫规则 | `/robots.txt`、`/ai.txt` | 显式欢迎主流搜索引擎与 AI 爬虫 |
+| 站点地图 | `/sitemap-index.xml` | 每篇文章真实的 `lastmod` 与 OG 图片条目；排除 noindex 页与文件端点 |
+| 结构化数据 | 各页 `<head>` 内 JSON-LD `@graph` | Organization（与主站同一实体）/ WebSite / WebPage / Blog / BlogPosting / BreadcrumbList / ItemList / FAQPage |
+| 301 重定向 | `/_redirects` | 旧标签、改名文章、旧路由统一 301（`src/lib/seo/redirects.ts`） |
+| 响应头 | `/_headers` | 搜索页 / PDF / Markdown 原文 noindex + canonical Link 头、缓存与安全头 |
+| AI 索引 | `/llms.txt` | 遵循 llmstxt.org 约定：实体消歧、引用规则 + 按分类的文章清单 |
+| AI 全文快照 | `/llms-full.txt` | 内联**全部文章正文**与逐篇元数据、推荐引用格式 |
+| 文章 Markdown 原文 | `/posts/<slug>/index.html.md` | 每篇文章的纯 Markdown 版本（YAML 元数据 + 正文），路径遵循 llms.txt 约定 |
+| 订阅源 | `/rss.xml`、`/atom.xml`、`/feed.json` | 均含全文 |
+| 关于 | `/about/` | 站点说明、编辑原则与 FAQ |
+| 作者页 | `/authors/`、`/authors/<署名>/` | 每位作者 / 团队的全部文章，署名自动建页 |
+| 爬虫规则 | `/robots.txt`、`/ai.txt` | 显式欢迎搜索引擎、AI 与 Web 归档；Content-Signal 声明 |
+| 身份文件 | `/humans.txt`、`/.well-known/security.txt` | 团队与安全联系方式 |
+
+完整的 URL 规范、结构化数据说明、上线后操作（Cloudflare / Search Console / Bing / 百度）与问题排查见 **[`docs/SEO.md`](docs/SEO.md)**。改动 SEO 相关代码后请运行 `pnpm test` 与 `pnpm build && pnpm check:seo`。
 
 > 注意：`llms.txt` / `llms-full.txt` / `search-index.json` 现由 `src/pages/*.ts` 端点在构建时生成，**不再提交到 `public/`**，因此不会随内容更新而出现陈旧副本。
 
@@ -524,16 +557,12 @@ A: 分类是文章的大类（如"开发进度"），标签是更细粒度的关
 
 这些步骤需要账号或在部署后执行，无法纯靠代码完成：
 
-1. **Google Search Console**（<https://search.google.com/search-console>）：添加资源 `blog.transcircle.org` → 提交站点地图 `sitemap-index.xml`。如需站点验证，可在文章 frontmatter 之外，于 `Layout.astro` 的 `<head>` 加一行 `<meta name="google-site-verification" content="...">`。
+1. **Google Search Console**（<https://search.google.com/search-console>）：添加资源 `blog.transcircle.org` → 提交站点地图 `sitemap-index.xml`。站点验证用 DNS，或在 Cloudflare Pages 环境变量 `PUBLIC_GOOGLE_SITE_VERIFICATION` 填入验证码（其他平台的变量见 `docs/SEO.md`）。
 2. **Bing Webmaster Tools**（<https://www.bing.com/webmasters>）：添加站点并提交 sitemap（可直接从 GSC 导入）。Bing 验证后即自动支持 IndexNow。
 3. **IndexNow 主动推送**（让 Bing / Yandex / Seznam 等即时收录）。IndexNow 只是「通知 URL 变更」的一次 HTTP 请求，提交的是绝对 URL，**在哪里运行都可以，不需要跑在生产服务器上**。本项目部署在 Cloudflare Pages，按偏好三选一：
 
    - **方式 A · Cloudflare Crawler Hints（推荐，零维护）**：登录 Cloudflare → 选择 `transcircle.org` 域名 → **Caching / 缓存 → Configuration → Crawler Hints** 开启即可。之后 Cloudflare 会在内容变化时自动通过 IndexNow 推送，**无需本脚本**。要求该域名通过 Cloudflare 代理（Pages 自定义域名默认满足）。
-   - **方式 B · 嵌入 Pages 构建命令（全自动、可控）**：在 Cloudflare Pages 项目设置里，把「构建命令」改为：
-     ```
-     pnpm run build && pnpm run indexnow
-     ```
-     脚本已做适配：**仅在生产分支（默认 `main`）提交**，且在 Cloudflare 构建环境中即使提交失败也**不会让部署失败**。生产分支名不同可设环境变量 `INDEXNOW_PRODUCTION_BRANCH`。
+   - **方式 B · 构建命令（已内置，全自动）**：`pnpm run build` 已在最后执行 `indexnow.mjs --ci` 与 `baidu-push.mjs --ci`：**仅在 Cloudflare Pages 的生产分支（默认 `main`）提交**，只提交最近 30 天有变化的 URL，失败**不会让部署失败**；本地构建不会提交。Pages 的构建命令保持 `pnpm run build` 即可。生产分支名不同可设环境变量 `INDEXNOW_PRODUCTION_BRANCH`。
    - **方式 C · 本地手动（最简单）**：每次发文部署后，在本地跑一次：
      ```bash
      pnpm run build && pnpm run indexnow

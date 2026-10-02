@@ -1,0 +1,160 @@
+---
+// 作者总览（/authors/）：全部署名及其文章数，是各作者页的入口与面包屑上一级。
+import { byNewest } from '@utils/posts';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Layout from '@layouts/Layout.astro';
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
+import PageHeader from '@components/ui/PageHeader.astro';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
+import { collectAuthors } from '@utils/authors';
+import { itemListId, itemListNode } from '@/lib/seo/schema';
+import { AUTHORS_PATH, HOME_PATH, absoluteUrl, authorPath } from '@/lib/seo/url';
+
+type Post = CollectionEntry<'posts'>;
+
+const posts = (await getCollection('posts'))
+  .filter((post: Post) => !post.data.draft)
+  .sort(byNewest);
+const authors = collectAuthors(posts);
+const people = authors.filter((a) => a.author.type === 'person');
+const teams = authors.filter((a) => a.author.type === 'team');
+
+const pageUrl = absoluteUrl(AUTHORS_PATH);
+const description = `跨环博客（TransCircle Blog）的全部 ${authors.length} 位作者与团队：${authors
+  .slice(0, 6)
+  .map((a) => a.author.name)
+  .join('、')}等，按署名浏览他们撰写与编辑的文章。`;
+const breadcrumbs = [
+  { name: '首页', item: absoluteUrl('/') },
+  { name: '作者', item: pageUrl },
+];
+const listSchema = itemListNode(
+  pageUrl,
+  '全部作者',
+  authors.map((a) => ({ url: absoluteUrl(authorPath(a.author.id)), name: a.author.name }))
+);
+
+const groups = [
+  { id: 'people', title: '作者', list: people },
+  { id: 'teams', title: '项目团队', list: teams },
+].filter((g) => g.list.length > 0);
+---
+
+<Layout
+  title="全部作者"
+  description={description}
+  pageType="CollectionPage"
+  breadcrumbs={breadcrumbs}
+  mainEntityId={itemListId(pageUrl)}
+  additionalSchemas={[listSchema]}
+>
+  <Header />
+
+  <main id="main-content" tabindex="-1" class="container is-wide">
+    <div class="page">
+      <div class="authors-head">
+        <Breadcrumbs items={[{ name: '首页', href: HOME_PATH }, { name: '作者' }]} />
+        <PageHeader eyebrow="Authors" title="作者" description={`共 ${authors.length} 位作者与团队`} />
+      </div>
+
+      {groups.map((group) => (
+        <section aria-labelledby={`group-${group.id}`}>
+          <h2 id={`group-${group.id}`} class="group-title">{group.title}</h2>
+          <ul class="author-list">
+            {group.list.map((a) => (
+              <li>
+                <a class="author-item" href={authorPath(a.author.id)} data-reveal>
+                  <span class="author-name">{a.author.name}</span>
+                  {a.author.bio && <span class="author-bio">{a.author.bio}</span>}
+                  <span class="author-count">
+                    {[
+                      a.authored.length > 0 ? `撰写 ${a.authored.length}` : '',
+                      a.edited.length > 0 ? `编辑 ${a.edited.length}` : '',
+                      a.reviewed.length > 0 ? `审阅 ${a.reviewed.length}` : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .authors-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    min-width: 0;
+  }
+
+  .group-title {
+    margin: 0 0 var(--s-4);
+    font-size: var(--fs-h3);
+    line-height: var(--lh-heading);
+    color: var(--ink);
+  }
+
+  .author-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: var(--s-3);
+    min-width: 0;
+  }
+
+  /* 作者条目：--r-md 描边块，hover 只变描边与阴影，不做位移（位移留给卡片与 CTA） */
+  .author-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+    min-width: 0;
+    padding: var(--s-4);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background-color: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+    transition:
+      border-color var(--dur-1) var(--ease-standard),
+      box-shadow var(--dur-1) var(--ease-standard);
+  }
+
+  .author-item:hover {
+    border-color: var(--pink-300);
+    box-shadow: var(--shadow-1);
+  }
+
+  .author-name {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+    overflow-wrap: anywhere;
+  }
+
+  .author-item:hover .author-name {
+    color: var(--pink-700);
+  }
+
+  .author-bio {
+    color: var(--text-secondary);
+    font-size: var(--fs-sm);
+    overflow-wrap: anywhere;
+  }
+
+  /* 数量是数字信息：--font-tech（§5.5） */
+  .author-count {
+    font-family: var(--font-tech);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+  }
+</style>

@@ -1,0 +1,40 @@
+# 线上 SEO 冒烟检查（scripts/smoke-live.mjs）：确认 Cloudflare 实际应用了重定向、响应头（noindex / canonical 占位符）、
+# 可收录性与 robots，而不只是构建产物看起来正确。失败时 GitHub 会按仓库通知设置提醒维护者。
+#
+# 触发：
+#  - 每天定时检查正式域名（发现 Cloudflare 边缘配置被改动、托管 robots.txt 被开启等「构建之外」的回归）；
+#  - 部署完成后（Cloudflare Pages 的 GitHub 集成会上报部署状态）检查该次部署的地址；
+#  - 手动运行（Actions → SEO smoke → Run workflow），可指定要检查的地址。
+name: SEO smoke
+
+on:
+  schedule:
+    - cron: '17 2 * * *'
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: '要检查的地址（留空为正式域名）'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    # 部署事件只在成功时检查；定时与手动触发总是运行
+    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run smoke checks
+        env:
+          # 部署事件：检查该次部署的地址（预览部署会自动切换到「整站 noindex」的断言）
+          DEPLOY_URL: ${{ github.event.deployment_status.environment_url }}
+          INPUT_URL: ${{ github.event.inputs.base_url }}
+        run: node scripts/smoke-live.mjs ${INPUT_URL:-${DEPLOY_URL:-https://blog.transcircle.org}}

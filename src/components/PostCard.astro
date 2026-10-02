@@ -1,12 +1,15 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import type { Person } from '@utils/posts';
+import { authorPath, postPath, tagPath } from '@/lib/seo/url';
 
 export interface Props {
   post: CollectionEntry<'posts'>;
+  /** 卡片标题的层级：列表页里文章卡片在 h2 小节之下用 h3，独立区块（相关文章）可改 h4 等。 */
+  headingLevel?: 'h2' | 'h3' | 'h4';
 }
 
-const { post } = Astro.props;
+const { post, headingLevel: Heading = 'h3' } = Astro.props;
 const { title, description, pubDate, author, category, tags } = post.data;
 
 const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
@@ -26,9 +29,9 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
     <time class="post-card-date" datetime={pubDate.toISOString()}>{formattedDate}</time>
   </div>
 
-  <h3 class="post-card-title">
-    <a href={`/posts/${post.slug}`}>{title}</a>
-  </h3>
+  <Heading class="post-card-title">
+    <a href={postPath(post.slug)} rel="bookmark">{title}</a>
+  </Heading>
 
   {description && <p class="post-card-desc">{description}</p>}
 
@@ -37,19 +40,8 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
       {author.map((person: Person, index: number) => (
         <Fragment>
           {index > 0 && <span aria-hidden="true">、</span>}
-          {/* 没写 link 的署名保持纯文本，不做跳转 */}
-          {person.link ? (
-            <a
-              href={person.link}
-              target="_blank"
-              rel="nofollow noopener noreferrer"
-              data-confirm-link
-            >
-              {person.name}
-            </a>
-          ) : (
-            <span>{person.name}</span>
-          )}
+          {/* 署名链到站内作者页（外部主页在作者页上） */}
+          <a href={authorPath(person.id)} rel="author">{person.name}</a>
         </Fragment>
       ))}
     </span>
@@ -57,7 +49,7 @@ const formattedDate = new Date(pubDate).toLocaleDateString('zh-CN', {
     {tags.length > 0 && (
       <div class="post-card-tags">
         {tags.map((tag: string) => (
-          <a href={`/tags/${tag}`} class="tag-chip">#{tag}</a>
+          <a href={tagPath(tag)} class="tag-chip" rel="tag">#{tag}</a>
         ))}
       </div>
     )}

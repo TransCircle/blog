@@ -3,8 +3,8 @@ title: '医院性激素血检实操指南'
 description: '从为什么要查、怎么开单、何时抽血，到如何解读各项核心指标并排查异常，帮助你用数据驱动、安全推进用药'
 pubDate: 2026-06-12
 updatedDate: 2026-07-15
-author: { name: '翅膀', link: 'https://x.com/axzameyzed' }
-editor: 'TransCircle 文案组'
+author: axzameyzed
+editor: transcircle-copywriting
 category: '跨性别医疗'
 tags: ['GAHT', '血检']
 ---

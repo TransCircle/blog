@@ -1,47 +1,44 @@
 import { defineCollection, z } from 'astro:content';
-
-// 仅允许 http(s) 外链；拒绝 javascript: / data: 等可执行脚本的协议，
-// 防止内容可控的 frontmatter 在点击署名时触发脚本执行（XSS）。
-function isSafeHttpUrl(value: string): boolean {
-  try {
-    const { protocol } = new URL(value);
-    return protocol === 'http:' || protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
-
-// 单个作者 / 编辑：name 必填；link 可省略——省略就是「这个人没有链接」，
-// 渲染成纯文本，而不是替他指向主站
-const personEntrySchema = z.object({
-  name: z.string(),
-  link: z
-    .string()
-    .refine(isSafeHttpUrl, { message: 'link 必须是 http(s) 协议的合法 URL' })
-    .optional(),
-});
-
-// 单个条目可写成纯字符串（旧格式）或对象
-const personItemSchema = z.union([z.string(), personEntrySchema]);
+import { DEFAULT_AUTHOR_ID, authorIds, getAuthor, resolvePerson, type Person } from '../lib/authors';
+import { pathSegmentProblem, toDate } from '../lib/seo/frontmatter';
 
 /**
- * 构造作者 / 编辑字段的校验器，兼容三种写法并统一规整为 { name, link? }[]：
- *  - 纯字符串：author: '羽莉'（不带链接，渲染为纯文本）
- *  - 单个对象：author: { name: '羽莉', link: 'https://...' }
- *  - 数组（对象与字符串可混用）：editor: [{ name: '翅膀', link: '...' }, 'Oakley Huang']
+ * 作者 / 编辑只填作者 id（登记在 src/data/authors.json）。写法：
+ *  - 单个：author: axzameyzed
+ *  - 多个：editor: [axzameyzed, yangyanh5]
  *
- * link 不写就是没有链接：署名保持纯文本，不再默认指向主站——那会把「这个人有个人主页」
- * 和「这个人只是没填链接」混为一谈。
+ * 显示名、简介、外部主页一律从登记表取，保证同一个人在全站信息一致。
+ * 写了未登记的 id 会在构建时报错并列出所有可用的 id。
  */
 function people(fallback: string | never[]) {
   return z
-    .union([personItemSchema, z.array(personItemSchema)])
+    .union([z.string(), z.array(z.string())])
     .default(fallback)
+    .superRefine((value, ctx) => {
+      const ids = Array.isArray(value) ? value : [value];
+      for (const id of ids) {
+        if (!getAuthor(id.trim())) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `未登记的作者 id「${id}」。请先在 src/data/authors.json 登记，现有 id：${authorIds().join('、')}`,
+          });
+        }
+      }
+    })
     // 显式标注返回类型，确保 transform 后字段被推断为具体类型而非 any
-    .transform((value): { name: string; link?: string }[] => {
-      const list = Array.isArray(value) ? value : [value];
-      return list.map((item) => (typeof item === 'string' ? { name: item } : item));
+    .transform((value): Person[] => {
+      const ids = Array.isArray(value) ? value : [value];
+      return [...new Set(ids.map((id) => id.trim()))].map(resolvePerson);
     });
+}
+
+/**
+ * 日期字段：与构建配置层（sitemap、301、推送）用同一个解析函数（src/lib/seo/frontmatter.ts 的 toDate）。
+ * 仅日期值一律按 UTC 零点，并容忍未补零的写法（2026-06-7）——直接用 z.coerce.date() 时，
+ * 未补零的字符串会按构建机本地时区解析，非 UTC 时区下页面会比 sitemap 早一天。
+ */
+function dateField() {
+  return z.preprocess((value) => toDate(value) ?? value, z.date());
 }
 
 const postsCollection = defineCollection({
@@ -49,14 +46,32 @@ const postsCollection = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
-    pubDate: z.coerce.date(),
-    updatedDate: z.coerce.date().optional(),
-    author: people('TransCircle 项目组'),
+    pubDate: dateField(),
+    updatedDate: dateField().optional(),
+    author: people(DEFAULT_AUTHOR_ID),
     // 编辑：frontmatter 里没写就是没有编辑——不再自动挂上团队署名，
     // 空数组会让所有消费方（文章页、OG 卡片、结构化数据、导出）都不渲染「编辑」
     editor: people([]),
+    // 审阅者（作者 id）：对内容做过专业 / 事实审阅的人（任何文章都可以写）。不写就是没有审阅，
+    // 页面与结构化数据都不会声称「已审阅」
+    reviewedBy: people([]),
+    // 最近一次审阅 / 证据复核的日期（与正文修改日期无关：改错别字不等于重新核对了文献）
+    lastReviewed: dateField().optional(),
     category: z.string().default('general'),
-    tags: z.array(z.string()).default([]),
+    // 与构建配置层（frontmatter.ts 的 toStringList）同一规则：裁剪首尾空白，空标签直接报错
+    // 标签是 URL 的一段（/tags/<标签>/）：与自定义 slug 共用 pathSegmentProblem 的规则（见其注释）
+    tags: z
+      .array(
+        z
+          .string()
+          .trim()
+          .min(1)
+          .superRefine((tag, ctx) => {
+            const problem = pathSegmentProblem(tag);
+            if (problem) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `标签「${tag}」${problem}` });
+          })
+      )
+      .default([]),
     cover: z.string().optional(),
     draft: z.boolean().default(false),
     contentLicense: z.enum([

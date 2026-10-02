@@ -2,7 +2,7 @@
 title: '「跨环」项目汉语文章标点符号规范'
 description: '介绍「跨环」项目汉语文章标点符号规范'
 pubDate: 2026-05-21
-author: 'TransCircle 文案组'
+author: transcircle-copywriting
 category: '文章'
 tags: ['文章规范', '标点符号']
 ---

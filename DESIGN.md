@@ -113,6 +113,19 @@
 
 设计系统 §5.6 的 chip 是只读徽章，没有「可点 chip」这一档。博客的标签本质是导航入口，取 chip 的默认态配色（`--pink-100` / `--pink-700` / `--r-xs`），hover 加深一档到 `--pink-200`，并用伪元素把触屏命中区撑到 44px（直接给 `min-height: 44px` 会把 26px 的 chip 拉成高盒子）。
 
+### 3.7 为站内链接与收录新增的区块（SEO / GEO，见 `docs/SEO.md`）
+
+设计系统没有这几种区块，按现有原语组合，不引入新令牌：
+
+- **作者页 `/authors/`**：总览为 `--r-md` 描边块网格（与上一篇 / 下一篇同配方）；单个作者页复用 `PageHeader` + `PostCard` 网格。文章署名链到站内作者页（蓝色链接档），外部主页只在作者页出现。
+- **面包屑 `ui/Breadcrumbs.astro`**：文章、标签、作者、关于及两个总览页统一使用；`--fs-sm` 灰字，链接走信息蓝档，当前页不做链接。与页面 JSON-LD 的 BreadcrumbList 逐项对应（`check:seo` 校验）。
+- **长文目录 `TableOfContents.astro`**：`--r-md` 描边 surface 块 + 原生 `<details>`，两级有序列表。
+- **首页不分页**：直接列出全部已发布文章，不设「查看全部」按钮，也没有独立的归档页（与首页重复）。
+- **文章页「上一篇 / 下一篇」**：两栏 `--r-md` 描边块，hover 只变描边色与 `--shadow-1`，不做位移（位移留给卡片与 CTA）。
+- **文章页「相关文章」**：复用 `PostCard`，阅读轨内单列。
+- **文章页「引用本文」**：`--r-sm` 描边的 surface 文本框，`user-select: all` 方便整段复制；属于许可协议区的一部分，不另起 section-divider。
+- **关于页 FAQ**：原生 `<details>`，分隔线列表而非卡片；展开标记用 `+` 旋转 45°（`--dur-2`），减少动效时随全局规则取消。
+
 ---
 
 ## 4. 主题与无障碍
@@ -159,7 +172,7 @@ satori（OG 卡片）与 puppeteer（PDF）都不解析 CSS 变量，配色只�
 | §5.5 卡片（`--surface` + `--line` + `--r-md` + `--shadow-2`，hover −3px / `--pink-300` / `--shadow-3`，暗色 glow） | `global.css` `.post-card*` + `components/PostCard.astro` |
 | §5.6 Chip（`--r-xs`、`--pink-100`/`--pink-700`） | `global.css` `.chip` / `.tag-chip`、`pages/tags/index.astro` chip 墙 |
 | §5.7 弹窗（遮罩 + blur(4px)、`--r-lg`、`--shadow-3`、scale(.96→1)、焦点陷阱） | `components/LinkConfirmDialog.astro`、`components/FootnotePopover.astro`（玻璃浮层） |
-| §5.8 分页按钮组（`--r-sm`） | `components/Pagination.astro` |
+| §5.8 分页按钮组（`--r-sm`） | 不适用：首页列出全部文章，已移除分页 |
 | §5.10 阅读进度条（顶栏下方 2px `--pink-600`，scaleX） | `components/ReadingProgress.astro` |
 | §5.11 主题切换圆形过渡 | `components/ThemeToggle.astro`（图标级，见 §3.5） |
 | §5.12 空态（48px 线性图标 + 标题 + 提示 + CTA） | `global.css` `.empty-state` + 首页 / 标签页 / 搜索页 |
@@ -178,4 +191,4 @@ pnpm build:site   # astro build（不跑 PDF）
 pnpm build        # astro build + scripts/generate-pdfs.mjs（改动影响正文样式时跑）
 ```
 
-改样式后至少确认：首页（卡片网格 / hero / reveal）、文章页（进度条 / prose / 脚注悬浮卡）、标签 chip 墙、搜索结果卡、打印视图 `dist/print/<slug>/index.html`、以及 `/llms.txt`、`/rss.xml`、`/search-index.json` 等端点仍然正常产出。
+改样式后至少确认：首页（卡片网格 / hero / reveal）、文章页（进度条 / prose / 脚注悬浮卡）、标签 chip 墙、搜索结果卡、打印视图 `dist/print/<slug>/index.html`、以及 `/llms.txt`、`/rss.xml`、`/atom.xml`、`/feed.json`、`/search-index.json` 等端点仍然正常产出；并跑一次 `pnpm build && pnpm check:seo`（内链尾斜杠、canonical、h1、JSON-LD、sitemap 一致性）。

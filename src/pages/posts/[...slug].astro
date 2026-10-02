@@ -8,10 +8,38 @@ import LicenseBadge from '@components/LicenseBadge.astro';
 import PersonLinks from '@components/PersonLinks.astro';
 import FootnotePopover from '@components/FootnotePopover.astro';
 import PageHeader from '@components/ui/PageHeader.astro';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
 import Pill from '@components/ui/Pill.astro';
 import SectionLabel from '@components/ui/SectionLabel.astro';
 import Button from '@components/ui/Button.astro';
-import { formatDate, formatPeople, countWords } from '@utils/posts';
+import { formatDate, formatPeople, countWords, type Person, byNewest } from '@utils/posts';
+import PostCard from '@components/PostCard.astro';
+import TableOfContents from '@components/TableOfContents.astro';
+import { blogNode, blogPostingNode, articleId, personId, personNode } from '@/lib/seo/schema';
+import { xHandle } from '@/lib/authors';
+import {
+  extractCitations,
+  resolveImageUrls,
+  extractImages,
+  isoDate,
+  isoDuration,
+  metaDescription,
+  readingMinutes,
+  selectRelated,
+} from '@/lib/seo/content';
+import { isLaterDay, postModified } from '@/lib/seo/git-dates';
+import { CONTENT_LICENSE_URLS, OG_IMAGE_VERSION, SITE_NAME, SITE_NAME_EN } from '@/lib/seo/site';
+import {
+  HOME_PATH,
+  absoluteUrl,
+  authorPath,
+  postMarkdownPath,
+  postOgImagePath,
+  postPath,
+  postPdfPath,
+  postPrintPath,
+  tagPath,
+} from '@/lib/seo/url';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
@@ -30,14 +58,15 @@ export interface Props {
 }
 
 const { post } = Astro.props;
-const { Content } = await post.render();
+const { Content, headings } = await post.render();
 const {
   title,
   description,
   pubDate,
-  updatedDate,
   author,
   editor,
+  reviewedBy,
+  lastReviewed,
   category,
   tags,
   cover,
@@ -46,51 +75,124 @@ const {
 } = post.data;
 
 const totalWordCount = countWords(post.body || '');
+const minutes = readingMinutes(totalWordCount);
 
 const formattedDate = formatDate(pubDate);
-const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
+// 修改日期全自动（src/lib/seo/git-dates.ts）：frontmatter 的 updatedDate 与 git 正文修改时间取较晚者
+const modifiedDate = postModified(post);
+const isUpdated = isLaterDay(modifiedDate, pubDate);
+const formattedUpdatedDate = isUpdated ? formatDate(modifiedDate) : null;
 
 // author/editor 已被 schema 规整为 { name, link }[]；meta 标签只需纯文本
 const authorText = formatPeople(author);
+// article:author 指向站内作者页（与 JSON-LD 中作者实体的 url 一致）
+const authorUrls: string[] = author.map((person: Person) => absoluteUrl(authorPath(person.id)));
+// twitter:creator：第一位登记了 X 账号的作者；都没有就不输出（站点账号只放在 twitter:site）
+const twitterCreator = author.map((person: Person) => xHandle(person)).find(Boolean);
 
-// 内容协议枚举 → 规范 URL（用于 BlogPosting 的 license 字段）；Proprietary 不输出
-const LICENSE_URLS: Record<string, string> = {
-  'CC-BY-SA-4.0': 'https://creativecommons.org/licenses/by-sa/4.0/',
-  'CC-BY-4.0': 'https://creativecommons.org/licenses/by/4.0/',
-  'CC0-1.0': 'https://creativecommons.org/publicdomain/zero/1.0/',
-};
-const licenseUrl = LICENSE_URLS[contentLicense];
+// 内容协议枚举 → 规范 URL（BlogPosting.license 与 <link rel="license">）；Proprietary 不输出
+const licenseUrl = CONTENT_LICENSE_URLS[contentLicense];
 
-const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
+const postUrl = absoluteUrl(postPath(post.slug));
+const markdownUrl = absoluteUrl(postMarkdownPath(post.slug));
+const pdfUrl = absoluteUrl(postPdfPath(post.slug));
+
+// meta description：frontmatter 过短时补上正文首段（只截取原文，不另写）
+const seoDescription = metaDescription(description, title, post.body || '');
+
 const breadcrumbs = [
-  { name: '首页', item: siteURL },
-  { name: title, item: new URL(`/posts/${post.slug}/`, Astro.site).toString() },
+  { name: '首页', item: absoluteUrl('/') },
+  { name: title, item: postUrl },
 ];
 
 // 文章 OG 图：构建期按文章元数据自动生成的卡片（见 src/pages/og/[...slug].png.ts）。
 // frontmatter 的 cover 仅用于页内题图，不再作为社交分享图。
-const ogImage = `/og/${post.slug}.png`;
+const ogImage = postOgImagePath(post.slug);
 
 // 「下载 PDF」：成品 PDF 由构建脚本生成（dist/print/<slug>.pdf）。开发服务器（astro dev）
 // 不生成 PDF，此时改为指向可实时渲染的打印视图页，便于本地预览排版。
-const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.slug}.pdf`;
+const pdfHref = import.meta.env.DEV ? postPrintPath(post.slug) : postPdfPath(post.slug);
+
+// BlogPosting 结构化数据：作者 / 编辑为独立 Person 节点，参考文献写进 citation，
+// Markdown 原文与 PDF 作为同一作品的其他编码格式（encoding）
+// 审阅（E-E-A-T）：适用于所有文章，只有 frontmatter 写了 reviewedBy 才声称「已审阅」
+const reviewerIds = reviewedBy.map((person: Person) => personId(person.id));
+// 章节目录：长文（≥ 4 个二级标题且 ≥ 3000 字）自动生成；正文开头已有手写目录 / 快速导航（≥ 3 个页内锚点链接）的不重复
+const h2Count = headings.filter((h: { depth: number; slug: string }) => h.depth === 2 && h.slug !== 'footnote-label').length;
+const hasManualToc = ((post.body || '').slice(0, 3000).match(/\]\(#/g) ?? []).length >= 3;
+const showToc = h2Count >= 4 && totalWordCount >= 3000 && !hasManualToc;
+
+
+const { article, people } = blogPostingNode({
+  url: postUrl,
+  title,
+  description: seoDescription,
+  datePublished: pubDate,
+  dateModified: modifiedDate,
+  authors: author,
+  editors: editor,
+  tags,
+  tagUrls: tags.map((tag: string) => absoluteUrl(tagPath(tag))),
+  category,
+  wordCount: totalWordCount,
+  timeRequired: isoDuration(minutes),
+  imageUrl: `${absoluteUrl(ogImage)}?v=${OG_IMAGE_VERSION}`,
+  licenseUrl,
+  markdownUrl,
+  pdfUrl,
+  citations: extractCitations(post.body || ''),
+  // 按浏览器的方式以本文 URL 为基准解析：相对路径、协议相对地址都与页面上实际加载的图片一致
+  bodyImages: resolveImageUrls(extractImages(post.body || ''), postUrl),
+});
+
+// 全部已发布文章（按发布时间倒序）：用于上一篇 / 下一篇与相关文章
+const allPosts = (await getCollection('posts'))
+  .filter((p: CollectionEntry<'posts'>) => !p.data.draft)
+  .sort(byNewest);
+const index = allPosts.findIndex((p: CollectionEntry<'posts'>) => p.slug === post.slug);
+const newerPost = index > 0 ? allPosts[index - 1] : undefined;
+const olderPost = index >= 0 && index < allPosts.length - 1 ? allPosts[index + 1] : undefined;
+
+// 相关文章：共享标签 / 同分类打分（src/lib/seo/content.ts），文章间互链是新文章被发现与收录的关键
+const toRelatable = (p: CollectionEntry<'posts'>) => ({
+  slug: p.slug,
+  tags: p.data.tags,
+  category: p.data.category,
+  pubDate: p.data.pubDate,
+  entry: p,
+});
+const relatedPosts = selectRelated(toRelatable(post), allPosts.map(toRelatable), 3).map((r) => r.entry);
+
+// 推荐引用格式（GB/T 7714 风格的网络文献著录）：AI 与读者都能直接复制
+const citationText = `${formatPeople(author)}. ${title}[EB/OL]. ${SITE_NAME}（${SITE_NAME_EN}）, ${isoDate(pubDate)}${
+  isUpdated ? `（更新于 ${isoDate(modifiedDate)}）` : ''
+}. ${postUrl}`;
 ---
 
 <Layout
   title={title}
-  description={description || title}
+  description={seoDescription}
   image={ogImage}
+  imageAlt={`${title} — ${authorText}，${SITE_NAME}`}
   type="article"
+  pageType="ItemPage"
   author={authorText}
-  authors={author}
-  editors={editor}
+  authorUrls={authorUrls}
+  twitterCreator={twitterCreator}
   pubDate={pubDate}
-  updatedDate={updatedDate}
+  updatedDate={modifiedDate}
   tags={tags}
   category={category}
-  wordCount={totalWordCount}
   breadcrumbs={breadcrumbs}
-  license={licenseUrl}
+  license={licenseUrl ?? null}
+  mainEntityId={articleId(postUrl)}
+  additionalSchemas={[blogNode(), article, ...people, ...reviewedBy.map(personNode)]}
+  reviewedBy={reviewerIds}
+  lastReviewed={lastReviewed}
+  alternates={[
+    { type: 'text/markdown', href: postMarkdownPath(post.slug), title: `${title}（Markdown 原文）` },
+    { type: 'application/pdf', href: postPdfPath(post.slug), title: `${title}（PDF）` },
+  ]}
 >
   <Header />
 
@@ -100,6 +202,8 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
   <main id="main-content" tabindex="-1" class="container">
     <article class="post-article">
       <div class="post-header" data-reveal>
+        {/* 可见面包屑：与 JSON-LD 的 BreadcrumbList 逐项对应（首页 › 本文） */}
+        <Breadcrumbs items={[{ name: '首页', href: HOME_PATH }, { name: title }]} />
         <div class="meta-row">
           <Pill tone="accent">{category}</Pill>
           <time datetime={pubDate.toISOString()}>{formattedDate}</time>
@@ -109,18 +213,26 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
                 <span class="meta-sep" aria-hidden="true">
                   ·
                 </span>
-                <span>更新于 {formattedUpdatedDate}</span>
+                <span>更新于 <time datetime={modifiedDate.toISOString()}>{formattedUpdatedDate}</time></span>
               </>
             )
           }
           <span class="meta-sep" aria-hidden="true">·</span>
           <span>约 {totalWordCount} 字</span>
+          <span class="meta-sep" aria-hidden="true">·</span>
+          <span>阅读约 {minutes} 分钟</span>
         </div>
 
         <PageHeader title={title} description={description}>
           <div class="post-byline">
             <PersonLinks label="作者：" people={author} />
             <PersonLinks label="编辑：" people={editor} />
+            <PersonLinks label="审阅：" people={reviewedBy} />
+            {lastReviewed && (
+              <p class="post-reviewed">
+                最近审阅于 <time datetime={lastReviewed.toISOString()}>{formatDate(lastReviewed)}</time>
+              </p>
+            )}
           </div>
         </PageHeader>
       </div>
@@ -134,6 +246,8 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
       }
 
       {/* 正文本身不做 reveal：阅读中的段落不该等动画，只有前后的区块入场 */}
+      {showToc && <TableOfContents headings={headings} />}
+
       <div class="article-content">
         <Content />
       </div>
@@ -167,7 +281,7 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
               <span class="tags-label">标签：</span>
               <div class="tags-list">
                 {tags.map((tag: string) => (
-                  <a href={`/tags/${tag}`} class="tag-chip">
+                  <a href={tagPath(tag)} class="tag-chip" rel="tag">
                     #{tag}
                   </a>
                 ))}
@@ -193,12 +307,55 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
               </div>
             )}
           </div>
+
+          {/* 推荐引用格式：转载、论文与 AI 回答引用本文时直接复制，保证署名与原始链接不丢 */}
+          <div class="post-cite">
+            <SectionLabel as="p">引用本文</SectionLabel>
+            <p class="cite-text">{citationText}</p>
+            <p class="cite-alt">
+              也可以获取本文的 <a href={postMarkdownPath(post.slug)} type="text/markdown">Markdown 原文</a>。
+            </p>
+          </div>
         </div>
       </footer>
     </article>
 
+    {
+      (olderPost || newerPost) && (
+        <nav class="post-sequence section-divider" aria-label="上一篇与下一篇">
+          {olderPost && (
+            <a class="sequence-link is-prev" href={postPath(olderPost.slug)} rel="prev">
+              <span class="sequence-label">上一篇</span>
+              <span class="sequence-title">{olderPost.data.title}</span>
+            </a>
+          )}
+          {newerPost && (
+            <a class="sequence-link is-next" href={postPath(newerPost.slug)} rel="next">
+              <span class="sequence-label">下一篇</span>
+              <span class="sequence-title">{newerPost.data.title}</span>
+            </a>
+          )}
+        </nav>
+      )
+    }
+
+    {
+      relatedPosts.length > 0 && (
+        <section class="post-related section-divider" aria-labelledby="related-heading">
+          <SectionLabel as="h2" class="related-heading">
+            <span id="related-heading">相关文章</span>
+          </SectionLabel>
+          <div class="related-grid">
+            {relatedPosts.map((related: CollectionEntry<'posts'>) => (
+              <PostCard post={related} />
+            ))}
+          </div>
+        </section>
+      )
+    }
+
     <nav class="post-nav section-divider" aria-label="文章导航">
-      <Button variant="ghost" href="/">
+      <Button variant="ghost" href={HOME_PATH}>
         <svg
           width="16"
           height="16"
@@ -214,7 +371,7 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
-        返回文章列表
+        全部文章
       </Button>
     </nav>
   </main>
@@ -371,5 +528,117 @@ const pdfHref = import.meta.env.DEV ? `/print/${post.slug}/` : `/print/${post.sl
   .license-type {
     font-size: var(--fs-sm);
     color: var(--text-secondary);
+  }
+
+  .post-reviewed {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .post-cite {
+    margin-top: var(--s-5);
+    min-width: 0;
+  }
+
+  .cite-text {
+    margin: 0;
+    padding: var(--s-3) var(--s-4);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background-color: var(--surface);
+    color: var(--text-secondary);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-caption);
+    overflow-wrap: anywhere;
+    user-select: all;
+  }
+
+  .cite-alt {
+    margin: var(--s-2) 0 0;
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .cite-alt a {
+    color: var(--blue-600);
+    text-underline-offset: 3px;
+  }
+
+  .cite-alt a:hover,
+  .cite-alt a:focus-visible {
+    color: var(--pink-700);
+  }
+
+  /* 上一篇 / 下一篇：两栏卡片式链接，窄屏上下堆叠 */
+  .post-sequence {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-4);
+    min-width: 0;
+  }
+
+  .sequence-link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+    min-width: 0;
+    padding: var(--s-4);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background-color: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+    transition:
+      border-color var(--dur-1) var(--ease-standard),
+      box-shadow var(--dur-1) var(--ease-standard);
+  }
+
+  .sequence-link:hover {
+    border-color: var(--pink-300);
+    box-shadow: var(--shadow-1);
+  }
+
+  .sequence-link.is-next {
+    grid-column: 2;
+    text-align: end;
+  }
+
+  .sequence-label {
+    font-family: var(--font-tech);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .sequence-title {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+    overflow-wrap: anywhere;
+    /* 半栏宽度放不下长标题时，让各行长度均衡，避免末尾只剩一两个字单独成行（右对齐时尤其显眼） */
+    text-wrap: balance;
+  }
+
+  .sequence-link:hover .sequence-title {
+    color: var(--pink-700);
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-4);
+    min-width: 0;
+  }
+
+  @media (max-width: 768px) {
+    .post-sequence {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sequence-link.is-next {
+      grid-column: auto;
+      text-align: start;
+    }
   }
 </style>

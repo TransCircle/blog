@@ -2,10 +2,8 @@
 title: '女性向跨性别者抗雄方案选择指南'
 description: '介绍色普龙、比卡鲁胺、螺内酯及针剂等常见抗雄方案的机制、副作用与适用人群，帮助您做出更合理的方案选择'
 pubDate: 2026-07-15
-author: { name: '幻兮纱', link: 'https://x.com/huantim7' }
-editor: 
-  - { name: '翅膀', link: 'https://x.com/axzameyzed' }
-  - { name: 'Oakley Huang', link: 'https://x.com/YangyanH5' }
+author: huantim7
+editor: [axzameyzed, yangyanh5]
 category: '跨性别医疗'
 tags: ['GAHT', '抗雄']
 ---

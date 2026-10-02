@@ -8,6 +8,7 @@ import type { APIRoute } from 'astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { renderOgImage, findUncovered } from '@/lib/og/render';
 import { countWords, type Person } from '@utils/posts';
+import { isLaterDay, postModified } from '@/lib/seo/git-dates';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
@@ -22,7 +23,10 @@ export async function getStaticPaths() {
 
 export const GET: APIRoute = async ({ props }) => {
   const { post } = props as { post: CollectionEntry<'posts'> };
-  const { title, description, category, tags, pubDate, updatedDate, author, editor } = post.data;
+  const { title, description, category, tags, pubDate, author, editor } = post.data;
+  // 「更新于」与文章页同口径（src/lib/seo/git-dates.ts）
+  const modified = postModified(post);
+  const updatedDate = isLaterDay(modified, pubDate) ? modified : undefined;
   const authors = author.map((p: Person) => p.name);
   const editors = editor.map((p: Person) => p.name);
 
@@ -36,7 +40,7 @@ export const GET: APIRoute = async ({ props }) => {
   if (missing.length > 0) {
     console.warn(
       `[og] ${post.slug}：字体子集缺少「${missing.join('')}」，将渲染为 □；` +
-        '请运行 `pnpm run og:fonts` 重新裁剪字体子集并提交。'
+        '`pnpm dev` / `pnpm build` 会自动补齐（也可手动 `pnpm run og:fonts`），请把生成的子集一并提交。'
     );
   }
 

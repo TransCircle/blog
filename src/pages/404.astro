@@ -4,6 +4,7 @@ import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
 import PageHeader from '@components/ui/PageHeader.astro';
 import Button from '@components/ui/Button.astro';
+import { HOME_PATH, SEARCH_PATH, TAGS_PATH } from '@/lib/seo/url';
 ---
 
 <Layout
@@ -24,9 +25,9 @@ import Button from '@components/ui/Button.astro';
         description="抱歉，您访问的页面不存在、已被移动或地址有误。"
       >
         <Fragment slot="actions">
-          <Button variant="primary" href="/">返回首页</Button>
-          <Button variant="secondary" href="/search">搜索文章</Button>
-          <Button variant="secondary" href="/tags">浏览标签</Button>
+          <Button variant="primary" href={HOME_PATH}>返回首页</Button>
+          <Button variant="secondary" href={SEARCH_PATH}>搜索文章</Button>
+          <Button variant="secondary" href={TAGS_PATH}>浏览标签</Button>
         </Fragment>
       </PageHeader>
     </section>

@@ -1,21 +1,28 @@
 {
+  "id": "/",
   "name": "跨环博客 TransCircle Blog",
   "short_name": "跨环博客",
   "description": "跨环（TransCircle Project）官方博客：记录项目进展、社群知识与跨性别议题，服务于中文 MtF 跨性别社群。",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "theme_color": "#ff85a2",
-  "background_color": "#fff9fb",
+  "orientation": "any",
+  "theme_color": "#fdf9fb",
+  "background_color": "#fdf9fb",
   "lang": "zh-CN",
   "dir": "ltr",
-  "categories": ["social", "education", "technology"],
+  "categories": ["education", "health", "social", "news"],
   "icons": [
     {
       "src": "/logo-mark.svg",
       "sizes": "any",
       "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
       "purpose": "any"
     },
     {
@@ -35,12 +42,18 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "标签",
+      "url": "/tags/",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
+      "name": "搜索",
+      "url": "/search/",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

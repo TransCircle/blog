@@ -1,0 +1,82 @@
+---
+// 可见面包屑：与页面 JSON-LD 的 BreadcrumbList 逐项对应（Google 要求结构化数据反映页面可见内容）。
+// 最后一项是当前页，不做链接，标 aria-current="page"。
+export interface Crumb {
+  name: string;
+  /** 站内链接；当前页不传。 */
+  href?: string;
+}
+
+export interface Props {
+  items: Crumb[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav class="breadcrumbs" aria-label="面包屑导航">
+  <ol class="breadcrumbs-list">
+    {
+      items.map((item, index) => (
+        <li class="breadcrumbs-item">
+          {index > 0 && (
+            <span class="breadcrumbs-sep" aria-hidden="true">
+              /
+            </span>
+          )}
+          {item.href && index < items.length - 1 ? (
+            <a href={item.href}>{item.name}</a>
+          ) : (
+            <span aria-current="page">{item.name}</span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .breadcrumbs {
+    min-width: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .breadcrumbs-list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    min-width: 0;
+  }
+
+  .breadcrumbs-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-width: 0;
+  }
+
+  /* 当前页标题长度不可控，必须允许断行 */
+  .breadcrumbs-item [aria-current='page'] {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .breadcrumbs a {
+    color: var(--blue-600);
+    text-decoration: none;
+    transition: color var(--dur-1) var(--ease-standard);
+  }
+
+  .breadcrumbs a:hover,
+  .breadcrumbs a:focus-visible {
+    color: var(--pink-700);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

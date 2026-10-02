@@ -4,7 +4,8 @@
 // 因此 satori 需要一份 CJK 字体。完整的 Noto Sans SC 每个字重约 8MB，直接随仓库
 // 携带会让体积膨胀；这里把它裁剪到「文章 frontmatter 出现过的字形 + 卡片固定文案
 // （标签、数字、标点）」这一最小集合。生成的 .woff 子集体积很小并随仓库提交，
-// 只有当新文章引入了尚未覆盖的字符时，才需要重新运行本脚本：
+// 新文章引入尚未覆盖的字符时需要重新裁剪——这一步已自动化：`pnpm dev` / `pnpm build`
+// 会先执行 `--if-needed` 模式，缺字才重新生成（生成的子集请随文章一起提交）。手动全量重建：
 //
 //   node scripts/generate-og-fonts.mjs
 //
@@ -49,22 +50,51 @@ async function ensureSource(file) {
   return buf;
 }
 
-// 收集所有文章 frontmatter 里的字符（含标题 / 简介 / 标签 / 作者 / 分类）。
-// 直接取整段 frontmatter，过度包含的只是全 ASCII 的字段名与 YAML 符号，无害。
+// 收集卡片可能绘制的全部字符：
+//  - 所有文章 frontmatter（标题 / 简介 / 标签 / 分类）。直接取整段，过度包含的只是 ASCII 字段名与 YAML 符号，无害；
+//  - 作者登记表里的显示名：frontmatter 的 author / editor 现在只写作者 id，名字在 src/data/authors.json。
 function collectPostChars() {
   let chars = '';
   for (const f of fs.readdirSync(postsDir)) {
     if (!f.toLowerCase().endsWith('.md')) continue;
     const raw = fs.readFileSync(path.join(postsDir, f), 'utf-8');
-    const fm = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    // 与 src/lib/seo/frontmatter.ts 一致：接受文件开头的 UTF-8 BOM
+    const fm = raw.replace(/^﻿/, '').match(/^---\r?\n([\s\S]*?)\r?\n---/);
     if (fm) chars += fm[1];
   }
+  try {
+    const registry = JSON.parse(fs.readFileSync(path.join(root, 'src/data/authors.json'), 'utf-8'));
+    for (const author of registry.authors ?? []) chars += String(author.name ?? '');
+  } catch {
+    /* 登记表不可读时由构建报错，这里不重复处理 */
+  }
   return chars;
+}
+
+// --if-needed：dev / build 前自动调用。已提交的子集覆盖了全部所需字符就什么都不做；
+// 新文章带来新字符时才重新裁剪（首次需要联网下载源字体，之后走 .cache）。
+// 该模式下任何失败都只告警、不阻断——最坏情况是 OG 卡片个别字渲染成 □，与以前相同。
+const ifNeeded = process.argv.includes('--if-needed');
+
+function missingChars(text) {
+  let coverage = '';
+  try {
+    coverage = fs.readFileSync(path.join(outDir, 'coverage.txt'), 'utf-8');
+  } catch {
+    return Array.from(new Set(text.split('')));
+  }
+  const covered = new Set(Array.from(coverage));
+  return Array.from(new Set(Array.from(text))).filter((ch) => !/\s/.test(ch) && !covered.has(ch));
 }
 
 async function main() {
   fs.mkdirSync(outDir, { recursive: true });
   const text = Array.from(new Set((CHROME + collectPostChars()).split(''))).join('');
+  if (ifNeeded) {
+    const missing = missingChars(text);
+    if (missing.length === 0) return;
+    console.log(`[og:fonts] 新文章带来 ${missing.length} 个未覆盖字符（${missing.slice(0, 20).join('')}…），自动重新裁剪字体子集`);
+  }
   console.log(`· 子集字符数：${text.length}`);
   for (const w of WEIGHTS) {
     const src = await ensureSource(w.file);
@@ -79,6 +109,10 @@ async function main() {
 }
 
 main().catch((e) => {
+  if (ifNeeded) {
+    console.warn(`[og:fonts] 自动重新裁剪失败，OG 卡片中的新字符可能显示为 □：${e && e.message ? e.message : e}`);
+    process.exit(0);
+  }
   console.error(e);
   process.exit(1);
 });

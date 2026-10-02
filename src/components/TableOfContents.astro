@@ -1,0 +1,112 @@
+---
+// 长文章节目录：由构建时渲染得到的真实标题 id 生成，锚点与正文完全一致。
+//
+// 用原生 <details> / <summary>：无 JavaScript 也能展开、键盘（Enter / Space）可操作、屏幕阅读器能读出展开状态。
+// 只收录 H2 与其下的 H3，排除脚注区的「注释」标题（它不是正文章节）。
+export interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+export interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+
+// 组装两级结构：H3 挂到最近的 H2 下
+interface Item {
+  slug: string;
+  text: string;
+  children: { slug: string; text: string }[];
+}
+const items: Item[] = [];
+for (const h of headings) {
+  if (h.slug === 'footnote-label') continue;
+  if (h.depth === 2) items.push({ slug: h.slug, text: h.text, children: [] });
+  else if (h.depth === 3 && items.length > 0) items[items.length - 1]?.children.push({ slug: h.slug, text: h.text });
+}
+---
+
+{
+  items.length > 0 && (
+    <nav class="post-toc" aria-labelledby="post-toc-title">
+      <details open>
+        <summary class="post-toc-summary">
+          <span id="post-toc-title">目录</span>
+        </summary>
+        <ol class="post-toc-list">
+          {items.map((item) => (
+            <li>
+              <a href={`#${item.slug}`}>{item.text}</a>
+              {item.children.length > 0 && (
+                <ol class="post-toc-sublist">
+                  {item.children.map((child) => (
+                    <li>
+                      <a href={`#${child.slug}`}>{child.text}</a>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </li>
+          ))}
+        </ol>
+      </details>
+    </nav>
+  )
+}
+
+<style>
+  .post-toc {
+    margin: 0 0 var(--s-6);
+    padding: var(--s-3) var(--s-4);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background-color: var(--surface);
+    min-width: 0;
+  }
+
+  .post-toc-summary {
+    display: flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    color: var(--ink);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    cursor: pointer;
+  }
+
+  .post-toc-list,
+  .post-toc-sublist {
+    margin: 0;
+    padding-left: var(--s-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+    min-width: 0;
+  }
+
+  .post-toc-list {
+    padding-bottom: var(--s-2);
+    font-size: var(--fs-sm);
+  }
+
+  .post-toc-sublist {
+    margin-top: var(--s-1);
+  }
+
+  .post-toc a {
+    color: var(--blue-600);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    transition: color var(--dur-1) var(--ease-standard);
+  }
+
+  .post-toc a:hover,
+  .post-toc a:focus-visible {
+    color: var(--pink-700);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>
