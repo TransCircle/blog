@@ -1,21 +1,33 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
+import {
+  ABOUT_PATH,
+  AUTHORS_PATH,
+  HOME_PATH,
+  SEARCH_PATH,
+  TAGS_PATH,
+  normalizePagePath,
+} from '@/lib/seo/url';
+import { ORG_URL } from '@/lib/seo/site';
 
+// 内链一律带尾斜杠（见 src/lib/seo/url.ts），否则每次点击都会先被 Cloudflare 308 一次
 const navLinks = [
-  { href: '/', label: '首页' },
-  { href: '/tags', label: '标签' },
-  { href: '/search', label: '搜索' },
+  { href: HOME_PATH, label: '首页' },
+  { href: TAGS_PATH, label: '标签' },
+  { href: AUTHORS_PATH, label: '作者' },
+  { href: SEARCH_PATH, label: '搜索' },
+  { href: ABOUT_PATH, label: '关于' },
 ];
 
-const currentPath = Astro.url.pathname;
-const isCurrent = (href: string) => href === '/tags'
-  ? currentPath === href || currentPath.startsWith('/tags/')
-  : currentPath === href;
+// 标签、作者这两个栏目下还有详情页（/tags/<标签>/、/authors/<id>/），在详情页里栏目本身也算当前项
+const SECTION_PATHS = new Set([TAGS_PATH, AUTHORS_PATH]);
+const currentPath = normalizePagePath(Astro.url.pathname);
+const isCurrent = (href: string) => (SECTION_PATHS.has(href) ? currentPath.startsWith(href) : currentPath === href);
 ---
 
 <header class="site-header" role="banner">
   <div class="header-container">
-    <a href="/" class="logo" aria-label="TransCircle Blog 首页">
+    <a href={HOME_PATH} class="logo" aria-label="TransCircle Blog 首页">
       <img class="logo-image logo-image-light" src="/brand/transcircle-horizontal-on-light.svg" width="400" height="120" alt="" aria-hidden="true" />
       <img class="logo-image logo-image-dark" src="/brand/transcircle-horizontal-on-dark.svg" width="400" height="120" alt="" aria-hidden="true" />
     </a>
@@ -42,7 +54,7 @@ const isCurrent = (href: string) => href === '/tags'
 
         <li>
           <a
-            href="https://transcircle.org"
+            href={ORG_URL}
             class="nav-link nav-link-external"
             target="_blank"
             rel="noopener noreferrer"
@@ -96,7 +108,7 @@ const isCurrent = (href: string) => href === '/tags'
       <ul class="mobile-nav-list">
         {navLinks.map((link) => (
           <li>
-            <a href={link.href} class="mobile-nav-link" aria-current={currentPath === link.href ? 'page' : undefined}>
+            <a href={link.href} class="mobile-nav-link" aria-current={isCurrent(link.href) ? 'page' : undefined}>
               {link.label}
             </a>
           </li>
@@ -107,7 +119,7 @@ const isCurrent = (href: string) => href === '/tags'
 
         <li>
           <a
-            href="https://transcircle.org"
+            href={ORG_URL}
             class="mobile-nav-link mobile-nav-link-external"
             target="_blank"
             rel="noopener noreferrer"
@@ -642,6 +654,14 @@ const isCurrent = (href: string) => href === '/tags'
     transition-delay: 200ms;
   }
 
+  .mobile-menu.is-open .mobile-nav-list li:nth-child(6) {
+    transition-delay: 240ms;
+  }
+
+  .mobile-menu.is-open .mobile-nav-list li:nth-child(7) {
+    transition-delay: 280ms;
+  }
+
   .mobile-nav-link {
     display: block;
     padding: var(--s-3) var(--s-4);
@@ -689,8 +709,8 @@ const isCurrent = (href: string) => href === '/tags'
     }
 
     /* 抽屉靠 JS 打开，所以「隐藏桌面导航 + 显示汉堡」这套只在有 JS 时成立。
-     * 无 JS 时保持导航链接可见（必要时换行），否则窄屏下首页/标签/搜索三个
-     * 入口会一起消失，整站在无 JS 下不可导航。 */
+     * 无 JS 时保持导航链接可见（必要时换行），否则窄屏下全部站内入口
+     * 会一起消失，整站在无 JS 下不可导航。 */
     :global(html.js) .main-nav {
       display: none;
     }
