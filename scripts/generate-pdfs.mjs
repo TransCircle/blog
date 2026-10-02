@@ -33,6 +33,7 @@ import { Resvg } from '@resvg/resvg-js';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const distDir = path.join(root, 'dist');
 const printDir = path.join(distDir, 'print');
+const SITE = 'https://blog.transcircle.org'; // 与 src/lib/seo/site.ts 的 SITE_ORIGIN 一致（脚本是纯 Node，不加载 TS）
 const cacheDir = path.join(root, '.cache/og-fonts-src'); // 复用 og:fonts 的字体源缓存
 const logoPath = path.join(root, 'src/assets/brand/transcircle-horizontal.svg');
 
@@ -241,15 +242,70 @@ async function main() {
   for (const slug of slugs) {
     const page = await browser.newPage();
     try {
+      // 导航只等到 DOM 就绪：迟迟不结束的图片请求会让 networkidle 永远等不到，在进入下面「缺图告警、照常生成」
+      // 之前就让整篇 PDF 失败。样式与字体再给一段有上限的网络空闲等待，图片交给后面逐张有界等待
       await page.goto(`http://127.0.0.1:${port}/print/${slug}/`, {
-        waitUntil: 'networkidle0',
+        waitUntil: 'domcontentloaded',
         timeout: 60000,
       });
+      await page.waitForNetworkIdle({ idleTime: 500, timeout: 20000 }).catch(() => undefined);
+      // 打印视图从本地 http://127.0.0.1:<port>/print/<slug>/ 打开：正文里的相对 / 根相对链接会解析到构建机，
+      // 写进 PDF 后读者点不开。按正式文章 URL 改写（纯页内锚点保留，PDF 内部跳转仍可用）；
+      // 文档相对的图片按文章页的路径（/posts/<slug>/）在本地重新定位，与网页上看到的是同一张图
+      await page.evaluate(
+        (postUrl, localPostUrl) => {
+          const hasScheme = (v) => /^[a-z][a-z0-9+.-]*:/i.test(v);
+          for (const a of document.querySelectorAll('a[href]')) {
+            const raw = a.getAttribute('href') ?? '';
+            if (raw.startsWith('#') || hasScheme(raw)) continue;
+            a.setAttribute('href', new URL(raw, postUrl).href);
+          }
+          const relocate = (raw) => (raw.startsWith('/') || hasScheme(raw) ? raw : new URL(raw, localPostUrl).href);
+          for (const img of document.querySelectorAll('img[src]')) {
+            img.setAttribute('src', relocate(img.getAttribute('src') ?? ''));
+          }
+          // 响应式图片的候选地址同样重定位：浏览器会优先从 srcset 里挑图（候选以「逗号 + 空白」分隔，地址后跟描述符）
+          for (const el of document.querySelectorAll('img[srcset], source[srcset]')) {
+            const candidates = (el.getAttribute('srcset') ?? '').split(/,\s+/).map((part) => {
+              const [url = '', ...descriptor] = part.trim().split(/\s+/);
+              return [relocate(url), ...descriptor].join(' ');
+            });
+            el.setAttribute('srcset', candidates.join(', '));
+          }
+        },
+        `${SITE}/posts/${encodeURIComponent(slug)}/`,
+        `http://127.0.0.1:${port}/posts/${encodeURIComponent(slug)}/`
+      );
       await page.addStyleTag({ content: fontCss });
       // 等内嵌字体就绪，避免首帧用回退字形
       await page.evaluate(async () => {
         if (document.fonts && document.fonts.ready) await document.fonts.ready;
       });
+      // 正文图片带 loading="lazy"：无头浏览器不滚动，屏幕外的图片永远不会加载，PDF 里就缺图。
+      // 改成立即加载并逐张有界等待解码；加载失败或超时的列入缺图告警（见下）
+      const broken = await page.evaluate(async () => {
+        const images = [...document.images];
+        for (const img of images) img.loading = 'eager';
+        // 每张图最多等 15 秒（加载 + 解码）：图床迟迟不结束响应时不能卡住整篇 PDF，超时的按缺图告警
+        const withDeadline = (promise) => Promise.race([promise, new Promise((resolve) => setTimeout(resolve, 15000))]);
+        await Promise.all(
+          images.map((img) =>
+            withDeadline(
+              (img.complete
+                ? Promise.resolve()
+                : new Promise((resolve) => {
+                    img.addEventListener('load', resolve, { once: true });
+                    img.addEventListener('error', resolve, { once: true });
+                  })
+              ).then(() => img.decode().catch(() => undefined))
+            )
+          )
+        );
+        return images.filter((img) => img.naturalWidth === 0).map((img) => img.currentSrc || img.src);
+      });
+      // 只告警、照常生成：一张图暂时加载失败（外链图床抖动等），不能让这篇 PDF 缺失、进而让整站部署失败——
+      // 读者拿到缺一张图的 PDF，好过网站不更新。构建日志里会列出来，方便作者修正
+      if (broken.length > 0) console.warn(`⚠ ${slug}：图片加载失败，PDF 中将缺图：${broken.join('、')}`);
       await page.pdf({
         path: path.join(printDir, `${slug}.pdf`),
         format: 'A4',
