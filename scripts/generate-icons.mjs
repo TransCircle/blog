@@ -75,10 +75,15 @@ function buildIco(images) {
 
 const OUTPUTS = [
   { file: 'favicon.png', size: 32 },
+  // Google 搜索结果的站点图标要求边长为 48 的倍数
+  { file: 'favicon-48x48.png', size: 48 },
+  { file: 'favicon-96x96.png', size: 96 },
   { file: 'icon-192.png', size: 192 },
   { file: 'icon-512.png', size: 512 },
   { file: 'icon-maskable.png', size: 512, scale: 0.78, bg: BG },
   { file: 'apple-touch-icon.png', size: 180, scale: 0.86, bg: BG },
+  // Windows 开始屏幕磁贴（public/browserconfig.xml 引用）
+  { file: 'mstile-150x150.png', size: 150, scale: 0.7 },
 ];
 
 fs.mkdirSync(outDir, { recursive: true });
