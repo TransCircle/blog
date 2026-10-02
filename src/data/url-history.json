@@ -1,0 +1,118 @@
+{
+  "$comment": "由 src/integrations/seo-files.ts 在 dev / build 时自动维护：记录所有发布过的文章与标签，用于自动生成 301。请随文章一起提交，不要手改。",
+  "posts": {
+    "反扭转媒体错用小言代词争议": "反扭转媒体错用小言代词之争议",
+    "chinese-punctuation-usage-standars": "「跨环」项目汉语文章标点符号规范",
+    "frontend-design-guide": "前端组件设计规范",
+    "HRT-choices-individual-differences": "跨性别女性 HRT 个体差异筛查与方案选择路径",
+    "hrt-hormone-blood-test-guide": "医院性激素血检实操指南",
+    "mtf-anti-androgen-guide": "女性向跨性别者抗雄方案选择指南",
+    "mtf-wiki-word-class": "MtF Wiki 在「通俗用语」的词性定义不准确？",
+    "project-kickoff": "项目启动与架构设计",
+    "re-issues-28": "回复：issues #28 关于项目定位",
+    "Xiaoyan-misgendering-business": "反扭转媒体错用小言代词之争议"
+  },
+  "slugs": {
+    "反扭转媒体错用小言代词争议": [],
+    "chinese-punctuation-usage-standars": [
+      "chinese-punctuation-usage-standars"
+    ],
+    "frontend-design-guide": [
+      "frontend-design-guide"
+    ],
+    "HRT-choices-individual-differences": [
+      "hrt-choices-individual-differences"
+    ],
+    "hrt-hormone-blood-test-guide": [
+      "hrt-hormone-blood-test-guide"
+    ],
+    "mtf-anti-androgen-guide": [
+      "mtf-anti-androgen-guide"
+    ],
+    "mtf-wiki-word-class": [
+      "mtf-wiki-word-class"
+    ],
+    "project-kickoff": [
+      "project-kickoff"
+    ],
+    "re-issues-28": [
+      "re-issues-28"
+    ],
+    "Xiaoyan-misgendering-business": [
+      "xiaoyan-misgendering-business",
+      "反扭转媒体错用小言代词争议"
+    ]
+  },
+  "renames": {
+    "反扭转媒体错用小言代词争议": "Xiaoyan-misgendering-business"
+  },
+  "tags": [
+    "Astro",
+    "GAHT",
+    "HRT",
+    "RE",
+    "a11y",
+    "architecture",
+    "astro",
+    "design-system",
+    "frontend",
+    "issues",
+    "setup",
+    "wiki",
+    "争议",
+    "公开",
+    "前端",
+    "历史记载",
+    "意见",
+    "扭转机构",
+    "抗雄",
+    "文章",
+    "文章规范",
+    "架构",
+    "标点符号",
+    "血检",
+    "规范",
+    "设计规范",
+    "词性",
+    "语言",
+    "语言学",
+    "路线图",
+    "问答",
+    "项目定位"
+  ],
+  "authors": [
+    "axzameyzed",
+    "epheia",
+    "epheiamoe",
+    "huantim7",
+    "liwanmiaohy",
+    "oakley-huang",
+    "transcircle-copywriting",
+    "transcircle-frontend",
+    "transcircle-team",
+    "transcircle-前端开发组",
+    "transcircle-文案组",
+    "transcircle-项目组",
+    "yangyanh5",
+    "幻兮纱",
+    "羽莉",
+    "翅膀"
+  ],
+  "tagRenames": {
+    "历史记载": "争议",
+    "HRT": "GAHT"
+  },
+  "retired": {},
+  "slugOwners": {
+    "反扭转媒体错用小言代词争议": "Xiaoyan-misgendering-business",
+    "chinese-punctuation-usage-standars": "chinese-punctuation-usage-standars",
+    "frontend-design-guide": "frontend-design-guide",
+    "hrt-choices-individual-differences": "HRT-choices-individual-differences",
+    "hrt-hormone-blood-test-guide": "hrt-hormone-blood-test-guide",
+    "mtf-anti-androgen-guide": "mtf-anti-androgen-guide",
+    "mtf-wiki-word-class": "mtf-wiki-word-class",
+    "project-kickoff": "project-kickoff",
+    "re-issues-28": "re-issues-28",
+    "xiaoyan-misgendering-business": "Xiaoyan-misgendering-business"
+  }
+}
