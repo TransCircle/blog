@@ -1,5 +1,6 @@
 ---
 import type { Person } from '@utils/posts';
+import { authorPath } from '@/lib/seo/url';
 
 export interface Props {
   /** 行首标签，如「作者：」「编辑：」 */
@@ -24,20 +25,11 @@ const { label, people } = Astro.props;
                 、
               </span>
             )}
-            {/* 没写 link 的署名渲染为纯文本：不做超链接，也就不会出现「点了却跳去主站」 */}
-            {person.link ? (
-              <a
-                class="person-link"
-                href={person.link}
-                target="_blank"
-                rel="nofollow noopener noreferrer"
-                data-confirm-link
-              >
-                {person.name}
-              </a>
-            ) : (
-              <span class="person-name">{person.name}</span>
-            )}
+            {/* 署名一律链到站内作者页（该署名的全部文章 + 个人主页链接），
+                让「谁写的」落在一个稳定的站内实体上（E-E-A-T），外部主页在作者页与 JSON-LD sameAs 中给出 */}
+            <a class="person-link" href={authorPath(person.id)} rel="author">
+              {person.name}
+            </a>
           </Fragment>
         ))}
       </span>
@@ -53,14 +45,6 @@ const { label, people } = Astro.props;
 
   .person-links-label {
     color: var(--text-muted);
-  }
-
-  /* 无链接的署名：不能用链接色（粉色会让人以为可点），走正文色 */
-  .person-name {
-    color: var(--text-body);
-    font-weight: 500;
-    overflow-wrap: anywhere;
-    word-break: break-word;
   }
 
   .person-link {

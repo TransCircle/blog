@@ -1,0 +1,88 @@
+{
+  "$comment": "作者登记表：文章 frontmatter 的 author / editor 只填这里的 id。id 用小写字母、数字、连字符或下划线，个人一般用 X 账号名（小写）；一经发布不要修改（它是作者页 URL /authors/<id>/）。字段说明见 docs/SEO.md「作者」。",
+  "authors": [
+    {
+      "id": "axzameyzed",
+      "name": "翅膀",
+      "type": "person",
+      "bio": "",
+      "links": {
+        "x": "https://x.com/axzameyzed"
+      },
+      "aliases": []
+    },
+    {
+      "id": "yangyanh5",
+      "name": "Oakley Huang",
+      "type": "person",
+      "bio": "",
+      "links": {
+        "x": "https://x.com/YangyanH5"
+      },
+      "aliases": ["羊圈Yan-Gyan"]
+    },
+    {
+      "id": "liwanmiaohy",
+      "name": "羽莉",
+      "type": "person",
+      "bio": "",
+      "links": {
+        "x": "https://x.com/liwanmiaohy"
+      },
+      "aliases": []
+    },
+    {
+      "id": "huantim7",
+      "name": "幻兮纱",
+      "type": "person",
+      "bio": "",
+      "links": {
+        "x": "https://x.com/huantim7"
+      },
+      "aliases": []
+    },
+    {
+      "id": "epheiamoe",
+      "name": "Epheia",
+      "type": "person",
+      "bio": "",
+      "links": {
+        "x": "https://x.com/epheiamoe",
+        "website": "https://desuwa.org"
+      },
+      "aliases": []
+    },
+    {
+      "id": "transcircle-team",
+      "name": "TransCircle 项目组",
+      "type": "team",
+      "bio": "跨环（TransCircle Project）项目组，负责项目整体规划、开发与运营。",
+      "links": {
+        "website": "https://transcircle.org/",
+        "github": "https://github.com/TransCircle"
+      },
+      "aliases": []
+    },
+    {
+      "id": "transcircle-copywriting",
+      "name": "TransCircle 文案组",
+      "type": "team",
+      "bio": "跨环项目文案组，负责写作规范、文章编辑与校对。",
+      "links": {
+        "website": "https://transcircle.org/"
+      },
+      "aliases": []
+    },
+    {
+      "id": "transcircle-frontend",
+      "name": "TransCircle 前端开发组",
+      "type": "team",
+      "bio": "跨环项目前端开发组，负责博客与各站点的界面、无障碍与设计规范落地。",
+      "links": {
+        "website": "https://transcircle.org/",
+        "github": "https://github.com/TransCircle"
+      },
+      "aliases": []
+    }
+  ]
+}

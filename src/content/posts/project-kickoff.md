@@ -2,7 +2,7 @@
 title: '项目启动与架构设计'
 description: 'TransCircle 博客项目正式启动，介绍整体架构设计和技术选型决策'
 pubDate: 2026-05-20
-author: 'TransCircle 项目组'
+author: transcircle-team
 category: '开发进度'
 tags: ['Astro', '架构', '设计规范', '路线图']
 contentLicense: 'CC-BY-SA-4.0'

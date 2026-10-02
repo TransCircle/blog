@@ -1,0 +1,208 @@
+---
+// 作者页（/authors/<作者 id>/）：一位作者（个人或团队）的简介、外部主页，以及写过与编辑过的全部文章。
+//
+// 作者信息全部来自登记表 src/data/authors.json：同一个人在所有文章、本页、JSON-LD（sameAs）里
+// 的名字与链接完全一致。站内作者页是 E-E-A-T 的核心信号：让搜索引擎与 AI 能把「谁写的」
+// 落到一个稳定的实体上（ProfilePage + Person）。只要文章署名了登记表里的 id，构建时就自动生成本页。
+import { byNewest } from '@utils/posts';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Layout from '@layouts/Layout.astro';
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
+import PostCard from '@components/PostCard.astro';
+import PageHeader from '@components/ui/PageHeader.astro';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
+import SectionLabel from '@components/ui/SectionLabel.astro';
+import { collectAuthors, type AuthorProfile } from '@utils/authors';
+import { LINK_LABELS, authorLinks, xHandle } from '@/lib/authors';
+import { itemListNode, personId, profilePageNodes } from '@/lib/seo/schema';
+import { postModified } from '@/lib/seo/git-dates';
+import { AUTHORS_PATH, HOME_PATH, absoluteUrl, authorPath, postPath } from '@/lib/seo/url';
+
+type Post = CollectionEntry<'posts'>;
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('posts'))
+    .filter((post: Post) => !post.data.draft)
+    .sort(byNewest);
+  return collectAuthors(posts).map((profile) => ({
+    params: { author: profile.author.id },
+    props: { profile },
+  }));
+}
+
+interface Props {
+  profile: AuthorProfile<Post>;
+}
+
+const { profile } = Astro.props;
+const { author, authored, edited, reviewed } = profile;
+const { id, name, bio } = author;
+
+const pageUrl = absoluteUrl(authorPath(id));
+const team = author.type === 'team';
+const links = authorLinks(author);
+const all = [...authored, ...edited, ...reviewed];
+const summary = [
+  authored.length > 0 ? `撰写 ${authored.length} 篇` : null,
+  edited.length > 0 ? `编辑 ${edited.length} 篇` : null,
+  reviewed.length > 0 ? `审阅 ${reviewed.length} 篇` : null,
+]
+  .filter(Boolean)
+  .join('，');
+const topics = [...new Set(all.map((post: Post) => post.data.category))];
+const titles = all.slice(0, 3).map((post: Post) => `《${post.data.title}》`).join('、');
+// 有简介时以简介开头；没有时用文章数与主题自动生成，保证每个作者页都有实质描述
+const description = `${bio ? `${bio} ` : ''}${name}在跨环博客（TransCircle Blog）${summary}文章，涉及${topics.join('、')}：${titles}${all.length > 3 ? '等' : ''}。`;
+
+const latest = all.map((post: Post) => postModified(post)).sort((a: Date, b: Date) => b.getTime() - a.getTime())[0];
+
+const breadcrumbs = [
+  { name: '首页', item: absoluteUrl('/') },
+  { name: '作者', item: absoluteUrl(AUTHORS_PATH) },
+  { name, item: pageUrl },
+];
+
+const schemas = [
+  ...profilePageNodes(pageUrl, author, { articles: authored.length, latest }),
+  itemListNode(
+    pageUrl,
+    `${name} 的文章`,
+    all.map((post: Post) => ({ url: absoluteUrl(postPath(post.slug)), name: post.data.title }))
+  ),
+];
+
+const hostOf = (url: string): string => {
+  try {
+    const u = new URL(url);
+    return `${u.hostname.replace(/^www\./, '')}${u.pathname === '/' ? '' : u.pathname}`;
+  } catch {
+    return url;
+  }
+};
+---
+
+<Layout
+  title={team ? name : `${name} 的文章`}
+  description={description}
+  pageType="ProfilePage"
+  author={name}
+  twitterCreator={xHandle(author)}
+  breadcrumbs={breadcrumbs}
+  updatedDate={latest}
+  mainEntityId={personId(id)}
+  additionalSchemas={schemas}
+>
+  <Header />
+
+  <main id="main-content" tabindex="-1" class="container is-wide">
+    <div class="page">
+      <div class="author-head">
+        <Breadcrumbs items={[{ name: '首页', href: HOME_PATH }, { name: '作者', href: AUTHORS_PATH }, { name }]} />
+
+        <PageHeader eyebrow={team ? '团队' : '作者'} title={name} description={bio || `在跨环博客${summary}文章`}>
+          {bio && <p class="author-stats">在跨环博客{summary}文章</p>}
+          {links.length > 0 && (
+            <ul class="author-links" aria-label={`${name} 的外部主页`}>
+              {links.map((link) => (
+                <li>
+                  <span class="author-link-kind">{LINK_LABELS[link.kind]}</span>
+                  <a href={link.url} target="_blank" rel="nofollow noopener noreferrer" data-confirm-link>
+                    {hostOf(link.url)}
+                    <span class="sr-only">（在新标签页打开）</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </PageHeader>
+      </div>
+
+      {authored.length > 0 && (
+        <section aria-labelledby="authored-heading">
+          <SectionLabel as="h2">
+            <span id="authored-heading">撰写的文章 · {authored.length}</span>
+          </SectionLabel>
+          <div class="posts-grid">
+            {authored.map((post: Post) => <PostCard post={post} />)}
+          </div>
+        </section>
+      )}
+
+      {reviewed.length > 0 && (
+        <section aria-labelledby="reviewed-heading">
+          <SectionLabel as="h2">
+            <span id="reviewed-heading">审阅的文章 · {reviewed.length}</span>
+          </SectionLabel>
+          <div class="posts-grid">
+            {reviewed.map((post: Post) => <PostCard post={post} />)}
+          </div>
+        </section>
+      )}
+
+      {edited.length > 0 && (
+        <section aria-labelledby="edited-heading">
+          <SectionLabel as="h2">
+            <span id="edited-heading">编辑的文章 · {edited.length}</span>
+          </SectionLabel>
+          <div class="posts-grid">
+            {edited.map((post: Post) => <PostCard post={post} />)}
+          </div>
+        </section>
+      )}
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .author-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    min-width: 0;
+  }
+
+  .author-links a {
+    color: var(--blue-600);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .author-links a:hover,
+  .author-links a:focus-visible {
+    color: var(--pink-700);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .author-stats {
+    margin: var(--s-2) 0 0;
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .author-links {
+    list-style: none;
+    margin: var(--s-3) 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-5);
+    min-width: 0;
+    font-size: var(--fs-sm);
+  }
+
+  .author-links li {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+    min-width: 0;
+  }
+
+  .author-link-kind {
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+</style>
