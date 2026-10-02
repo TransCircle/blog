@@ -1,10 +1,6 @@
-export const POSTS_PER_PAGE = 10;
-
-/** 作者 / 编辑署名条目：name 为显示文本；link 可选——没写就渲染为纯文本，不做跳转。 */
-export interface Person {
-  name: string;
-  link?: string;
-}
+/** 作者 / 编辑署名：来自作者登记表 src/data/authors.json（见 src/lib/authors.ts）。 */
+export type { Person } from '@/lib/authors';
+import type { Person } from '@/lib/authors';
 
 /**
  * 将作者 / 编辑列表拼接为纯文本，用于不渲染链接的场景
@@ -50,6 +46,17 @@ export function getAllTags(posts: Array<{ data: { tags: string[] } }>): string[]
   return Array.from(tagSet).sort();
 }
 
-export function getPostsByTag(posts: Array<{ data: { tags: string[] } }>, tag: string) {
+export function getPostsByTag<T extends { data: { tags: string[] } }>(posts: readonly T[], tag: string): T[] {
   return posts.filter((post) => post.data.tags.includes(tag));
+}
+
+/**
+ * 文章列表的统一排序：发布时间新的在前；同一天发布的按 slug 排，保证每次构建顺序一致
+ * （否则首页、Feed、llms 等产物会无谓地变动，上一篇 / 下一篇也可能前后跳）。
+ */
+export function byNewest(
+  a: { readonly slug: string; readonly data: { readonly pubDate: Date } },
+  b: { readonly slug: string; readonly data: { readonly pubDate: Date } }
+): number {
+  return b.data.pubDate.getTime() - a.data.pubDate.getTime() || a.slug.localeCompare(b.slug);
 }
