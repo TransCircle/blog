@@ -6,7 +6,8 @@ import PageHeader from '@components/ui/PageHeader.astro';
 
 // 搜索索引由 /search-index.json 端点在构建时生成（见 src/pages/search-index.json.ts），
 // 客户端通过 fetch 加载，无需在此页面内联生成。
-// 搜索页对检索结果无独立价值，标记 noindex 避免稀释索引信号（robots.txt 亦已 Disallow）。
+// 搜索页对检索结果无独立价值，标记 noindex 避免稀释索引信号。不在 robots.txt 里 Disallow：
+// 否则爬虫读不到 noindex，GSC 会报「已被 robots.txt 屏蔽」（_headers 另有 X-Robots-Tag）。
 ---
 
 <Layout title="搜索文章" description="在跨环博客中全文搜索文章标题、描述、正文与标签。" noindex={true}>
@@ -71,18 +72,8 @@ import PageHeader from '@components/ui/PageHeader.astro';
 
 <script>
   import Fuse, { type FuseResult } from 'fuse.js';
-
-  interface SearchItem {
-    id: string;
-    title: string;
-    description: string;
-    content: string;
-    category: string;
-    tags: string[];
-    author: string;
-    pubDate: string;
-    slug: string;
-  }
+  import { postPath, tagPath } from '@/lib/seo/url';
+  import { SEARCH_OPTIONS, type SearchItem } from '@/lib/search-options';
 
   let fuse: Fuse<SearchItem> | null = null;
   let indexFailed = false;
@@ -95,16 +86,7 @@ import PageHeader from '@components/ui/PageHeader.astro';
       }
       const searchData: SearchItem[] = await response.json();
 
-      fuse = new Fuse(searchData, {
-        keys: [
-          { name: 'title', weight: 3 },
-          { name: 'description', weight: 2 },
-          { name: 'content', weight: 1 },
-          { name: 'tags', weight: 2 },
-        ],
-        threshold: 0.4,
-        includeScore: true,
-      });
+      fuse = new Fuse(searchData, SEARCH_OPTIONS);
       indexFailed = false;
     } catch (error) {
       indexFailed = true;
@@ -169,7 +151,7 @@ import PageHeader from '@components/ui/PageHeader.astro';
         const tags = item.tags
           .map((tag: string) => {
             const safeTag = escapeHtml(tag);
-            return `<a href="/tags/${encodeURIComponent(tag)}/" class="tag-chip">#${safeTag}</a>`;
+            return `<a href="${tagPath(tag)}" class="tag-chip">#${safeTag}</a>`;
           })
           .join('');
 
@@ -180,7 +162,7 @@ import PageHeader from '@components/ui/PageHeader.astro';
               <time class="post-card-date" datetime="${escapeHtml(item.pubDate)}">${formatDate(item.pubDate)}</time>
             </div>
             <h3 class="post-card-title">
-              <a href="/posts/${encodeURIComponent(item.slug)}/">${escapeHtml(item.title)}</a>
+              <a href="${postPath(item.slug)}">${escapeHtml(item.title)}</a>
             </h3>
             ${item.description ? `<p class="post-card-desc">${escapeHtml(item.description)}</p>` : ''}
             <div class="post-card-foot">

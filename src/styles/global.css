@@ -619,6 +619,11 @@ hr {
   color: var(--text-secondary);
 }
 
+/* display: flex 会盖过 hidden 属性的 UA 样式：不显式收起的话，搜索页有结果时「未找到」仍然显示 */
+.empty-state[hidden] {
+  display: none;
+}
+
 .empty-state svg {
   color: var(--text-muted);
 }
