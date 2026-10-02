@@ -5,7 +5,12 @@ import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
 import PostCard from '@components/PostCard.astro';
 import PageHeader from '@components/ui/PageHeader.astro';
-import { getPostsByTag } from '@utils/posts';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
+import { getPostsByTag, byNewest } from '@utils/posts';
+import { tagDescription } from '@/data/tag-descriptions';
+import { itemListNode, itemListId } from '@/lib/seo/schema';
+import { HOME_PATH, TAGS_PATH, absoluteUrl, postPath, tagPath } from '@/lib/seo/url';
+import { postModified } from '@/lib/seo/git-dates';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
@@ -25,60 +30,54 @@ const { tag } = Astro.props;
 
 const posts = await getCollection('posts');
 const publishedPosts = posts.filter((post: CollectionEntry<'posts'>) => !post.data.draft);
-const taggedPosts = getPostsByTag(publishedPosts, tag).sort(
-  (a: CollectionEntry<'posts'>, b: CollectionEntry<'posts'>) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
-);
+const taggedPosts = getPostsByTag<CollectionEntry<'posts'>>(publishedPosts, tag).sort(byNewest);
 
-const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
-const tagURL = new URL(`/tags/${tag}/`, Astro.site).toString();
-const tagDescription = `跨环博客（TransCircle Blog）中标签为「${tag}」的全部文章，共 ${taggedPosts.length} 篇。`;
+const tagURL = absoluteUrl(tagPath(tag));
+const lede = tagDescription(
+  tag,
+  taggedPosts.map((post: CollectionEntry<'posts'>) => ({ title: post.data.title, category: post.data.category }))
+);
+const pageTitle = `${tag} 相关文章`;
 
 const breadcrumbs = [
-  { name: '首页', item: siteURL },
-  { name: '标签', item: `${siteURL}tags/` },
-  { name: `#${tag}`, item: tagURL },
+  { name: '首页', item: absoluteUrl('/') },
+  { name: '标签', item: absoluteUrl(TAGS_PATH) },
+  { name: tag, item: tagURL },
 ];
 
-const collectionSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'CollectionPage',
-  '@id': `${tagURL}#collection`,
-  url: tagURL,
-  name: `标签：${tag}`,
-  description: tagDescription,
-  isPartOf: { '@id': `${siteURL}#website` },
-  inLanguage: 'zh-CN',
-  mainEntity: {
-    '@type': 'ItemList',
-    numberOfItems: taggedPosts.length,
-    itemListElement: taggedPosts.map((post: CollectionEntry<'posts'>, i: number) => ({
-      '@type': 'ListItem',
-      position: i + 1,
-      url: `${siteURL}posts/${post.slug}/`,
-      name: post.data.title,
-    })),
-  },
-};
+// 该标签下最新文章的修改时间：作为本页的 dateModified
+const latestModified = taggedPosts
+  .map((post: CollectionEntry<'posts'>) => postModified(post))
+  .sort((a: Date, b: Date) => b.getTime() - a.getTime())[0];
+
+const listSchema = itemListNode(
+  tagURL,
+  pageTitle,
+  taggedPosts.map((post: CollectionEntry<'posts'>) => ({
+    url: absoluteUrl(postPath(post.slug)),
+    name: post.data.title,
+  }))
+);
 ---
 
 <Layout
-  title={`标签：${tag}`}
-  description={tagDescription}
+  title={pageTitle}
+  description={lede}
+  pageType="CollectionPage"
+  tags={[tag]}
   breadcrumbs={breadcrumbs}
-  additionalSchemas={[collectionSchema]}
+  updatedDate={latestModified}
+  mainEntityId={itemListId(tagURL)}
+  additionalSchemas={[listSchema]}
 >
   <Header />
 
   <main id="main-content" tabindex="-1" class="container is-wide">
     <div class="page">
       <div class="tag-head">
-        <nav class="tag-breadcrumb" aria-label="面包屑导航">
-          <a href="/tags" class="link-grow">标签</a>
-          <span aria-hidden="true">/</span>
-          <span aria-current="page">#{tag}</span>
-        </nav>
+        <Breadcrumbs items={[{ name: '首页', href: HOME_PATH }, { name: '标签', href: TAGS_PATH }, { name: tag }]} />
 
-        <PageHeader title={`#${tag}`} description={`共 ${taggedPosts.length} 篇文章`} />
+        <PageHeader eyebrow={`共 ${taggedPosts.length} 篇文章`} title={`#${tag}`} description={lede} />
       </div>
 
       <section aria-label="文章列表">
@@ -112,30 +111,4 @@ const collectionSchema = {
     min-width: 0;
   }
 
-  .tag-breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: var(--s-2);
-    flex-wrap: wrap;
-    min-width: 0;
-    font-size: var(--fs-sm);
-    color: var(--text-muted);
-  }
-
-  /* 标签名长度不可控，必须允许换行断行 */
-  .tag-breadcrumb [aria-current='page'] {
-    min-width: 0;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  /* 面包屑的链接是短拉丁/中文词、不会折行，可以用「下划线从左侧长入」（§5.2） */
-  .tag-breadcrumb a {
-    color: var(--blue-600);
-    text-decoration: none;
-  }
-
-  .tag-breadcrumb a:hover {
-    color: var(--pink-700);
-  }
 </style>

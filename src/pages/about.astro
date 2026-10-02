@@ -1,0 +1,210 @@
+---
+// 关于本站（/about/）：站点定位、编辑原则、授权与引用方式、机器可读入口，以及常见问题。
+//
+// 这是博客这一实体的权威说明页：搜索引擎的站点名称 / 知识面板、AI 回答「跨环博客是什么」
+// 都会优先取这类页面。FAQ 与 FAQPage 结构化数据共用 src/lib/seo/faq.ts 的同一份数据，
+// 页面可见内容与标记逐字一致（Google 结构化数据政策的硬性要求）。
+import Layout from '@layouts/Layout.astro';
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
+import PageHeader from '@components/ui/PageHeader.astro';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
+import { FAQ_ENTRIES } from '@/lib/seo/faq';
+import { faqId, faqPageNodes } from '@/lib/seo/schema';
+import {
+  CODE_LICENSE_NAME,
+  CODE_LICENSE_URL,
+  CONTENT_LICENSE_NAME,
+  CONTENT_LICENSE_URL,
+  JOIN_URL,
+  ORG_URL,
+  SITE_NAME,
+  SITE_NAME_EN,
+  SOURCE_REPOSITORY,
+} from '@/lib/seo/site';
+import { ABOUT_PATH, HOME_PATH, TAGS_PATH, absoluteUrl } from '@/lib/seo/url';
+
+const pageUrl = absoluteUrl(ABOUT_PATH);
+const title = '关于跨环博客';
+const description =
+  '跨环博客（TransCircle Blog）是跨环（TransCircle Project）的官方博客：面向中文 MtF 跨性别社群公开写作。本页介绍站点定位、编辑原则、授权与引用方式，并解答常见问题。';
+const breadcrumbs = [
+  { name: '首页', item: absoluteUrl('/') },
+  { name: '关于本站', item: pageUrl },
+];
+
+const machineReadable = [
+  { href: '/llms.txt', label: 'llms.txt', note: '站点索引与引用约定（面向大语言模型）' },
+  { href: '/llms-full.txt', label: 'llms-full.txt', note: '全部文章的完整正文' },
+  { href: '/rss.xml', label: 'RSS', note: '含全文的订阅源' },
+  { href: '/atom.xml', label: 'Atom', note: '含全文的订阅源' },
+  { href: '/feed.json', label: 'JSON Feed', note: '含全文的订阅源' },
+  { href: '/sitemap-index.xml', label: 'Sitemap', note: '全部可收录页面' },
+];
+---
+
+<Layout
+  title={title}
+  description={description}
+  pageType="AboutPage"
+  breadcrumbs={breadcrumbs}
+  mainEntityId={faqId(pageUrl)}
+  additionalSchemas={[faqPageNodes(pageUrl, FAQ_ENTRIES)]}
+>
+  <Header />
+
+  <main id="main-content" tabindex="-1" class="container">
+    <div class="page">
+      <div class="about-head">
+        <Breadcrumbs items={[{ name: '首页', href: HOME_PATH }, { name: '关于本站' }]} />
+        <PageHeader eyebrow="About" title={title} description={`${SITE_NAME} ${SITE_NAME_EN}`} />
+      </div>
+
+      <div class="article-content about-content">
+        <p>
+          跨环博客是<a href={ORG_URL}>跨环（TransCircle Project）</a>的官方博客。跨环是一个面向中文 MtF
+          跨性别社群的史官档案工程，致力于归档社群故事、记录抗争历史、团结同伴、争取跨性别权利；博客是它对外的公开写作站点。
+        </p>
+
+        <h2 id="topics">写什么</h2>
+        <ul>
+          <li><strong>跨性别医疗</strong>：性别肯定激素治疗（GAHT / HRT）的方案选择、抗雄药物、性激素血检与指标解读。</li>
+          <li><strong>社群语言与档案</strong>：社群用语辨析、事件记录与争议讨论。</li>
+          <li><strong>项目记录</strong>：跨环项目的定位、路线图、架构与设计规范、写作规范。</li>
+        </ul>
+        <p>
+          可以在<a href={HOME_PATH}>首页</a>按时间浏览全部文章，或从<a href={TAGS_PATH}>标签</a>按主题浏览。
+        </p>
+
+        <h2 id="principles">编辑原则</h2>
+        <ul>
+          <li>每篇文章署名作者与编辑，标注发布与更新日期。</li>
+          <li>医疗类文章整理自临床指南、同行评议文献与社群经验，逐条注明参考来源；它们帮助读者理解原理、准备就医，但<strong>不构成医疗建议</strong>。</li>
+          <li>事件记录尽量保留一手出处，并对当事人的隐私做必要处理。</li>
+          <li>
+            发现错误或过时内容，欢迎在 <a href={SOURCE_REPOSITORY} rel="nofollow noopener noreferrer">GitHub</a> 提交 Issue 或 Pull Request，修订会更新文章的「更新于」日期。
+          </li>
+        </ul>
+
+        <h2 id="license">授权与引用</h2>
+        <p>
+          文字内容默认采用 <a href={CONTENT_LICENSE_URL} rel="license nofollow noopener noreferrer">{CONTENT_LICENSE_NAME}</a>
+          （个别文章以文末标注为准），代码片段按文章标注的协议授权（通常为
+          <a href={CODE_LICENSE_URL} rel="license nofollow noopener noreferrer">{CODE_LICENSE_NAME}</a>）。转载、引用或摘要时请注明作者与「跨环博客（TransCircle
+          Blog）」，并附上原文链接——每篇文章末尾都有可直接复制的引用格式。
+        </p>
+
+        <h2 id="machine-readable">机器可读入口</h2>
+        <p>本站欢迎搜索引擎与 AI 系统检索、引用与训练，并提供以下入口：</p>
+        <ul>
+          {machineReadable.map((item) => (
+            <li>
+              <a href={item.href}>{item.label}</a>：{item.note}
+            </li>
+          ))}
+          <li>每篇文章的 Markdown 原文：在文章地址后加上 <code>index.html.md</code>（llms.txt 约定）。</li>
+        </ul>
+
+        <h2 id="join">参与</h2>
+        <p>
+          想投稿或参与项目，可以通过<a href={JOIN_URL}>主站申请表单</a>加入协作。
+        </p>
+      </div>
+
+      <section class="faq" aria-labelledby="faq-heading">
+        <h2 id="faq-heading" class="faq-heading">常见问题</h2>
+        <div class="faq-list">
+          {FAQ_ENTRIES.map((entry) => (
+            <details class="faq-item" id={`faq-${entry.id}`}>
+              <summary class="faq-question">{entry.question}</summary>
+              <p class="faq-answer">{entry.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .about-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    min-width: 0;
+  }
+
+  .about-content {
+    min-width: 0;
+  }
+
+  .faq {
+    min-width: 0;
+  }
+
+  .faq-heading {
+    margin: 0 0 var(--s-4);
+    font-size: var(--fs-h2);
+    line-height: var(--lh-heading);
+    color: var(--ink);
+  }
+
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--line);
+    min-width: 0;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid var(--line);
+    min-width: 0;
+  }
+
+  /* 原生 <details>：键盘（Enter / Space）与屏幕阅读器支持开箱即用，答案始终在 DOM 里 */
+  .faq-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    min-height: var(--tap-min);
+    padding: var(--s-3) 0;
+    color: var(--ink);
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+    cursor: pointer;
+    list-style: none;
+    transition: color var(--dur-1) var(--ease-standard);
+  }
+
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-question::after {
+    content: '+';
+    flex: none;
+    font-family: var(--font-tech);
+    font-size: var(--fs-lg);
+    color: var(--text-muted);
+    transition: transform var(--dur-2) var(--ease-standard);
+  }
+
+  .faq-item[open] > .faq-question::after {
+    transform: rotate(45deg);
+  }
+
+  .faq-question:hover {
+    color: var(--pink-700);
+  }
+
+  .faq-answer {
+    margin: 0 0 var(--s-4);
+    color: var(--text-secondary);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    overflow-wrap: anywhere;
+  }
+</style>

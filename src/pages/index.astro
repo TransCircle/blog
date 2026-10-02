@@ -1,59 +1,56 @@
 ---
+import { byNewest } from '@utils/posts';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
 import PostCard from '@components/PostCard.astro';
-import Pagination from '@components/Pagination.astro';
 import HomeHero from '@components/HomeHero.astro';
 import SectionLabel from '@components/ui/SectionLabel.astro';
 import Button from '@components/ui/Button.astro';
-import { POSTS_PER_PAGE, type Person } from '@utils/posts';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_NAME_EN } from '@/lib/seo/site';
+import { BLOG_ID, blogNode, itemListNode } from '@/lib/seo/schema';
+import { TAGS_PATH, absoluteUrl, postPath } from '@/lib/seo/url';
+import { postModified } from '@/lib/seo/git-dates';
 
-// 首页是静态路由，只渲染第 1 页；第 2 页及之后由 src/pages/page/[page].astro 负责
-const currentPage = 1;
-
+// 首页直接列出全部已发布文章，不分页：读者一屏就能看到站点写过什么，
+// 每篇文章也都能从首页一跳到达（对爬虫发现新文章最有利）。
 const posts = await getCollection('posts');
 const publishedPosts = posts
   .filter((post: CollectionEntry<'posts'>) => !post.data.draft)
-  .sort((a: CollectionEntry<'posts'>, b: CollectionEntry<'posts'>) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+  .sort(byNewest);
 
-const totalPages = Math.ceil(publishedPosts.length / POSTS_PER_PAGE);
-const paginatedPosts = publishedPosts.slice(0, POSTS_PER_PAGE);
+// 首页标题直接包含站名与定位：这是品牌词搜索时唯一的落地页
+const homeTitle = `${SITE_NAME} ${SITE_NAME_EN}｜中文 MtF 跨性别社群知识与项目记录`;
 
-const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
-const homeTitle = '跨环博客';
-const homeDescription =
-  '跨环（TransCircle Project）官方博客：记录项目进展、社群知识与跨性别议题，涵盖跨性别医疗（HRT）、社群语言与档案、技术与设计实践，服务于中文 MtF 跨性别社群。内容遵循 CC BY-SA 4.0，代码遵循 AGPL-3.0。';
-
-// Blog 结构化数据：列出最新文章，帮助搜索引擎与 AI 理解站点为「博客」实体及其文章集合
-const blogSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Blog',
-  '@id': `${siteURL}#blog`,
-  url: siteURL,
-  name: '跨环博客',
-  alternateName: 'TransCircle Blog',
-  description: homeDescription,
-  inLanguage: 'zh-CN',
-  publisher: { '@id': `${siteURL}#organization` },
-  blogPost: publishedPosts.slice(0, 20).map((post: CollectionEntry<'posts'>) => ({
-    '@type': 'BlogPosting',
-    headline: post.data.title,
-    url: `${siteURL}posts/${post.slug}/`,
-    datePublished: post.data.pubDate.toISOString(),
-    ...(post.data.updatedDate ? { dateModified: post.data.updatedDate.toISOString() } : {}),
-    ...(post.data.description ? { description: post.data.description } : {}),
-    author: post.data.author.map((a: Person) => ({
-      '@type': 'Person',
-      name: a.name,
-      ...(a.link ? { url: a.link } : {}),
-    })),
-  })),
-};
+// 结构化数据：站点即「博客」实体（Blog），本页列出的文章用 ItemList 表达；
+// 完整的 BlogPosting 在各文章页输出，这里不放缺字段的简要节点
+const homeUrl = absoluteUrl('/');
+const schemas = [
+  blogNode(),
+  itemListNode(
+    homeUrl,
+    '全部文章',
+    publishedPosts.map((post: CollectionEntry<'posts'>) => ({
+      url: absoluteUrl(postPath(post.slug)),
+      name: post.data.title,
+    }))
+  ),
+];
+const latestModified = publishedPosts
+  .map((post: CollectionEntry<'posts'>) => postModified(post))
+  .sort((a: Date, b: Date) => b.getTime() - a.getTime())[0];
 ---
 
-<Layout title={homeTitle} description={homeDescription} isHome={true} additionalSchemas={[blogSchema]}>
+<Layout
+  title={homeTitle}
+  description={SITE_DESCRIPTION}
+  isHome={true}
+  pageType="CollectionPage"
+  mainEntityId={BLOG_ID}
+  updatedDate={latestModified}
+  additionalSchemas={schemas}
+>
   <Header />
 
   {/* 列表页走内容轨（is-wide）：卡片网格与顶栏 / 页脚内条同宽同左缘 */}
@@ -62,11 +59,11 @@ const blogSchema = {
       <HomeHero />
 
       <section class="posts-section" aria-label="文章列表">
-        <SectionLabel as="h2">最新文章</SectionLabel>
+        <SectionLabel as="h2">全部文章 · {publishedPosts.length}</SectionLabel>
 
-        {paginatedPosts.length > 0 ? (
+        {publishedPosts.length > 0 ? (
           <div class="posts-grid">
-            {paginatedPosts.map((post: CollectionEntry<'posts'>) => (
+            {publishedPosts.map((post: CollectionEntry<'posts'>) => (
               <PostCard post={post} />
             ))}
           </div>
@@ -80,11 +77,9 @@ const blogSchema = {
             </svg>
             <h2 class="empty-state-title">暂无文章</h2>
             <p>新的记录正在写。先去标签页看看已有的主题吧。</p>
-            <Button variant="primary" href="/tags">浏览标签</Button>
+            <Button variant="primary" href={TAGS_PATH}>浏览标签</Button>
           </div>
         )}
-
-        <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl="/" />
       </section>
     </div>
   </main>

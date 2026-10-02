@@ -1,10 +1,33 @@
 ---
 import SectionLabel from './ui/SectionLabel.astro';
+import { ABOUT_PATH, AUTHORS_PATH, HOME_PATH, SEARCH_PATH, TAGS_PATH } from '@/lib/seo/url';
+import {
+  CODE_LICENSE_NAME,
+  CODE_LICENSE_URL,
+  CONTENT_LICENSE_NAME,
+  CONTENT_LICENSE_URL,
+  ORG_NAME,
+  ORG_URL,
+  SITE_FOUNDING_DATE,
+  SOURCE_REPOSITORY,
+} from '@/lib/seo/site';
 
 const currentYear = new Date().getFullYear();
+const foundingYear = Number(SITE_FOUNDING_DATE.slice(0, 4));
+const yearRange = currentYear > foundingYear ? `${foundingYear}–${currentYear}` : String(currentYear);
+
+// 站内导航：带尾斜杠（src/lib/seo/url.ts）。页脚在每一页都出现，是爬虫发现标签页、作者页与「关于」页的主要入口
+const navLinks = [
+  { label: '首页', href: HOME_PATH },
+  { label: '标签', href: TAGS_PATH },
+  { label: '作者', href: AUTHORS_PATH },
+  { label: '搜索', href: SEARCH_PATH },
+  { label: '关于本站', href: ABOUT_PATH },
+];
 
 const footerLinks = [
   { label: 'RSS', href: '/rss.xml' },
+  { label: 'Atom', href: '/atom.xml' },
   { label: 'Sitemap', href: '/sitemap-index.xml' },
 ];
 
@@ -22,7 +45,7 @@ const friendLinks = [
   <div class="footer-container">
     <div class="footer-main">
       <div class="footer-brand">
-        <a href="/" class="footer-logo" aria-label="TransCircle Blog">
+        <a href={HOME_PATH} class="footer-logo" aria-label="TransCircle Blog">
           <img class="footer-logo-image footer-logo-light" src="/brand/transcircle-horizontal-on-light.svg" width="400" height="120" alt="" aria-hidden="true" />
           <img class="footer-logo-image footer-logo-dark" src="/brand/transcircle-horizontal-on-dark.svg" width="400" height="120" alt="" aria-hidden="true" />
         </a>
@@ -32,9 +55,9 @@ const friendLinks = [
       <div class="footer-section">
         <SectionLabel as="h3">导航</SectionLabel>
         <ul class="footer-links">
-          <li><a href="/">首页</a></li>
-          <li><a href="/tags">标签</a></li>
-          <li><a href="/search">搜索</a></li>
+          {navLinks.map((link) => (
+            <li><a href={link.href}>{link.label}</a></li>
+          ))}
         </ul>
       </div>
 
@@ -43,7 +66,7 @@ const friendLinks = [
         <ul class="footer-links">
           {friendLinks.map((link) => (
             <li>
-              <a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
+              <a href={link.href} target="_blank" rel="nofollow noopener noreferrer">{link.label}</a>
             </li>
           ))}
         </ul>
@@ -56,7 +79,10 @@ const friendLinks = [
             <li><a href={link.href}>{link.label}</a></li>
           ))}
           <li>
-            <a href="https://transcircle.org" target="_blank" rel="noopener noreferrer">主站</a>
+            <a href={SOURCE_REPOSITORY} target="_blank" rel="nofollow noopener noreferrer">源代码</a>
+          </li>
+          <li>
+            <a href={ORG_URL} target="_blank" rel="noopener noreferrer">主站</a>
           </li>
         </ul>
       </div>
@@ -64,7 +90,9 @@ const friendLinks = [
 
     <div class="footer-bottom">
       <p class="footer-copyright">
-        © {currentYear} TransCircle. AGPL-3.0 License.
+        © {yearRange} <a href={ORG_URL}>{ORG_NAME}</a> · 内容
+        <a href={CONTENT_LICENSE_URL} rel="license nofollow noopener noreferrer">{CONTENT_LICENSE_NAME}</a> · 代码
+        <a href={CODE_LICENSE_URL} rel="license nofollow noopener noreferrer">{CODE_LICENSE_NAME}</a>
       </p>
       {/* 给 AI 抓取器的结构化上下文入口。不放 emoji 装饰（§1.6），标签用 --font-tech */}
       <p class="footer-ai-agent">
@@ -198,8 +226,21 @@ const friendLinks = [
     font-family: var(--font-tech);
     font-size: var(--fs-xs);
     text-align: center;
-    white-space: nowrap;
-    flex-shrink: 0;
+    /* 协议信息变长后允许换行：窄屏不能撑出横向滚动 */
+    overflow-wrap: break-word;
+  }
+
+  .footer-copyright a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: 3px;
+    transition: color var(--dur-1) var(--ease-standard);
+  }
+
+  .footer-copyright a:hover,
+  .footer-copyright a:focus-visible {
+    color: var(--pink-700);
   }
 
   .footer-ai-agent {

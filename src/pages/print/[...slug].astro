@@ -21,6 +21,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import FootnotePopover from '@components/FootnotePopover.astro';
 import { formatDate, formatPeople, countWords } from '@utils/posts';
+import { isLaterDay, postModified } from '@/lib/seo/git-dates';
 import logoSvg from '../../assets/brand/transcircle-horizontal.svg?raw';
 
 export async function getStaticPaths() {
@@ -43,7 +44,6 @@ const {
   title,
   description,
   pubDate,
-  updatedDate,
   author,
   editor,
   category,
@@ -57,7 +57,9 @@ const wordCount = countWords(post.body || '');
 const authorText = formatPeople(author);
 const editorText = formatPeople(editor);
 const formattedDate = formatDate(pubDate);
-const formattedUpdated = updatedDate ? formatDate(updatedDate) : null;
+// 「更新于」与文章页同口径（src/lib/seo/git-dates.ts）
+const modified = postModified(post);
+const formattedUpdated = isLaterDay(modified, pubDate) ? formatDate(modified) : null;
 
 const siteURL = Astro.site ? Astro.site.toString() : 'https://blog.transcircle.org/';
 const canonical = new URL(`/posts/${post.slug}/`, siteURL).toString();
